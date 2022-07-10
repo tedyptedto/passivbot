@@ -1,3 +1,13 @@
+# sample run : python3 start_opti_mono_coin.py  ../configs/optimize/harmony_search.hjson --coin_list=XRPUSDT,BATUSDT --nb_days=30 --iters=50 --n_cpus=2 --grid_span=[0.05,0.20] --min_markup=[0.05,0.05] --markup_range=[0.0,0.01] -oh
+# coin by coin
+#       will create a fake configuration in : ../configs/optimize/_*.hjson
+#       will run the harmony optimisation
+#       will use choose the good config with inspect_opt_results.py (PAD 0.02)
+#       then backtest the config
+#       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
+#       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the best config)
+
+
 import argparse
 import os
 from pickle import FALSE, TRUE
