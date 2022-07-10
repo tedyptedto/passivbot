@@ -126,7 +126,7 @@ for key in array_args:
     if (key in not_needed):
         continue
 
-    new_opti_config_name += key + str(re.sub(r'[^a-z0-9,.]','', str(array_args[key]), flags=re.IGNORECASE)) + "_"
+    new_opti_config_name += str(re.sub(r'[^a-z0-9,.]','', str(array_args[key]), flags=re.IGNORECASE)) + key + "_"
 orig_opti_config_name = new_opti_config_name
 new_opti_config_name = os.path.dirname(args.optimize_config_filepath) + '/_' + new_opti_config_name + ".hjson"
 
@@ -266,6 +266,18 @@ for coin in args.coin_list:
     latest_result = os.path.realpath(latest_result)
 
     shutil.copy(latest_result, dir_to_save + '/result.txt')
+
+
+    other_files_to_copy = [
+                        'balance_and_equity_sampled_long.png',
+                        'balance_and_equity_sampled_short.png',
+                        'whole_backtest_long.png',
+                        'whole_backtest_short.png',
+    ]
+
+    for src in other_files_to_copy:
+        shutil.copy(os.path.dirname(latest_result) + '/' + src, dir_to_save + '/' + src)
+
 
 
     os.unlink(new_opti_config_name)
