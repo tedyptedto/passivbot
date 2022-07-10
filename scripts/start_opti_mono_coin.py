@@ -1,4 +1,5 @@
-# sample run : python3 start_opti_mono_coin.py  ../configs/optimize/harmony_search.hjson --coin_list=XRPUSDT,BATUSDT --nb_days=30 --iters=50 --n_cpus=2 --grid_span=[0.05,0.20] --min_markup=[0.05,0.05] --markup_range=[0.0,0.01] -oh
+# sample run : 
+# python3 start_opti_mono_coin.py  ../configs/optimize/harmony_search.hjson --coin_list=XRPUSDT --nb_days=900 --iters=100 --n_cpus=6 --grid_span=[0.05,0.20] --min_markup=[0.05,0.05] --markup_range=[0.0,0.01] -oh
 # coin by coin
 #       will create a fake configuration in : ../configs/optimize/_*.hjson
 #       will run the harmony optimisation
@@ -234,8 +235,13 @@ for coin in args.coin_list:
                                 "python3", "backtest.py", 
                                 "-s", coin,
                                 "-sd", start_date,  
-                                "-ed", end_date,
-                                best_config_dest]
+                                "-ed", end_date]
+
+    if args.ohlc:
+        command_line.append("-oh") 
+    
+    command_line.append(best_config_dest) 
+
 
     try:
         print(' '.join(command_line))
