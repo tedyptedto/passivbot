@@ -82,7 +82,7 @@ def arguments_management():
     parser.add_argument("-t",
                         dest="t_config",
                         type=str, required=False, default='',
-                        help="optimizer STARTING_CONFIGS, %COIN% will be replaced by coin name"
+                        help="optimizer STARTING_CONFIGS, %%COIN%% will be replaced by coin name"
     )
 
     for field in config_overriding:
