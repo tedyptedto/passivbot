@@ -79,6 +79,12 @@ def arguments_management():
                         action="store_true"
     )
 
+    parser.add_argument("-t",
+                        dest="t_config",
+                        type=str, required=False, default='',
+                        help="optimizer STARTING_CONFIGS, %COIN% will be replaced by coin name"
+    )
+
     for field in config_overriding:
         parser.add_argument("--"+field,
                             type=str, required=True, dest=field, default="",
@@ -186,6 +192,15 @@ for coin in args.coin_list:
                             # ,
                             # "-bd", optimize_directory 
                             ]
+                            
+    rebuilded_t_config = args.t_config.replace('%COIN%', coin)
+    if len(rebuilded_t_config) > 0:
+        if not os.path.exists(rebuilded_t_config):
+            rebuilded_t_config = "./../" + rebuilded_t_config
+        if os.path.exists(rebuilded_t_config):
+            command_line.append("-t")
+            command_line.append(os.path.realpath(rebuilded_t_config))    
+
     if args.ohlc:
         command_line.append("-oh") 
 
