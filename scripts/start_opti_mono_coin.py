@@ -5,8 +5,15 @@
 #       will use choose the good config with inspect_opt_results.py (PAD 0.02)
 #       then backtest the config
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
-#       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the best config)
+#       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
+# @TODO : in folder, add the pnl ?
+# @TODO : add parameter to choose the grid type (helpfull to avoid changing default json config file)
+# @TODO : add the difference between, recursive or static grid (or neat)
+# @TODO : add the Wallet exposure settings (see in command line the parameters)
+# @TODO : add the start balance settings (see in command line the parameters)
+# @TODO : why not read a config file ? To avoid multiples parameters 
+# @TODO : Copy all the backtest directory results ? 
 
 import argparse
 import os
@@ -255,7 +262,7 @@ for coin in args.coin_list:
     shutil.copy(latest_result, dir_to_save + '/result.txt')
 
 
-
+    os.unlink(new_opti_config_name)
 
 
 
