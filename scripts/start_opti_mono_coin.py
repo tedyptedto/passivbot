@@ -127,7 +127,7 @@ args = arguments_management()
 # creation et copie du nouveau fichier de configuration
 new_opti_config_name = ""
 array_args = vars(args)
-not_needed = ['coin_list', 'ohlc', 'n_cpus', 'optimize_config_filepath']
+not_needed = ['coin_list', 'ohlc', 'n_cpus', 'optimize_config_filepath', 't_config']
 for key in array_args:
     if (key in not_needed):
         continue
