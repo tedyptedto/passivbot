@@ -116,12 +116,16 @@ for file in files:
     n_days              = bt['result']['n_days']
     hrs_stuck_avg_long  = bt['result']['hrs_stuck_avg_long']
     hrs_stuck_max_long  = bt['result']['hrs_stuck_max_long']
+    n_entries_long      = bt['result']['n_entries_long']
+    n_unstuck_entries_long  = bt['result']['n_unstuck_entries_long']
+    n_unstuck_closes_long  = bt['result']['n_unstuck_closes_long']
+    loss_sum_long  = bt['result']['loss_sum_long']
     adg_perct           = (bt['result']['average_daily_gain']*100) if ('average_daily_gain' in bt['result']) else bt['result']['adg_long']*100
     gain_pct            = (bt['result']['gain']*100)  if ('gain' in bt['result']) else  bt['result']['gain_long']*100
+    starting_balance    = bt['result']['starting_balance']
     closest_bkr         = (bt['result']['closest_bkr']) if ('closest_bkr' in bt['result']) else (bt['result']['closest_bkr_long'])
 
-    gain_dollard = bt['result']['net_pnl_plus_fees_long']
-
+    gain_dollard = bt['result']['final_balance_long'] -  bt['result']['starting_balance']
 
 
     if (closest_bkr < args.min_closest_bkr) :
@@ -133,17 +137,8 @@ for file in files:
     if (hrs_stuck_max_long > args.max_stuck) :
         continue
     
-    if (gain_dollard < args.min_gain) :
+    if (gain_pct < args.min_gain) :
         continue
-
-    if (n_days < args.min_days) :
-        continue
-
-
-
-
-
-
 
 
     datas = {}
@@ -151,9 +146,14 @@ for file in files:
     datas['n_days']                 = n_days
     datas['hrs_stuck_avg_long']     = hrs_stuck_avg_long
     datas['hrs_stuck_max_long']     = hrs_stuck_max_long
+    datas['n_entries_long']     = n_entries_long
+    datas['n_unstuck_entries_long']     = n_unstuck_entries_long
+    datas['n_unstuck_closes_long']     = n_unstuck_closes_long
+    datas['loss_sum_long']     = loss_sum_long
     datas['adg %']                  = adg_perct
     datas['gain %']                 = gain_pct
     datas['total gain $']                 = gain_dollard
+    datas['starting balance']       = starting_balance
     datas['closest bkr']            = closest_bkr
     
     
