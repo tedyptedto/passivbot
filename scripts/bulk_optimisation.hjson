@@ -7,8 +7,8 @@ coin_list : [
     {coin : "ADAUSDT"},
     // other samples :
     // {coin : "XRPUSDT,ADAUSDT,BTCUSDT"}, # Allow multi coin optimize
-    // {coin : "MATICUSDT", harmony_starting_config : "configs/live/opti/matic/hm_010032.json"},
-    // {coin : "BTCCUSDT",  harmony_starting_config : "configs/live/opti/btc/hm_0154644.json"},
+    // {coin : "MATICUSDT", harmony_starting_config : "../configs/live/opti/matic/hm_010032.json"},
+    // {coin : "BTCCUSDT",  harmony_starting_config : "../configs/live/opti/btc/hm_0154644.json"},
 ]
 "override_bt_and_opti" : {
     starting_balance : 100,
