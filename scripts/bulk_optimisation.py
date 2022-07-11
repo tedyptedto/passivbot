@@ -37,6 +37,11 @@ pbso_dir  = os.path.realpath("./../configs/live/PBSO/")
 if not os.path.exists(pbso_dir):
      os.makedirs(pbso_dir)
 
+
+# run timing
+e = datetime.datetime.now()
+starting_script = e.strftime("%Y%m%d%H%M%S")
+
 # ------------------------------------------------------------
 #             Manage command line parameters  
 # ------------------------------------------------------------
@@ -179,6 +184,17 @@ for coin in coin_list:
                             "-b", backtest_config
                             ]
     if ('harmony_starting_config' in coin):
+
+        coin['harmony_starting_config'] = coin['harmony_starting_config'].replace('%COIN%', coin['coin'])
+
+        if not os.path.exists(a_coin['harmony_starting_config']):
+            exit("Sorry but this file doesn't exist : a_coin['harmony_starting_config']")
+
+        a_coin['harmony_starting_config'] = os.path.realpath(coin['harmony_starting_config'])
+        print('harmony_starting_config renamed in :', a_coin['harmony_starting_config'])
+
+
+
         command_line.append("-t")
         command_line.append(os.path.realpath(coin['harmony_starting_config']).replace('%COIN%', coin['coin']))    
 
@@ -219,7 +235,7 @@ for coin in coin_list:
     except subprocess.TimeoutExpired:
         print('Timeout Reached  seconds)')
 
-    dir_to_save = pbso_dir + "/" + coin['coin'] + "_" + md5_name + "/"
+    dir_to_save = pbso_dir + "/" + coin['coin'] + "_" + starting_script + "_" + md5_name[0:5] + "/"
     if not os.path.exists(dir_to_save):
         os.makedirs(dir_to_save)
 
