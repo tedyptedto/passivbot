@@ -179,7 +179,7 @@ for coin in coin_list:
                             ]
     if ('harmony_starting_config' in coin):
         command_line.append("-t")
-        command_line.append(os.path.realpath(coin['harmony_starting_config']))    
+        command_line.append(os.path.realpath(coin['harmony_starting_config']).replace('%COIN%', coin['coin']))    
 
     if bo_config['override_bt_and_opti']['ohlc']:
         command_line.append("-oh") 
