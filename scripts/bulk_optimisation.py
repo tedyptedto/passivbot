@@ -270,7 +270,9 @@ for coin in coin_list:
     ]
 
     for src in other_files_to_copy:
-        shutil.copy(os.path.dirname(latest_result) + '/' + src, dir_to_save + '/' + src)
+        src_file = os.path.dirname(latest_result) + '/' + src
+        if os.path.exists(src_file):
+            shutil.copy(src_file, dir_to_save + '/' + src)
     
     shutil.copy(harmony_config, dir_to_save + '/')
     shutil.copy(backtest_config, dir_to_save + '/')
@@ -281,6 +283,6 @@ for coin in coin_list:
 os.unlink(harmony_config)
 os.unlink(backtest_config)
 
-
+print('All Results files are stored in this directory : ', pbso_dir)
 
 
