@@ -8,6 +8,7 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
+# @TODO : Create a Lock, to avoid multiples run at same time.
 # @TODO : in high level folder, add the difference between, recursive or static grid (or neat)
 # @TODO : Where to add the PNL 
 
@@ -195,7 +196,7 @@ for coin in coin_list:
 
 
     # find the last file all_results.txt (must be the new one created)
-    list_of_files = glob.glob("./../results_harmony_*/*/all_results.txt", recursive=True)
+    list_of_files = glob.glob("./../results_harmony_*/*_" + coin['coin'].upper() + "/all_results.txt", recursive=True)
     latest_file = max(list_of_files, key=os.path.getctime)
     latest_file = os.path.realpath(latest_file)
 
@@ -255,7 +256,7 @@ for coin in coin_list:
     #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/result.txt
 
     # find the last file  (must be the new one created)
-    list_of_files = glob.glob("./../backtests/*/*/*/*/backtest_result.txt", recursive=True)
+    list_of_files = glob.glob("./../backtests/*/*" + coin['coin'].upper() + "*/plots/*/backtest_result.txt", recursive=True)
     latest_result = max(list_of_files, key=os.path.getctime)
     latest_result = os.path.realpath(latest_result)
 
