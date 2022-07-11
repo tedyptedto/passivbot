@@ -8,13 +8,11 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-# @TODO : in folder, add the pnl ?
-# @TODO : add parameter to choose the grid type (helpfull to avoid changing default json config file)
-# @TODO : add the difference between, recursive or static grid (or neat)
-# @TODO : add the Wallet exposure settings (see in command line the parameters)
-# @TODO : add the start balance settings (see in command line the parameters)
-# @TODO : why not read a config file ? To avoid multiples parameters 
-# @TODO : Copy all the backtest directory results ? 
+# @TODO : read a json config file to include complex logical 
+#           sample in config/start_opti_mono_coin.sample.hjson
+#           can be specified in parameters
+# @TODO : in high level folder, add the difference between, recursive or static grid (or neat)
+# @TODO : Where to add the PNL ?
 
 import argparse
 import os
