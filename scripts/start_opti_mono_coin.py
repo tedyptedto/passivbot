@@ -12,7 +12,8 @@
 #           sample in config/start_opti_mono_coin.sample.hjson
 #           can be specified in parameters
 # @TODO : in high level folder, add the difference between, recursive or static grid (or neat)
-# @TODO : Where to add the PNL ?
+# @TODO : Where to add the PNL 
+# #TODO : Dans le PDSO copier aussi le fichier de config source pour trouver la strategie
 
 import argparse
 import os
@@ -293,7 +294,7 @@ for coin in args.coin_list:
 
 
 
-    os.unlink(new_opti_config_name)
+os.unlink(new_opti_config_name)
 
 
 
