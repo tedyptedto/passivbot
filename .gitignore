@@ -376,3 +376,4 @@ results_harmony_search_static_grid
 tmp/hand_tuned.json
 configs/live/PBSO
 configs/optimize/_*.hjson
+configs/backtest/_*.hjson

@@ -1,25 +1,27 @@
 {
 "harmony_config_file" : "../configs/optimize/harmony_search.hjson"
 "backtest_config_file" : "../configs/backtest/default.hjson"
+
 coin_list : [
     {coin : "XRPUSDT"},
     {coin : "ADAUSDT"},
-    {coin : "XRPUSDT,ADAUSDT,BTCUSDT"}, # Allow multi coin optimize
-    {coin : "MATICUSDT", harmony_starting_config : "configs/live/opti/matic/hm_010032.json"},
-    {coin : "BTCCUSDT",  harmony_starting_config : "configs/live/opti/btc/hm_0154644.json"},
+    // other samples :
+    // {coin : "XRPUSDT,ADAUSDT,BTCUSDT"}, # Allow multi coin optimize
+    // {coin : "MATICUSDT", harmony_starting_config : "configs/live/opti/matic/hm_010032.json"},
+    // {coin : "BTCCUSDT",  harmony_starting_config : "configs/live/opti/btc/hm_0154644.json"},
 ]
-"override_bt_opti" : {
-    nb_days : 900,
+"override_bt_and_opti" : {
+    starting_balance : 100,
+    ohlc : true, # or false
+    nb_days : 30,
     # you can set nb_days, or start_date & end_date
     # start_date : 2021-01-01,  
     # end_date : 2022-01-01,
-    ohlc : true, # or false
-    starting_balance : 10000,
 }
 "override_harmony_config" : {
     # allow to subdefine all parameters
     passivbot_mode: static_grid
-    iters : 100,
+    iters : 20,
     n_cpus : 6,
     "strategies_long_and_short" : {
         grid_span : [0.05,0.20],
