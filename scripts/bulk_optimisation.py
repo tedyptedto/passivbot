@@ -188,7 +188,8 @@ for coin in coin_list:
         coin['harmony_starting_config'] = coin['harmony_starting_config'].replace('%COIN%', coin['coin'])
 
         if not os.path.exists(coin['harmony_starting_config']):
-            exit("Sorry but this file doesn't exist : " , coin['harmony_starting_config'])
+            print("Sorry but this file doesn't exist : " , coin['harmony_starting_config'])
+            exit()
 
         coin['harmony_starting_config'] = os.path.realpath(coin['harmony_starting_config'])
         print('harmony_starting_config renamed in :', coin['harmony_starting_config'])
