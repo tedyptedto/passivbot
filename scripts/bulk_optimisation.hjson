@@ -24,10 +24,15 @@ coin_list : [
     iters : 20,
     n_cpus : 6,
     "strategies_long_and_short" : {
-        grid_span : [0.05,0.20],
+        grid_span : [0.99,0.99],
         min_markup : [0.05,0.05],
         markup_range : [0.0,0.01],
+    },
+    "strategies_long" : {
+        wallet_exposure_limit: [0.3, 0.3]
+    },
+    "strategies_short" : {
         wallet_exposure_limit: [0.1, 0.1]
-    }
+    },
 }
 }

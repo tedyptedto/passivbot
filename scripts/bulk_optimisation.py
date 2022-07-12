@@ -122,32 +122,30 @@ for key in bo_config['override_bt_and_opti']:
     if (key in new_config_hjson):
         new_config_hjson[key]  = bo_config['override_bt_and_opti'][key]
 
+#strategies group, not main config
+bo_strat_groups = ["strategies_long_and_short","strategies_long","strategies_short"]
+
+
 # override basic setting in "override_harmony_config"
 for key in bo_config['override_harmony_config']:
-    if (key == "strategies_long_and_short"):
+    if (key in bo_strat_groups):
         continue
     if (key in new_config_hjson):
         new_config_hjson[key]  = bo_config['override_harmony_config'][key]
 
-# override section "strategies_long_and_short"
-for key in bo_config['override_harmony_config']['strategies_long_and_short']:
-    value = bo_config['override_harmony_config']['strategies_long_and_short'][key]
-    if (key in new_config_hjson):
-        new_config_hjson[key]  = value
+# override section "strategies_long_and_short" "strategies_long" "strategies_short"
+pb_grids = ['bounds_static_grid', 'bounds_recursive_grid', 'bounds_neat_grid']
 
-    if ('bounds_static_grid' in new_config_hjson):
-        new_config_hjson['bounds_static_grid']['long'][key] = value
-        new_config_hjson['bounds_static_grid']['short'][key] = value
-
-    if ('bounds_recursive_grid' in new_config_hjson):
-        new_config_hjson['bounds_recursive_grid']['long'][key] = value
-        new_config_hjson['bounds_recursive_grid']['short'][key] = value
-
-    if ('bounds_neat_grid' in new_config_hjson):
-        new_config_hjson['bounds_neat_grid']['long'][key] = value
-        new_config_hjson['bounds_neat_grid']['short'][key] = value
-
-
+for bo_strat_group in bo_strat_groups: # loop in strategie bulk group 
+    if bo_strat_group in bo_config['override_harmony_config']: # if group exist
+        for key in bo_config['override_harmony_config'][bo_strat_group]: # loop on key / value of the group
+            value = bo_config['override_harmony_config'][bo_strat_group][key]
+            for grid in pb_grids: # loop on the passivbot possible grids
+                if (grid in new_config_hjson): # grid finded
+                    if bo_strat_group in ["strategies_long_and_short","strategies_long"]: # For short ?
+                        new_config_hjson[grid]['long'][key] = value # update value
+                    if bo_strat_group in ["strategies_long_and_short","strategies_short"]: # For long ?
+                        new_config_hjson[grid]['short'][key] = value # update value
 
 with open(harmony_config, 'w') as outfile:
     hjson.dumpJSON(new_config_hjson, outfile, indent=True)
