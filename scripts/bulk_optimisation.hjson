@@ -22,7 +22,7 @@ coin_list : [
     # allow to subdefine all parameters
     passivbot_mode: static_grid
     iters : 1000,
-    n_cpus : 7,
+    n_cpus : 5,
     do_long: true,
     do_short: true,
     backwards_tp_long: true,

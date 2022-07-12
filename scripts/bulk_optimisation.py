@@ -168,152 +168,153 @@ with open(harmony_config, 'w') as outfile:
     hjson.dumpJSON(new_config_hjson, outfile, indent=True)
 
 
-# exit('manuel end')
+try:
+    # -----------------------------------------------------------
+    #              Load coin List
+    # -----------------------------------------------------------
+    print("Coin List :")
+    coin_list = bo_config['coin_list']
+    for a_coin in coin_list:
+        print(a_coin['coin'] + " / Harmony start config : " +  
+                (a_coin['harmony_starting_config'] if 'harmony_starting_config' in a_coin else "None")
+            )
 
-# -----------------------------------------------------------
-#              Load coin List
-# -----------------------------------------------------------
-print("Coin List :")
-coin_list = bo_config['coin_list']
-for a_coin in coin_list:
-    print(a_coin['coin'] + " / Harmony start config : " +  
-            (a_coin['harmony_starting_config'] if 'harmony_starting_config' in a_coin else "None")
-        )
-
-if len(coin_list) == 0 :
-    exit('ERROR : No coin finded with the program arguments.')
-
-
-
-# -----------------------------------------------------------
-#              Loop on coin 
-# -----------------------------------------------------------
-for coin in coin_list:
-    print('Start Optimize loop', coin['coin'])
-
-    #python3 harmony_search.py -o config --oh -sd startdat -ed enddate -s SYMBOL
-    command_line = [
-                            "python3", "harmony_search.py", 
-                            "-o", harmony_config,
-                            "-s", coin['coin'],
-                            "-b", backtest_config
-                            ]
-    if ('harmony_starting_config' in coin):
-
-        coin['harmony_starting_config'] = coin['harmony_starting_config'].replace('%COIN%', coin['coin'])
-
-        if not os.path.exists(coin['harmony_starting_config']):
-            print("Sorry but this file doesn't exist : " , coin['harmony_starting_config'])
-            exit()
-
-        coin['harmony_starting_config'] = os.path.realpath(coin['harmony_starting_config'])
-        print('harmony_starting_config renamed in :', coin['harmony_starting_config'])
-
-        command_line.append("-t")
-        command_line.append(coin['harmony_starting_config'])    
-
-    if bo_config['override_bt_and_opti']['ohlc']:
-        command_line.append("-oh") 
-
-    print(' '.join(command_line))
-    
-    try:
-        subprocess.run(command_line, cwd="..")
-        # print("othing")
-    except subprocess.TimeoutExpired:
-        print('Timeout Reached  seconds)')
+    if len(coin_list) == 0 :
+        exit('ERROR : No coin finded with the program arguments.')
 
 
 
-    # find the last file all_results.txt (must be the new one created)
-    list_of_files = glob.glob("./../results_harmony_*/*_" + coin['coin'].upper() + "/all_results.txt", recursive=True)
-    latest_file = max(list_of_files, key=os.path.getctime)
-    latest_file = os.path.realpath(latest_file)
+    # -----------------------------------------------------------
+    #              Loop on coin 
+    # -----------------------------------------------------------
+    for coin in coin_list:
+        print('Start Optimize loop', coin['coin'])
 
-    print("Last result file is : ", latest_file)
-
-    #         Findd the best strategy with inspect_opt_results.py
-    #                     -p 0.02
-    #                             [PAD around 0.02]
-
-    #python3 inspect_opt_results.py results_harmony_search_recursive_grid/2022-07-10T18-32-36_XRPUSDT/all_results.txt -p 0.02 -d
-    command_line = [
-                            "python3", "inspect_opt_results.py", 
-                             latest_file,
-                            "-p", "0.02",  
-                            "-d"
-                            ]
-    try:
-        print(' '.join(command_line))
-        subprocess.run(command_line, cwd="..")
-    except subprocess.TimeoutExpired:
-        print('Timeout Reached  seconds)')
-
-    dir_to_save = pbso_dir + "/" + coin['coin'] + "_" + starting_script + "_" + md5_name[0:5] + "/"
-    if not os.path.exists(dir_to_save):
-        os.makedirs(dir_to_save)
-
-    best_config_dest = dir_to_save + "/config.json"
-    shutil.copy(os.path.dirname(latest_file) + "/all_results_best_config.json", best_config_dest)
-
-    command_line = [
-                                "python3", "backtest.py", 
+        #python3 harmony_search.py -o config --oh -sd startdat -ed enddate -s SYMBOL
+        command_line = [
+                                "python3", "harmony_search.py", 
+                                "-o", harmony_config,
                                 "-s", coin['coin'],
                                 "-b", backtest_config
                                 ]
+        if ('harmony_starting_config' in coin):
 
-    if bo_config['override_bt_and_opti']['ohlc']:
-        command_line.append("-oh") 
-    
-    command_line.append(best_config_dest) 
+            coin['harmony_starting_config'] = coin['harmony_starting_config'].replace('%COIN%', coin['coin'])
 
+            if not os.path.exists(coin['harmony_starting_config']):
+                print("Sorry but this file doesn't exist : " , coin['harmony_starting_config'])
+                exit()
 
-    try:
+            coin['harmony_starting_config'] = os.path.realpath(coin['harmony_starting_config'])
+            print('harmony_starting_config renamed in :', coin['harmony_starting_config'])
+
+            command_line.append("-t")
+            command_line.append(coin['harmony_starting_config'])    
+
+        if bo_config['override_bt_and_opti']['ohlc']:
+            command_line.append("-oh") 
+
         print(' '.join(command_line))
-        subprocess.run(command_line, cwd="..")
-    except subprocess.TimeoutExpired:
-        print('Timeout Reached  seconds)')
-
-
-    #         Copy the backtest configuration
-    #             change the config 
-    #                 start_date: => now lower than 900 days [nb_days]
-    #                   end_date: => now 
-    #         run the backtest with this configs
-    #         Copy the strategy in 
-    #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/config.json
-    #         Copy the backtest result in 
-    #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/result.txt
-
-    # find the last file  (must be the new one created)
-    list_of_files = glob.glob("./../backtests/*/*" + coin['coin'].upper() + "*/plots/*/backtest_result.txt", recursive=True)
-    latest_result = max(list_of_files, key=os.path.getctime)
-    latest_result = os.path.realpath(latest_result)
-
-    shutil.copy(latest_result, dir_to_save + '/result.txt')
-
-
-    other_files_to_copy = [
-                        'balance_and_equity_sampled_long.png',
-                        'balance_and_equity_sampled_short.png',
-                        'whole_backtest_long.png',
-                        'whole_backtest_short.png',
-    ]
-
-    for src in other_files_to_copy:
-        src_file = os.path.dirname(latest_result) + '/' + src
-        if os.path.exists(src_file):
-            shutil.copy(src_file, dir_to_save + '/' + src)
-    
-    shutil.copy(harmony_config, dir_to_save + '/')
-    shutil.copy(backtest_config, dir_to_save + '/')
-    shutil.copy(args.bo_config, dir_to_save + '/')
+        
+        try:
+            subprocess.run(command_line, cwd="..")
+            # print("othing")
+        except subprocess.TimeoutExpired:
+            print('Timeout Reached  seconds)')
 
 
 
-os.unlink(harmony_config)
-os.unlink(backtest_config)
+        # find the last file all_results.txt (must be the new one created)
+        list_of_files = glob.glob("./../results_harmony_*/*_" + coin['coin'].upper() + "/all_results.txt", recursive=True)
+        latest_file = max(list_of_files, key=os.path.getctime)
+        latest_file = os.path.realpath(latest_file)
 
-print('All Results files are stored in this directory : ', pbso_dir)
+        print("Last result file is : ", latest_file)
+
+        #         Findd the best strategy with inspect_opt_results.py
+        #                     -p 0.02
+        #                             [PAD around 0.02]
+
+        #python3 inspect_opt_results.py results_harmony_search_recursive_grid/2022-07-10T18-32-36_XRPUSDT/all_results.txt -p 0.02 -d
+        command_line = [
+                                "python3", "inspect_opt_results.py", 
+                                latest_file,
+                                "-p", "0.02",  
+                                "-d"
+                                ]
+        try:
+            print(' '.join(command_line))
+            subprocess.run(command_line, cwd="..")
+        except subprocess.TimeoutExpired:
+            print('Timeout Reached  seconds)')
+
+        dir_to_save = pbso_dir + "/" + coin['coin'] + "_" + starting_script + "_" + md5_name[0:5] + "/"
+        if not os.path.exists(dir_to_save):
+            os.makedirs(dir_to_save)
+
+        best_config_dest = dir_to_save + "/config.json"
+        shutil.copy(os.path.dirname(latest_file) + "/all_results_best_config.json", best_config_dest)
+
+        command_line = [
+                                    "python3", "backtest.py", 
+                                    "-s", coin['coin'],
+                                    "-b", backtest_config
+                                    ]
+
+        if bo_config['override_bt_and_opti']['ohlc']:
+            command_line.append("-oh") 
+        
+        command_line.append(best_config_dest) 
+
+
+        try:
+            print(' '.join(command_line))
+            subprocess.run(command_line, cwd="..")
+        except subprocess.TimeoutExpired:
+            print('Timeout Reached  seconds)')
+
+
+        #         Copy the backtest configuration
+        #             change the config 
+        #                 start_date: => now lower than 900 days [nb_days]
+        #                   end_date: => now 
+        #         run the backtest with this configs
+        #         Copy the strategy in 
+        #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/config.json
+        #         Copy the backtest result in 
+        #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/result.txt
+
+        # find the last file  (must be the new one created)
+        list_of_files = glob.glob("./../backtests/*/*" + coin['coin'].upper() + "*/plots/*/backtest_result.txt", recursive=True)
+        latest_result = max(list_of_files, key=os.path.getctime)
+        latest_result = os.path.realpath(latest_result)
+
+        shutil.copy(latest_result, dir_to_save + '/result.txt')
+
+
+        other_files_to_copy = [
+                            'balance_and_equity_sampled_long.png',
+                            'balance_and_equity_sampled_short.png',
+                            'whole_backtest_long.png',
+                            'whole_backtest_short.png',
+        ]
+
+        for src in other_files_to_copy:
+            src_file = os.path.dirname(latest_result) + '/' + src
+            if os.path.exists(src_file):
+                shutil.copy(src_file, dir_to_save + '/' + src)
+        
+        shutil.copy(harmony_config, dir_to_save + '/')
+        shutil.copy(backtest_config, dir_to_save + '/')
+        shutil.copy(args.bo_config, dir_to_save + '/')
+
+    print('All Results files are stored in this directory : ', pbso_dir)
+
+except KeyboardInterrupt:
+    print("Fin du processus")
+finally:
+    os.unlink(harmony_config)
+    os.unlink(backtest_config)
+
 
 
