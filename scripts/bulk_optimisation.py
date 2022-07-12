@@ -28,6 +28,14 @@ from datetime import timedelta
 import glob
 import hashlib
 
+def convertStringPercent(string):
+    if not isinstance(string, str):
+        return string
+    if string[-1] != "%":
+        return string
+    prct = float(string[0:-1])
+
+    return prct / 100
 
 
 # ------------------------------------------------------------
@@ -140,6 +148,15 @@ for bo_strat_group in bo_strat_groups: # loop in strategie bulk group
     if bo_strat_group in bo_config['override_harmony_config']: # if group exist
         for key in bo_config['override_harmony_config'][bo_strat_group]: # loop on key / value of the group
             value = bo_config['override_harmony_config'][bo_strat_group][key]
+
+            # manage percent string value possible
+            if isinstance(value, str):
+                value = convertStringPercent(value)
+            if isinstance(value, list):
+                for k, v in enumerate(value):
+                    if isinstance(v, str):
+                        value[k] = convertStringPercent(v)
+
             for grid in pb_grids: # loop on the passivbot possible grids
                 if (grid in new_config_hjson): # grid finded
                     if bo_strat_group in ["strategies_long_and_short","strategies_long"]: # For short ?
@@ -151,7 +168,7 @@ with open(harmony_config, 'w') as outfile:
     hjson.dumpJSON(new_config_hjson, outfile, indent=True)
 
 
-
+# exit('manuel end')
 
 # -----------------------------------------------------------
 #              Load coin List

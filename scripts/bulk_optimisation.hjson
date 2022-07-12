@@ -4,16 +4,16 @@
 
 coin_list : [
     {coin : "XRPUSDT"},
-    {coin : "ADAUSDT"},
+    // {coin : "ADAUSDT"},
     // other samples :
     // {coin : "XRPUSDT,ADAUSDT,BTCUSDT"}, # Allow multi coin optimize
     // {coin : "MATICUSDT", harmony_starting_config : "../configs/live/opti/matic/hm_010032.json"},
     // {coin : "BTCCUSDT",  harmony_starting_config : "../configs/live/opti/btc/hm_0154644.json"},
 ]
 "override_bt_and_opti" : {
-    starting_balance : 100,
+    starting_balance : 1000,
     ohlc : true, # or false
-    nb_days : 30,
+    nb_days : 365,
     # you can set nb_days, or start_date & end_date
     # start_date : 2021-01-01,  
     # end_date : 2022-01-01,
@@ -21,18 +21,24 @@ coin_list : [
 "override_harmony_config" : {
     # allow to subdefine all parameters
     passivbot_mode: static_grid
-    iters : 20,
-    n_cpus : 6,
+    iters : 1000,
+    n_cpus : 7,
+    do_long: true,
+    do_short: true,
+    backwards_tp_long: true,
+    backwards_tp_short: true,
+
     "strategies_long_and_short" : {
-        grid_span : [0.99,0.99],
-        min_markup : [0.05,0.05],
-        markup_range : [0.0,0.01],
+        // grid_span : [0.99,0.99],
+        min_markup : ["0.5%","0.5%"],
+        // min_markup : [0.005,0.005],
+        // markup_range : [0.0,0.01],
     },
     "strategies_long" : {
-        wallet_exposure_limit: [0.3, 0.3]
+        wallet_exposure_limit: ["10%", "10%"]
     },
     "strategies_short" : {
-        wallet_exposure_limit: [0.1, 0.1]
+        wallet_exposure_limit: ["10%", "10%"]
     },
 }
 }
