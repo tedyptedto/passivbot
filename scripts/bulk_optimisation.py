@@ -11,6 +11,7 @@
 # @TODO : Create a Lock, to avoid multiples run at same time.
 # @TODO : in high level folder, add the difference between, recursive or static grid (or neat)
 # @TODO : Where to add the PNL 
+# @TODO : create a parameter to only backtest a strategy ?
 
 import argparse
 from hashlib import md5
@@ -311,8 +312,9 @@ try:
     print('All Results files are stored in this directory : ', pbso_dir)
 
 except KeyboardInterrupt:
-    print("Fin du processus")
+    print("End of process")
 finally:
+    print("Deleting unused files")
     os.unlink(harmony_config)
     os.unlink(backtest_config)
 
