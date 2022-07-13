@@ -1,5 +1,5 @@
 # sample run : 
-# python3 start_opti_mono_coin.py  ../configs/optimize/harmony_search.hjson --coin_list=XRPUSDT --nb_days=900 --iters=100 --n_cpus=6 --grid_span=[0.05,0.20] --min_markup=[0.05,0.05] --markup_range=[0.0,0.01] -oh
+# python3 bulk_optimisation.py bulk_optimisation.json   
 # coin by coin
 #       will create a fake configuration in : ../configs/optimize/_*.hjson
 #       will run the harmony optimisation
