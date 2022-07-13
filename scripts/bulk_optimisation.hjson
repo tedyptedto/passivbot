@@ -1,6 +1,6 @@
 {
-"harmony_config_file" : "../configs/optimize/harmony_search.hjson"
-"backtest_config_file" : "../configs/backtest/default.hjson"
+"harmony_config_file" : "../configs/optimize/harmony_search.hjson",
+"backtest_config_file" : "../configs/backtest/default.hjson",
 
 coin_list : [
     {coin : "XRPUSDT"},
@@ -14,31 +14,53 @@ coin_list : [
     starting_balance : 1000,
     ohlc : true, # or false
     nb_days : 365,
-    # you can set nb_days, or start_date & end_date
-    # start_date : 2021-01-01,  
-    # end_date : 2022-01-01,
+    // # you can set nb_days, or start_date & end_date
+    // # start_date : 2021-01-01,  
+    // # end_date : 2022-01-01,
 }
 "override_harmony_config" : {
-    # allow to subdefine all parameters
+    // # allow to subdefine all parameters
     passivbot_mode: static_grid
     iters : 1000,
     n_cpus : 5,
     do_long: true,
-    do_short: true,
+    do_short: false,
     backwards_tp_long: true,
-    backwards_tp_short: true,
+    backwards_tp_short: false,
 
     "strategies_long_and_short" : {
-        // grid_span : [0.99,0.99],
-        min_markup : ["0.5%","0.5%"],
-        // min_markup : [0.005,0.005],
-        // markup_range : [0.0,0.01],
     },
     "strategies_long" : {
-        wallet_exposure_limit: ["10%", "10%"]
+        grid_span: [0.02, 0.4]
+        ema_span_0: [10, 1000]
+        ema_span_1: [10, 5000]
+        wallet_exposure_limit: [1.0, 1.0]
+        max_n_entry_orders: [7, 13]
+        initial_qty_pct: [0.01, 0.05]
+        initial_eprice_ema_dist: [-0.1, 0.0]
+        eqty_exp_base: [1.0, 3.0]
+        eprice_exp_base: [1.0, 3.0]
+        min_markup: [0.002, 0.002]
+        markup_range: [0.0, 0.03]
+        n_close_orders: [5, 20]
+        auto_unstuck_wallet_exposure_threshold: [0.0, 0.0]
+        auto_unstuck_ema_dist: [0.0, 0.0]
     },
     "strategies_short" : {
-        wallet_exposure_limit: ["10%", "10%"]
+        grid_span: [0.02, 0.59]
+        ema_span_0: [120, 4320]
+        ema_span_1: [120, 10080]
+        wallet_exposure_limit: [0.1, 0.1]
+        max_n_entry_orders: [5, 20]
+        initial_qty_pct: [0.007, 0.05]
+        initial_eprice_ema_dist: [-0.1, 0.0]
+        eqty_exp_base: [1.0, 3.0]
+        eprice_exp_base: [1.0, 3.0]
+        min_markup: [0.002, 0.01]
+        markup_range: [0.0, 0.03]
+        n_close_orders: [5, 20]
+        auto_unstuck_wallet_exposure_threshold: [0.0, 0.0]
+        auto_unstuck_ema_dist: [0.0, 0.0]
     },
 }
 }
