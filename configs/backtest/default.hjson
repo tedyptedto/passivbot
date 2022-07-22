@@ -12,11 +12,12 @@
   starting_balance: 1000.0
 
   # format YYYY-MM-DD
-  start_date: 2021-01-01
-  end_date: 2022-06-23
+  start_date: 2021-05-01
+  end_date: 2022-07-01
 
   # non default historical data path
-  # historical_data_path: "/mnt/d/"
+  # defaults to local dir if unspecified
+  # historical_data_path: "/media/e/Samsung_T5/"
 
   # backtests path
   base_dir: backtests  
