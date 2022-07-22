@@ -29,6 +29,13 @@ from datetime import timedelta
 import glob
 import hashlib
 
+# testing_mode = True
+testing_mode = False
+
+if testing_mode:
+    print('Testing mode ACTIVATED')
+
+
 def convertStringPercent(string):
     if not isinstance(string, str):
         return string
@@ -38,13 +45,21 @@ def convertStringPercent(string):
 
     return prct / 100
 
+def convertHJsonToHumanReadable(filename):
+    # Read in the file
+    with open(filename, 'r') as file :
+        filedata = file.read()
 
-# ------------------------------------------------------------
-#             CREATE THE configs/live/PBSO/ directory  
-# ------------------------------------------------------------
-pbso_dir  = os.path.realpath("./../configs/live/PBSO/")
-if not os.path.exists(pbso_dir):
-     os.makedirs(pbso_dir)
+    # Replace the target string
+    filedata = re.sub('\[\r?\n[ ]*', '[', filedata ) 
+    filedata = re.sub('[ ]*\r?\n[ ]*\]', ']', filedata ) 
+    filedata = re.sub('([0-9]+),\r?\n[ ]*([0-9]+)', r'\1,\2', filedata ) 
+
+    # Write the file out again
+    with open(filename, 'w') as file:
+        file.write(filedata)
+
+
 
 
 # run timing
@@ -120,6 +135,9 @@ for key in bo_config['override_bt_and_opti']:
 with open(backtest_config, 'w') as outfile:
     hjson.dumpJSON(new_config_hjson, outfile, indent=True)
 
+convertHJsonToHumanReadable(backtest_config)
+
+
 # -----------------------------------------------------------
 #              Generate the new harmony config OVERRIDE IT
 # -----------------------------------------------------------
@@ -168,6 +186,31 @@ for bo_strat_group in bo_strat_groups: # loop in strategie bulk group
 with open(harmony_config, 'w') as outfile:
     hjson.dumpJSON(new_config_hjson, outfile, indent=True)
 
+convertHJsonToHumanReadable(harmony_config)
+
+
+# ------------------------------------------------------------
+#             Name of this bulk version  
+# ------------------------------------------------------------
+bulk_version = input('How to name this bulk ? ')
+bulk_version = re.sub('[^a-zA-Z0-9_.]', '_', bulk_version)
+
+print("Name of the subdirectory => ", bulk_version)
+
+
+# ------------------------------------------------------------
+#             CREATE THE configs/live/PBSO/ directory  
+# ------------------------------------------------------------
+pbso_dir  = os.path.realpath("./../configs/live/PBSO/"+bulk_version)
+if not os.path.exists(pbso_dir):
+     os.makedirs(pbso_dir)
+
+# ------------------------------------------------------------
+#             End if testing mode  
+# ------------------------------------------------------------
+if testing_mode:
+    print('END Because Testing ENABLED')
+    exit()
 
 try:
     # -----------------------------------------------------------
