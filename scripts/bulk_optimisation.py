@@ -8,14 +8,11 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-# @TODO : sync about a one way to share the data
+# @TODO : sync about a one way to share the data => GitHub is OK (testing)
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
-
+# @TODO : add possibility to set 1m for optimize and 1s for backtest
+#           Possibility to set the UT for backtest and optimize
 # @TODO : Create a Lock, to avoid multiples run at same time.
-# @TODO : in high level folder, add the difference between, recursive or static grid (or neat)
-# @TODO : Where to add the PNL 
-# @TODO : create a parameter to only backtest a strategy ?
-
 
 import argparse
 from hashlib import md5
