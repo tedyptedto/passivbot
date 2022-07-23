@@ -13,6 +13,7 @@
 # @TODO : create a script to have a global summary of all the strategies
 #           perfectly it can write in the readme
 #                 grid span / nb days / banckrupcy / PNL / ADG /
+# @TODO : add backtesting in Binance and Bybit (dotcom)
 # @TODO : add possibility to set 1m for optimize and 1s for backtest (dotcom)
 #           Possibility to set the UT for backtest and optimize
 # @TODO : Create a Lock, to avoid multiples run at same time.
