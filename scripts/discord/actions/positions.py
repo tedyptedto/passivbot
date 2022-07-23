@@ -111,26 +111,27 @@ async def trader_alert(d_message):
     for i in x["result"]:
         i = i["data"]
         pair = i["symbol"]
-        if pair in position:
-            # print("!!!!")
-            # print(position)
-            if i["side"] == position[pair]['side'] and i["size"] == 0:
-                info = f'Position fermée sur {i["symbol"]}'
-                # r = requests.post(webhook, data={'content': info})  # la supprime
-                position.pop(pair, None)
-                # print(position)
-            elif i["position_idx"] == position[pair]["position_idx"] and \
-                    dictfilt(i, keys_to_monitor) != dictfilt(position[pair], keys_to_monitor):
-                # await d_message.channel.send(f'\nPosition (n° {i["position_idx"]}) modifiée sur {pair}')
-                discord_message += print_trade_info(i, d_message)
-                position[pair] = dictfilt(i, keys_to_monitor)
-                total_position += i['position_value']
-                total_gain += i['unrealised_pnl']
-                # print(position)
-            else:
-                # print("do nothing")
-                continue  # sinon pas de changement donc on ignore
-        elif i["size"] > 0:  # skip les positions vide
+        # if pair in position:
+        #     # print("!!!!")
+        #     # print(position)
+        #     if i["side"] == position[pair]['side'] and i["size"] == 0:
+        #         info = f'Position fermée sur {i["symbol"]}'
+        #         # r = requests.post(webhook, data={'content': info})  # la supprime
+        #         position.pop(pair, None)
+        #         # print(position)
+        #     elif i["position_idx"] == position[pair]["position_idx"] and \
+        #             dictfilt(i, keys_to_monitor) != dictfilt(position[pair], keys_to_monitor):
+        #         # await d_message.channel.send(f'\nPosition (n° {i["position_idx"]}) modifiée sur {pair}')
+        #         discord_message += print_trade_info(i, d_message)
+        #         position[pair] = dictfilt(i, keys_to_monitor)
+        #         total_position += i['position_value']
+        #         total_gain += i['unrealised_pnl']
+        #         # print(position)
+        #     else:
+        #         # print("do nothing")
+        #         continue  # sinon pas de changement donc on ignore
+        # elif i["size"] > 0:  # skip les positions vide
+        if i["size"] > 0:  # skip les positions vide
             # print("position touvé")
             position[pair] = dictfilt(i, keys_to_monitor)
             # await d_message.channel.send(f"\nNouvelle position (n° {i['position_idx']}) ouverte")
