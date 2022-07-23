@@ -116,12 +116,12 @@ for file in files:
 
     symbol              = bt['result']['symbol']
     n_days              = bt['result']['n_days']
-    hrs_stuck_avg_long  = bt['result']['hrs_stuck_avg_long']
-    hrs_stuck_max_long  = bt['result']['hrs_stuck_max_long']
-    n_entries_long      = bt['result']['n_entries_long']
-    n_unstuck_entries_long  = bt['result']['n_unstuck_entries_long']
-    n_unstuck_closes_long  = bt['result']['n_unstuck_closes_long']
-    loss_sum_long  = bt['result']['loss_sum_long']
+    # hrs_stuck_avg_long  = bt['result']['hrs_stuck_avg_long']
+    # hrs_stuck_max_long  = bt['result']['hrs_stuck_max_long']
+    # n_entries_long      = bt['result']['n_entries_long']
+    # n_unstuck_entries_long  = bt['result']['n_unstuck_entries_long']
+    # n_unstuck_closes_long  = bt['result']['n_unstuck_closes_long']
+    # loss_sum_long  = bt['result']['loss_sum_long']
     adg_perct           = (bt['result']['average_daily_gain']*100) if ('average_daily_gain' in bt['result']) else bt['result']['adg_long']*100
     gain_pct            = (bt['result']['gain']*100)  if ('gain' in bt['result']) else  bt['result']['gain_long']*100
     starting_balance    = bt['result']['starting_balance']
@@ -133,11 +133,11 @@ for file in files:
     if (closest_bkr < args.min_closest_bkr) :
         continue
     
-    if (hrs_stuck_avg_long > args.max_stuck_avg) :
-        continue
+    # if (hrs_stuck_avg_long > args.max_stuck_avg) :
+    #     continue
     
-    if (hrs_stuck_max_long > args.max_stuck) :
-        continue
+    # if (hrs_stuck_max_long > args.max_stuck) :
+    #     continue
     
     if (gain_pct < args.min_gain) :
         continue
@@ -146,12 +146,12 @@ for file in files:
     datas = {}
     datas['symbol']                 = symbol
     datas['n_days']                 = n_days
-    datas['hrs_stuck_avg_long']     = hrs_stuck_avg_long
-    datas['hrs_stuck_max_long']     = hrs_stuck_max_long
-    datas['n_entries_long']     = n_entries_long
-    datas['n_unstuck_entries_long']     = n_unstuck_entries_long
-    datas['n_unstuck_closes_long']     = n_unstuck_closes_long
-    datas['loss_sum_long']     = loss_sum_long
+    # datas['hrs_stuck_avg_long']     = hrs_stuck_avg_long
+    # datas['hrs_stuck_max_long']     = hrs_stuck_max_long
+    # datas['n_entries_long']     = n_entries_long
+    # datas['n_unstuck_entries_long']     = n_unstuck_entries_long
+    # datas['n_unstuck_closes_long']     = n_unstuck_closes_long
+    # datas['loss_sum_long']     = loss_sum_long
     datas['adg %']                  = adg_perct
     datas['gain %']                 = gain_pct
     datas['total gain $']                 = gain_dollard
@@ -180,7 +180,8 @@ print('')
 print("--------------------------------------------------------------")
 print("Limited to the first ", number_coin_wanted, " coins found : ")
 
-print("- Total wallet_exposure_limit : ", total_wallet_exposure)
+print("- Total wallet_exposure_limit (1 Side) : ", total_wallet_exposure)
+print("- Total wallet_exposure_limit (Long & Short) : ", total_wallet_exposure * 2)
 
 print("- coin list : ", best_coin)
 
@@ -194,13 +195,14 @@ print("- global adg $ : ", (adg_dollard), "$" )
 print("- global adg 1 month (30 days) : ", int(adg_dollard * 30) , "$" )
 
 # global_gain_pct         = (df['gain %'].values[0:number_coin_wanted].mean() * total_wallet_exposure)
-global_gain_pct         = (df['gain %'].values[0:number_coin_wanted].sum())
-print("- global gain % : ", int(global_gain_pct), "%")
+gain_realized_dollards =  df['total gain $'].values[0:number_coin_wanted].sum() # already substracted => - (number_coin_wanted * args.starting_balance)
 
-global_gain_dollard     = global_gain_pct * args.starting_balance / 100
-print("- global gain $ : ", int(global_gain_dollard), "$")
+
+print("- global gain % : ", int(100 * gain_realized_dollards / args.starting_balance), "%")
+print("- global gain $ : ", int(gain_realized_dollards), "$")
+
 print("- Starting balance $ : ", int(args.starting_balance) , "$")
-print("- Final amount $ : ", (int(args.starting_balance) + int(global_gain_dollard)), "$")
+print("- Final amount $ : ", (int(args.starting_balance) + int(gain_realized_dollards)), "$")
 
 print("--------------------------------------------------------------")
 saving_data = "./tmp/best_coins.json"

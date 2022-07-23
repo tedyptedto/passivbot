@@ -15,6 +15,11 @@ end_date="2022-07-23"
 user="bybit_pro" #bybit_tedy sawyer bybit_pro
 max_market_cap="20"
 
+cat "${live_config}"
+
+read -r -p "Is it a LONG & SHORT config ? [Y/n] " response
+
+
 echo "-------------------------"
 # Update the Starting balance for backtest
 echo "Starting balance          => ${starting_balance}$"
@@ -23,8 +28,16 @@ echo "Nb best coin              => ${nb_best_coin}"
 
 # Calculate the 1 bot exposure
 bot_wallet_exposure=$(python3<<<"print(${total_wallet_exposure} / ${nb_best_coin})")
+case "$response" in
+    [nN]) 
+        exit
+        ;;
+    *)
+        bot_wallet_exposure=$(python3<<<"print(${total_wallet_exposure} / ${nb_best_coin} / 2)");
+        ;;
+esac
 # "wallet_exposure_limit": 0.15
-echo "Bot wallet exposure       => ${bot_wallet_exposure}"
+echo "Bot wallet exposure by side (long or short)      => ${bot_wallet_exposure}"
 
 # Calculate the amount traded by bot
 amount_traded_by_bot=$(python3<<<"print(${total_wallet_exposure} * ${starting_balance} / ${nb_best_coin})")
