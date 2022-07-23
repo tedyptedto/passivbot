@@ -14,7 +14,7 @@ if not os.path.exists(git_directory):
         Repo.clone_from('https://github.com/tedyptedto/pbos.git', git_folder)
     except:
         print("End of process")
-        exit("The directory " + git_folder + " must be empty. Rename it and lunch again.")
+        exit("WARNING => Initalisation needed : The directory " + git_folder + " must be empty. Rename it and lunch again this script. And after, past your directories in the new PBSO directory. And run again this script.")
 
 print("Now repository exist, cool :)")
 
