@@ -100,8 +100,10 @@ print('python3 ' + __file__ + (" ").join(sys.argv[1:]))
 files = glob.glob('backtests/*/*/plots/*/result.json')
 
 if len(files) == 0:
-    print('No files found')
-    exit()
+    files = glob.glob('backtests/*/*/*/plots/*/result.json')
+    if len(files) == 0:
+        print('No files found')
+        exit()
 else:
     print('Reading ', len(files), ' backtests')
 

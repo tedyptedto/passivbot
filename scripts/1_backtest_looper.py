@@ -1,6 +1,7 @@
 import argparse
 import os
 from pickle import FALSE, TRUE
+import re
 import hjson
 import subprocess
 import glob
@@ -82,8 +83,7 @@ def backtest_looping(args, backtest_directory) :
     backtest_command_line.append(args.live_config_filepath)
 
     if not os.path.exists("../"+backtest_directory) :
-        print("Sorry, you must create this directory : ", os.path.realpath("../"+backtest_directory))
-        exit()
+        os.makedirs("../"+backtest_directory)
 
 
 
@@ -122,7 +122,10 @@ def clean_backtest_directories(backtest_directory) :
         print('Cleaning directory : ', os.path.realpath(to_delete))
         shutil.rmtree(to_delete)
 
-backtest_directory = "./scripts/backtests/"
+subdir = input('How to name this backtest ? ')
+subdir = re.sub('[^a-zA-Z0-9_.]', '_', subdir)
+
+backtest_directory = "./scripts/backtests/" + subdir + "/"
 args = arguments_management()
 clean_backtest_directories(backtest_directory)
 backtest_looping(args, backtest_directory)
