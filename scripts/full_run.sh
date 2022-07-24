@@ -1,7 +1,8 @@
 
 
 # live_config="../configs/live/a_tedy.json"
-live_config="../configs/live/a_tedy_neat_AU.json"
+# live_config="../configs/live/a_tedy_neat_AU.json"
+live_config="../configs/live/a_matic_MDCL.json"
 # live_config="../configs/live/a_sawyer.json"
 # live_config="../configs/live/a_pro.json"
 

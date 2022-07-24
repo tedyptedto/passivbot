@@ -41,7 +41,7 @@ def arguments_management():
     parser.add_argument("backtest_config_filepath", type=str, help="file path to backtest")
 
     parser.add_argument("-min-bkr","--min-closest-bkr",
-                        type=float,required=False,dest="min_closest_bkr",default=0,
+                        type=float,required=False,dest="min_closest_bkr",default=-99999999,
                         help="Show only result upper than min_closest_bkr",
     )
 
@@ -56,7 +56,7 @@ def arguments_management():
     )
 
     parser.add_argument("-min-gain","--min-gain",
-                        type=float,required=False,dest="min_gain",default=0,
+                        type=float,required=False,dest="min_gain",default=-99999999,
                         help="Show only result upper than gain_dollard",
     )
 
@@ -104,8 +104,18 @@ if len(files) == 0:
     if len(files) == 0:
         print('No files found')
         exit()
-else:
-    print('Reading ', len(files), ' backtests')
+
+# to avoid using a bad directory, and just the latest directory :
+latest_file = max(files, key=os.path.getctime)
+latest_file = os.path.realpath(latest_file)
+dir_to_read = os.path.realpath(os.path.dirname(latest_file) + "/../../../../")
+print("Workgin in directory : " + dir_to_read)
+
+files = glob.glob(dir_to_read + '/*/*/plots/*/result.json')
+
+
+
+print('Reading ', len(files), ' backtests')
 
 datas_list = []
 for file in files:
@@ -122,15 +132,23 @@ for file in files:
     # n_unstuck_entries_long  = bt['result']['n_unstuck_entries_long']
     # n_unstuck_closes_long  = bt['result']['n_unstuck_closes_long']
     # loss_sum_long  = bt['result']['loss_sum_long']
-    adg_perct           = (bt['result']['average_daily_gain']*100) if ('average_daily_gain' in bt['result']) else bt['result']['adg_long']*100
-    gain_pct            = (bt['result']['gain']*100)  if ('gain' in bt['result']) else  bt['result']['gain_long']*100
     starting_balance    = bt['result']['starting_balance']
-    closest_bkr         = (bt['result']['closest_bkr']) if ('closest_bkr' in bt['result']) else (bt['result']['closest_bkr_long'])
 
-    gain_dollard = bt['result']['final_balance_long'] -  bt['result']['starting_balance']
+    adg_perct           = bt['result']['adg_long']*100
+    adg_perct           += bt['result']['adg_short']*100
+    
+    gain_pct            = bt['result']['gain_long']*100 
+    gain_pct            += bt['result']['gain_short']*100 
 
+    gain_dollard        = bt['result']['final_balance_long'] -  bt['result']['starting_balance']
+    gain_dollard        += bt['result']['final_balance_short'] -  bt['result']['starting_balance']
 
-    if (closest_bkr < args.min_closest_bkr) :
+    closest_bkr_long    = bt['result']['closest_bkr_long']
+    closest_bkr_short    = bt['result']['closest_bkr_short']
+
+    if (closest_bkr_long < args.min_closest_bkr) :
+        continue
+    if (closest_bkr_short < args.min_closest_bkr) :
         continue
     
     # if (hrs_stuck_avg_long > args.max_stuck_avg) :
@@ -156,7 +174,8 @@ for file in files:
     datas['gain %']                 = gain_pct
     datas['total gain $']                 = gain_dollard
     datas['starting balance']       = starting_balance
-    datas['closest bkr']            = closest_bkr
+    datas['closest bkr Long']            = closest_bkr_long
+    datas['closest bkr_Short']            = closest_bkr_short
     
     
 
