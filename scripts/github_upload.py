@@ -8,6 +8,7 @@ from pathlib import Path
 # @TODO : le générer en auto dans le README, mettre des tags de remplacement par exemple
 # @TODO : ajouter bankrupt comme info
 # @TODO : ajouter le nb jours plutot que les dates (mais date de fin)
+# @TODO : coin concerné ou multi coin, nb coins
 
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
