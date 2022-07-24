@@ -1,8 +1,8 @@
 
 
 # live_config="../configs/live/a_tedy.json"
-# live_config="../configs/live/a_tedy_neat_AU.json"
-live_config="../configs/live/a_matic_MDCL.json"
+live_config="../configs/live/a_tedy_neat_AU_long_only.json"
+# live_config="../configs/live/a_matic_MDCL.json"
 # live_config="../configs/live/a_sawyer.json"
 # live_config="../configs/live/a_pro.json"
 
@@ -31,7 +31,7 @@ echo "Nb best coin              => ${nb_best_coin}"
 bot_wallet_exposure=$(python3<<<"print(${total_wallet_exposure} / ${nb_best_coin})")
 case "$response" in
     [nN]) 
-        exit
+        
         ;;
     *)
         bot_wallet_exposure=$(python3<<<"print(${total_wallet_exposure} / ${nb_best_coin} / 2)");
