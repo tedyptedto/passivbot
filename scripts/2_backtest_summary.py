@@ -94,7 +94,7 @@ def arguments_management():
 args = arguments_management()
 number_coin_wanted = args.nb_best_coins
 
-print('python3 ' + __file__ + (" ").join(sys.argv[1:]))
+print('python3 ' + __file__ + " " + (" ").join(sys.argv[1:]))
 
 # Grab all files availables
 files = glob.glob('backtests/*/*/plots/*/result.json')
@@ -126,8 +126,10 @@ for file in files:
 
     symbol              = bt['result']['symbol']
     n_days              = bt['result']['n_days']
-    # hrs_stuck_avg_long  = bt['result']['hrs_stuck_avg_long']
-    # hrs_stuck_max_long  = bt['result']['hrs_stuck_max_long']
+    hrs_stuck_avg_long  = bt['result']['hrs_stuck_avg_long']
+    hrs_stuck_max_long  = bt['result']['hrs_stuck_max_long']
+    hrs_stuck_avg_short  = bt['result']['hrs_stuck_avg_short']
+    hrs_stuck_max_short  = bt['result']['hrs_stuck_max_short']
     # n_entries_long      = bt['result']['n_entries_long']
     # n_unstuck_entries_long  = bt['result']['n_unstuck_entries_long']
     # n_unstuck_closes_long  = bt['result']['n_unstuck_closes_long']
@@ -164,8 +166,10 @@ for file in files:
     datas = {}
     datas['symbol']                 = symbol
     datas['n_days']                 = n_days
-    # datas['hrs_stuck_avg_long']     = hrs_stuck_avg_long
-    # datas['hrs_stuck_max_long']     = hrs_stuck_max_long
+    datas['h_stuck_avg_l']     = hrs_stuck_avg_long
+    datas['h_stuck_max_l']     = hrs_stuck_max_long
+    datas['h_stuck_avg_s']     = hrs_stuck_avg_short
+    datas['h_stuck_max_s']     = hrs_stuck_max_short
     # datas['n_entries_long']     = n_entries_long
     # datas['n_unstuck_entries_long']     = n_unstuck_entries_long
     # datas['n_unstuck_closes_long']     = n_unstuck_closes_long
@@ -230,4 +234,4 @@ with open(saving_data, 'w') as outfile:
     json.dump(best_coin, outfile)
 
 
-print('python3 ' + __file__ + (" ").join(sys.argv[1:]))
+print('python3 ' + __file__ + " " + (" ").join(sys.argv[1:]))
