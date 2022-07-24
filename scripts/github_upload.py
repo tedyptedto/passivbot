@@ -9,6 +9,7 @@ from pathlib import Path
 # @TODO : ajouter bankrupt comme info
 # @TODO : ajouter le nb jours plutot que les dates (mais date de fin)
 # @TODO : coin concerné ou multi coin, nb coins
+# @TODO : ajouter l'autocommit (ce script) à la fin du bulk [ a réfléchir ]
 
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
