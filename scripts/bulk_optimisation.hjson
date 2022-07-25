@@ -15,8 +15,8 @@ coin_list : [
     ohlc : true, # or false
     nb_days : 365,
     // # you can set nb_days, or start_date & end_date
-    // # start_date : 2021-01-01,  
-    // # end_date : 2022-01-01,
+    // start_date : "2021-01-01",  
+    // end_date : "2022-01-01",
 }
 "override_harmony_config" : {
     // # allow to subdefine all parameters

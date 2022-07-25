@@ -3,12 +3,9 @@ import os
 import glob
 import hjson
 from pathlib import Path
+import pandas as pd
+from tabulate import tabulate
 
-# @TODO : avoir un affichage plus jolie dans le readme (tabulate d'un dataframe devrait le faire on dirait)
-# @TODO : le générer en auto dans le README, mettre des tags de remplacement par exemple
-# @TODO : ajouter bankrupt comme info
-# @TODO : ajouter le nb jours plutot que les dates (mais date de fin)
-# @TODO : coin concerné ou multi coin, nb coins
 # @TODO : ajouter l'autocommit (ce script) à la fin du bulk [ a réfléchir ]
 
 def getValueInResultTxt(content, key, long_or_short):
@@ -29,6 +26,7 @@ def getValueInResultTxt(content, key, long_or_short):
 def generateReadme():
     base_dir = os.path.realpath("./../configs/live/PBSO/")
     list_of_files = glob.glob(base_dir + "/**/config.json", recursive=True)
+    data_list = []
     # print(list_of_files)
     for file in list_of_files:
         file = os.path.realpath(file)
@@ -61,11 +59,13 @@ def generateReadme():
                 if (key.endswith('json')):
                     group_file[key] = {
                                     'file' : group_file[key],
+                                    'file_r' : group_file[key].replace(base_dir, ''),
                                     'data' : hjson.load(open(group_file[key], encoding="utf-8")),
                     }
                 else:
                     group_file[key] = {
                                     'file' : group_file[key],
+                                    'file_r' : group_file[key].replace(base_dir, ''),
                                     'data' : Path(group_file[key]).read_text(),
                     }
 
@@ -75,35 +75,34 @@ def generateReadme():
         ftxt = group_file['file_result_txt']['data']
         
         strat_info = {
-            "starting_balane" : group_file['file_backtest_hjson']['data']['starting_balance'],
-            "start_date" : group_file['file_backtest_hjson']['data']['start_date'],
-            "end_date" : group_file['file_backtest_hjson']['data']['end_date'],
+            "config" : "[config](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
+            "symbol" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
+            "balance" : str(group_file['file_backtest_hjson']['data']['starting_balance']),
+            # "days" : getValueInResultTxt(ftxt, 'No. days', 'long'),
+            "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/'),
+
             "long" : group_file['file_config_json']['data']['long']['enabled'],
-            "long_gridspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
-            "long_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
-            "Long_Average daily gain" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
-            "Long_Total gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
+            "l_gridspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
+            "l_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
+            "l_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
+            "l_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
+            "l_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
 
 
             "short" : group_file['file_config_json']['data']['short']['enabled'],
-            "short_gridspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
-            "short_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
-            "Short_Average daily gain" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
-            "Short_Total gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
+            "s_gridspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
+            "s_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
+            "s_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
+            "s_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
+            "s_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
             
         }
 
-        print(group_file['file_config_json']['file'].replace(base_dir, ''), "\n" , strat_info, "\n")
+        data_list.append(strat_info)
+        # print(group_file['file_config_json']['file'].replace(base_dir, ''), "\n" , strat_info, "\n")
+    return data_list
         
 
-
-
-
-
-
-
-# generateReadme()
-# exit()
 
 
 git_folder     = os.path.realpath("./../configs/live/PBSO/")
@@ -124,6 +123,38 @@ if not os.path.exists(git_directory):
 print("Now repository exist, cool :)")
 
 
+######################
+# Generate the ReadMe info
+######################
+
+a_info_strat = generateReadme()
+# a_info_strat_gh = []
+# for info_strat in a_info_strat:
+#     a_sub_info_strat_gh = {}
+#     for key in info_strat:
+#         a_sub_info_strat_gh["<sub>" + str(key) + "</sub>"] = "<sub>" + str(info_strat[key]) + "</sub>"
+#     a_info_strat_gh.append(a_sub_info_strat_gh)
+
+df = pd.DataFrame(a_info_strat)
+# df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
+df.sort_values(by=[ 'l_adg'], ascending=[ False], inplace=True)
+tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
+print(tableau_beautiful)
+
+readme = git_folder + "/README.md"
+text_file = open(readme, "w")
+n = text_file.write('''# pbos
+PassivBot Strategies
+
+''' + tableau_beautiful)
+text_file.close()
+ 
+content2=tabulate(df, headers='keys', tablefmt="tsv")
+text_file=open(readme + ".tabulated.csv","w")
+text_file.write(content2)
+text_file.close()
+
+
 try:
     repo = Repo(git_directory)
     origin = repo.remote(name='origin')
@@ -131,7 +162,7 @@ try:
     origin.pull()
     print("Add new files")
     repo.git.add('--all')
-    COMMIT_MESSAGE = input('Wath are you adding to the GitHub repo ?')
+    COMMIT_MESSAGE = input('Wath are you adding to the GitHub repo (Commit comment) ? ')
     print("Commit files")
     repo.index.commit(COMMIT_MESSAGE)
     origin = repo.remote(name='origin')

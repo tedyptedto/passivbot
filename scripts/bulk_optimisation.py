@@ -124,6 +124,9 @@ if ('nb_days' in bo_config['override_bt_and_opti']):
     bo_config['override_bt_and_opti']['start_date'] = str(today - timedelta(days=bo_config['override_bt_and_opti']['nb_days']))
     bo_config['override_bt_and_opti']['end_date'] = str(today)
 
+bo_config['override_bt_and_opti']['start_date'] = bo_config['override_bt_and_opti']['start_date'].strip(',')
+bo_config['override_bt_and_opti']['end_date'] = bo_config['override_bt_and_opti']['end_date'].strip(',')
+
 print('Period :', bo_config['override_bt_and_opti']['start_date'], ' to ', bo_config['override_bt_and_opti']['end_date'])
 
 
