@@ -12,7 +12,8 @@ coin_list : [
 ]
 "override_bt_and_opti" : {
     starting_balance : 1000,
-    ohlc : true, # or false
+    ohlc_bt : true, # or false
+    ohlc_opti : true, # or false
     nb_days : 365,
     // # you can set nb_days, or start_date & end_date
     // start_date : "2021-01-01",  
