@@ -13,6 +13,7 @@
 #           perfectly it can write in the readme
 #                 grid span / nb days / banckrupcy / PNL / ADG /
 
+# @TODO : auto post commit and updates
 # @TODO : add the autocommit atthe end of bulk
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
 # @TODO : add backtesting in Binance and Bybit (dotcom)
