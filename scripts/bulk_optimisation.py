@@ -8,11 +8,13 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-# @TODO : sync about a one way to share the data => GitHub is OK (testing)
-# @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
-# @TODO : create a script to have a global summary of all the strategies
+# @WAITING : sync about a one way to share the data => GitHub is OK (testing) Nobody want to test :(
+# @DONE : create a script to have a global summary of all the strategies
 #           perfectly it can write in the readme
 #                 grid span / nb days / banckrupcy / PNL / ADG /
+
+# @TODO : add the autocommit atthe end of bulk
+# @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
 # @TODO : add backtesting in Binance and Bybit (dotcom)
 # @TODO : add possibility to set 1m for optimize and 1s for backtest (dotcom)
 #           Possibility to set the UT for backtest and optimize

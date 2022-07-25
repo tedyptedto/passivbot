@@ -6,7 +6,6 @@ from pathlib import Path
 import pandas as pd
 from tabulate import tabulate
 
-# @TODO : ajouter l'autocommit (ce script) à la fin du bulk [ a réfléchir ]
 
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
