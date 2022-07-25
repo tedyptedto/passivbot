@@ -1,7 +1,8 @@
 
 
 # live_config="../configs/live/a_tedy.json"
-live_config="../configs/live/a_tedy_neat_AU_long_only.json"
+# live_config="../configs/live/a_tedy_neat_AU_long_only.json"
+live_config="../configs/live/a_fly_8_no_short.json"
 # live_config="../configs/live/a_matic_MDCL.json"
 # live_config="../configs/live/a_sawyer.json"
 # live_config="../configs/live/a_pro.json"
@@ -17,7 +18,7 @@ user="bybit_pro" #bybit_tedy sawyer bybit_pro
 max_market_cap="20"
 
 cat "${live_config}"
-
+echo ""
 read -r -p "Is it a LONG & SHORT config ? [Y/n] " response
 
 
@@ -90,3 +91,7 @@ python3 2_backtest_summary.py ${nb_best_coin} ${live_config} ${backtest_config} 
 # -max-stuck 200
 
 #python3 3_server_script_generator.py  ${user} ${live_config} -jf tmp/best_coins.json
+
+#add a beep at the end of the script
+powershell.exe '[console]::beep(4000,80)' # WSL version
+beep # Linux version
