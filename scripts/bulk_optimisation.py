@@ -266,9 +266,8 @@ try:
             command_line.append("-t")
             command_line.append(coin['harmony_starting_config'])    
 
-        if 'ohlc_opti' in bo_config['override_bt_and_opti']:
-            if bo_config['override_bt_and_opti']['ohlc_opti']:
-                command_line.append("-oh") 
+        if bo_config['override_bt_and_opti'].get('ohlc', None) or bo_config['override_bt_and_opti'].get('ohlc_opti', None):
+            command_line.append("-oh") 
 
         print(' '.join(command_line))
         
@@ -317,9 +316,8 @@ try:
                                     "-b", backtest_config
                                     ]
 
-        if 'ohlc_bt' in bo_config['override_bt_and_opti']:
-            if bo_config['override_bt_and_opti']['ohlc_bt']:
-                command_line.append("-oh") 
+        if bo_config['override_bt_and_opti'].get('ohlc', None) or bo_config['override_bt_and_opti'].get('ohlc_bt', None):
+            command_line.append("-oh") 
         
         command_line.append(best_config_dest) 
 

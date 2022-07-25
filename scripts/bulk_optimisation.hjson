@@ -12,6 +12,9 @@ coin_list : [
 ]
 "override_bt_and_opti" : {
     starting_balance : 1000,
+    // # if you set ohlc to true, both the optimizer and backtest will use ohlc data
+    // # you can use ohlc_bt and ohlc_opti instead of ohlc if you want more finegrained control over which data is used for the optimizer and backtest
+    // ohlc : true, # or false
     ohlc_bt : true, # or false
     ohlc_opti : true, # or false
     nb_days : 365,
