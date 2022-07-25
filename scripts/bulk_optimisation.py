@@ -265,8 +265,9 @@ try:
             command_line.append("-t")
             command_line.append(coin['harmony_starting_config'])    
 
-        if bo_config['override_bt_and_opti']['ohlc_opti']:
-            command_line.append("-oh") 
+        if 'ohlc_opti' in bo_config['override_bt_and_opti']:
+            if bo_config['override_bt_and_opti']['ohlc_opti']:
+                command_line.append("-oh") 
 
         print(' '.join(command_line))
         
