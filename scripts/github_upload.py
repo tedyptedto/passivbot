@@ -92,8 +92,8 @@ def generateReadme():
             "balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
             "op_coin" : op_coin,
             "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
-            # "days" : getValueInResultTxt(ftxt, 'No. days', 'long'),
-            "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/'),
+            "days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
+            "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
 
             "long" : group_file['file_config_json']['data']['long']['enabled'],
             "l_gridspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
