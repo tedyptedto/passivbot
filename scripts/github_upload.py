@@ -42,12 +42,18 @@ def generateReadme():
         if (len(list) == 1):
             file_harmony_hjson = list[0]
 
+        list = glob.glob(dir + "/bulk_*.hjson")
+        bulk_optimisation_hjson = "unknown"
+        if (len(list) == 1):
+            bulk_optimisation_hjson = list[0]
+
 
         group_file = {
             "file_config_json" : file,
             "file_result_txt" : dir + "/result.txt",
             "file_backtest_hjson" : file_backtest_hjson,
             "file_harmony_hjson" : file_harmony_hjson,
+            "bulk_optimisation_hjson" : bulk_optimisation_hjson,
         }
 
         all_files_exist = True
@@ -73,10 +79,21 @@ def generateReadme():
             continue
 
         ftxt = group_file['file_result_txt']['data']
-        
+
+        op_coin = ""
+        if len(group_file['bulk_optimisation_hjson']['data']['coin_list']) == 1:
+            op_coin = group_file['bulk_optimisation_hjson']['data']['coin_list'][0]['coin']
+        else:
+            op_coin = "["+str(len(group_file['bulk_optimisation_hjson']['data']['coin_list']))+"](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + ")"
+
+
+        parent_dir = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[0]
+
         strat_info = {
             "config" : "[config](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
-            "symbol" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
+            "categ" : parent_dir,
+            "op_coin" : op_coin,
+            "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
             "balance" : str(group_file['file_backtest_hjson']['data']['starting_balance']),
             # "days" : getValueInResultTxt(ftxt, 'No. days', 'long'),
             "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/'),
@@ -139,7 +156,7 @@ df = pd.DataFrame(a_info_strat)
 # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
 df.sort_values(by=[ 'l_adg'], ascending=[ False], inplace=True)
 tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
-print(tableau_beautiful)
+# print(tableau_beautiful)
 
 readme = git_folder + "/README.md"
 text_file = open(readme, "w")
