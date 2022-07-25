@@ -86,7 +86,7 @@ def generateReadme():
         parent_dir = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[0]
 
         strat_info = {
-            "config" : "[config](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
+            "conf" : "[conf](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
             "bulk" : "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + ")",
             "categ" : parent_dir,
             "balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
