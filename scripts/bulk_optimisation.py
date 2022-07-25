@@ -316,8 +316,9 @@ try:
                                     "-b", backtest_config
                                     ]
 
-        if bo_config['override_bt_and_opti']['ohlc_bt']:
-            command_line.append("-oh") 
+        if 'ohlc_bt' in bo_config['override_bt_and_opti']:
+            if bo_config['override_bt_and_opti']['ohlc_bt']:
+                command_line.append("-oh") 
         
         command_line.append(best_config_dest) 
 
