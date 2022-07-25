@@ -80,21 +80,18 @@ def generateReadme():
 
         ftxt = group_file['file_result_txt']['data']
 
-        op_coin = ""
-        if len(group_file['bulk_optimisation_hjson']['data']['coin_list']) == 1:
-            op_coin = group_file['bulk_optimisation_hjson']['data']['coin_list'][0]['coin']
-        else:
-            op_coin = "["+str(len(group_file['bulk_optimisation_hjson']['data']['coin_list']))+"](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + ")"
+        op_coin = len(group_file['bulk_optimisation_hjson']['data']['coin_list'])
 
 
         parent_dir = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[0]
 
         strat_info = {
             "config" : "[config](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
+            "bulk" : "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + ")",
             "categ" : parent_dir,
+            "balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
             "op_coin" : op_coin,
             "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
-            "balance" : str(group_file['file_backtest_hjson']['data']['starting_balance']),
             # "days" : getValueInResultTxt(ftxt, 'No. days', 'long'),
             "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/'),
 
@@ -154,7 +151,7 @@ a_info_strat = generateReadme()
 
 df = pd.DataFrame(a_info_strat)
 # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
-df.sort_values(by=[ 'l_adg'], ascending=[ False], inplace=True)
+df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ False, False, False, False], inplace=True)
 tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
 # print(tableau_beautiful)
 
