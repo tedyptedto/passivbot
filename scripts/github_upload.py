@@ -156,8 +156,10 @@ def generateAutoFiles():
 
     readme = git_folder + "/README.md"
     text_file = open(readme, "w")
-    n = text_file.write('''# pbos
-PassivBot Strategies
+    n = text_file.write('''# PBOS - PassivBotOnlyStrategy
+PassivBot Strategies :
+
+[CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
 
 ''' + tableau_beautiful)
     text_file.close()
