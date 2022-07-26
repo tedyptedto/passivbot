@@ -10,7 +10,7 @@
 
 # @TODO : PBSO add TP info
 # @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
-# @TODO : add the autocommit atthe end of bulk
+# @TODO : add the autocommit at the end of bulk
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
 # @TODO : add backtesting in Binance and Bybit (dotcom)
 # @TODO : add possibility to set 1m for optimize and 1s for backtest (dotcom)
