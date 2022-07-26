@@ -160,6 +160,7 @@ def generateAutoFiles():
 PassivBot Strategies :
 
 [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
+
 [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
 ''' + tableau_beautiful)
