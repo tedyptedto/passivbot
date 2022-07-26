@@ -8,11 +8,6 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-# @WAITING : sync about a one way to share the data => GitHub is OK (testing) Nobody want to test :(
-# @DONE : create a script to have a global summary of all the strategies
-#           perfectly it can write in the readme
-#                 grid span / nb days / banckrupcy / PNL / ADG /
-
 # @TODO : PBSO add TP info
 # @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
 # @TODO : add the autocommit atthe end of bulk
