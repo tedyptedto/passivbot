@@ -13,8 +13,6 @@
 # @TODO : add the autocommit at the end of bulk
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
 # @TODO : add backtesting in Binance and Bybit (dotcom)
-# @TODO : add possibility to set 1m for optimize and 1s for backtest (dotcom)
-#           Possibility to set the UT for backtest and optimize
 # @TODO : Create a Lock, to avoid multiples run at same time.
 
 import argparse
