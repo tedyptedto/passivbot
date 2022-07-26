@@ -111,7 +111,8 @@ def generateReadme():
             
         }
 
-        data_list.append(strat_info)
+        if not (strat_info['categ'] == 'xx_trash'):
+            data_list.append(strat_info)
         # print(group_file['file_config_json']['file'].replace(base_dir, ''), "\n" , strat_info, "\n")
     return data_list
         
@@ -133,47 +134,51 @@ if not os.path.exists(git_directory):
         print("End of process")
         exit("WARNING => Initalisation needed : The directory " + git_folder + " must be empty. Rename it and lunch again this script. And after, past your directories in the new PBSO directory. And run again this script.")
 
-print("Now repository exist, cool :)")
 
+def generateAutoFiles():
+    ######################
+    # Generate the ReadMe info
+    ######################
 
-######################
-# Generate the ReadMe info
-######################
+    a_info_strat = generateReadme()
+    # a_info_strat_gh = []
+    # for info_strat in a_info_strat:
+    #     a_sub_info_strat_gh = {}
+    #     for key in info_strat:
+    #         a_sub_info_strat_gh["<sub>" + str(key) + "</sub>"] = "<sub>" + str(info_strat[key]) + "</sub>"
+    #     a_info_strat_gh.append(a_sub_info_strat_gh)
 
-a_info_strat = generateReadme()
-# a_info_strat_gh = []
-# for info_strat in a_info_strat:
-#     a_sub_info_strat_gh = {}
-#     for key in info_strat:
-#         a_sub_info_strat_gh["<sub>" + str(key) + "</sub>"] = "<sub>" + str(info_strat[key]) + "</sub>"
-#     a_info_strat_gh.append(a_sub_info_strat_gh)
+    df = pd.DataFrame(a_info_strat)
+    # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
+    df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
+    tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
+    # print(tableau_beautiful)
 
-df = pd.DataFrame(a_info_strat)
-# df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
-df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ False, False, False, False], inplace=True)
-tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
-# print(tableau_beautiful)
-
-readme = git_folder + "/README.md"
-text_file = open(readme, "w")
-n = text_file.write('''# pbos
+    readme = git_folder + "/README.md"
+    text_file = open(readme, "w")
+    n = text_file.write('''# pbos
 PassivBot Strategies
 
 ''' + tableau_beautiful)
-text_file.close()
+    text_file.close()
 
-df.to_csv(git_folder + "/strategy_list.csv") 
-# content2=tabulate(df, headers='keys', tablefmt="tsv")
-# text_file=open(readme + ".tabulated.csv","w")
-# text_file.write(content2)
-# text_file.close()
+    df.to_csv(git_folder + "/strategy_list.csv") 
+    # content2=tabulate(df, headers='keys', tablefmt="tsv")
+    # text_file=open(readme + ".tabulated.csv","w")
+    # text_file.write(content2)
+    # text_file.close()
 
+print("Now repository exist, cool :)")
 
 try:
     repo = Repo(git_directory)
     origin = repo.remote(name='origin')
     print("Pull new strategies")
     origin.pull()
+
+    print("Generate Auto files (readme and csv)")
+    generateAutoFiles()
+
     print("Add new files")
     repo.git.add('--all')
     COMMIT_MESSAGE = input('Wath are you adding to the GitHub repo (Commit comment) ? ')
@@ -181,7 +186,11 @@ try:
     repo.index.commit(COMMIT_MESSAGE)
     origin = repo.remote(name='origin')
     print("Push to github")
+    print('Information for FIRST USE :')    
+    print("You will be asked to enter your github login and a password")
+    print("Password is in fact a personnal token, this how you can create it : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token")
     origin.push()
+    print('All is ok !')  
 except:
     print('Some error occured while pushing the code')    
     print("If tou have trouble by login to github, use a personnal token : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token")
