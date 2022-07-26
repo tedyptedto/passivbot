@@ -161,11 +161,12 @@ PassivBot Strategies
 
 ''' + tableau_beautiful)
 text_file.close()
- 
-content2=tabulate(df, headers='keys', tablefmt="tsv")
-text_file=open(readme + ".tabulated.csv","w")
-text_file.write(content2)
-text_file.close()
+
+df.to_csv(git_folder + "/strategy_list.csv") 
+# content2=tabulate(df, headers='keys', tablefmt="tsv")
+# text_file=open(readme + ".tabulated.csv","w")
+# text_file.write(content2)
+# text_file.close()
 
 
 try:
