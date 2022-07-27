@@ -22,7 +22,7 @@ def getValueInResultTxt(content, key, long_or_short):
                 return value
     return "N/C"
 
-def generateReadme():
+def generateReadme(only_trash=False):
     base_dir = os.path.realpath("./../configs/live/PBSO/")
     list_of_files = glob.glob(base_dir + "/**/config.json", recursive=True)
     data_list = []
@@ -99,6 +99,7 @@ def generateReadme():
             "l_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
             "l_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
             "l_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
+            "l_TP"  : str(round(group_file['file_config_json']['data']['long']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['long']['markup_range'] * 100,2))+"%/",
             "l_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
 
 
@@ -107,14 +108,24 @@ def generateReadme():
             "s_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
             "s_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
             "s_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
+            "l_TP"  : str(round(group_file['file_config_json']['data']['short']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['short']['markup_range'] * 100,2))+"%/",
             "s_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
             
         }
 
-        if not (strat_info['categ'] == 'xx_trash'):
-            data_list.append(strat_info)
-        # print(group_file['file_config_json']['file'].replace(base_dir, ''), "\n" , strat_info, "\n")
-    return data_list
+        if only_trash:
+            if (strat_info['categ'] == 'xx_trash'):
+                strat_info['categ'] = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[1]
+                data_list.append(strat_info)
+        else:
+            if not (strat_info['categ'] == 'xx_trash'):
+                data_list.append(strat_info)
+    
+    df = pd.DataFrame(data_list)
+    # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
+    df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
+
+    return df
         
 
 
@@ -140,30 +151,29 @@ def generateAutoFiles():
     # Generate the ReadMe info
     ######################
 
-    a_info_strat = generateReadme()
-    # a_info_strat_gh = []
-    # for info_strat in a_info_strat:
-    #     a_sub_info_strat_gh = {}
-    #     for key in info_strat:
-    #         a_sub_info_strat_gh["<sub>" + str(key) + "</sub>"] = "<sub>" + str(info_strat[key]) + "</sub>"
-    #     a_info_strat_gh.append(a_sub_info_strat_gh)
-
-    df = pd.DataFrame(a_info_strat)
-    # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
+    df = generateReadme()
     df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
     tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
-    # print(tableau_beautiful)
+
+    df_trash = generateReadme(only_trash=True)
+    df_trash.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
+    tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github'))
 
     readme = git_folder + "/README.md"
     text_file = open(readme, "w")
-    n = text_file.write('''# PBOS - PassivBotOnlyStrategy
-PassivBot Strategies :
+    n = text_file.write('''# PBOS - PassivBotOnlyStrategy - PassivBot Strategies
 
 [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
 
 [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
-''' + tableau_beautiful)
+''' + tableau_beautiful + '''
+
+# xx_Trash PassivBot (old) Strategies :
+
+[README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
+
+''' + tableau_beautiful_trash)
     text_file.close()
 
     df.to_csv(git_folder + "/strategy_list.csv") 
@@ -195,6 +205,8 @@ try:
     print("Password is in fact a personnal token, this how you can create it : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token")
     origin.push()
     print('All is ok !')  
-except:
+except Exception as e:
+    print(e)
+    print('--- INFO ---')    
     print('Some error occured while pushing the code')    
     print("If tou have trouble by login to github, use a personnal token : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token")
