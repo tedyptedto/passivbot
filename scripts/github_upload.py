@@ -109,7 +109,7 @@ def generateReadme(only_trash=False):
             "s_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
             "s_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
             "s_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
-            "l_TP"  : str(round(group_file['file_config_json']['data']['short']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['short']['markup_range'] * 100,2))+"%/",
+            "s_TP"  : str(round(group_file['file_config_json']['data']['short']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['short']['markup_range'] * 100,2))+"%/",
             "s_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
             
         }
