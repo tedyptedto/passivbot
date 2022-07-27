@@ -5,7 +5,7 @@ import hjson
 from pathlib import Path
 import pandas as pd
 from tabulate import tabulate
-
+import hashlib
 
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
@@ -85,6 +85,7 @@ def generateReadme(only_trash=False):
         parent_dir = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[0]
 
         strat_info = {
+            "uid" : hashlib.md5(hjson.dumps(group_file['file_config_json']['data']).encode('utf-8')).hexdigest()[0:5],
             "conf" : "[conf](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
             "bulk" : "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + ")",
             "categ" : parent_dir,
@@ -153,11 +154,11 @@ def generateAutoFiles():
 
     df = generateReadme()
     df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
-    tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github'))
+    tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github', showindex=False))
 
     df_trash = generateReadme(only_trash=True)
     df_trash.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
-    tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github'))
+    tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
 
     readme = git_folder + "/README.md"
     text_file = open(readme, "w")
