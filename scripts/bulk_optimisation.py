@@ -8,6 +8,7 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
+# @TODO : trouver le moyen d'ajouter les stratégies par défaut pour comparer aussi
 # @TODO : PBSO add TP info
 # @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
 # @TODO : add the autocommit at the end of bulk

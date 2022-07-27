@@ -96,6 +96,7 @@ def generateReadme(only_trash=False):
             "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
 
             "long" : group_file['file_config_json']['data']['long']['enabled'],
+            'l_AU' : False if (group_file['file_config_json']['data']['long']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['long']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
             "l_gridspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
             "l_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
             "l_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
@@ -105,6 +106,7 @@ def generateReadme(only_trash=False):
 
 
             "short" : group_file['file_config_json']['data']['short']['enabled'],
+            's_AU' : False if (group_file['file_config_json']['data']['short']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['short']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
             "s_gridspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
             "s_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
             "s_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
