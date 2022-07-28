@@ -8,8 +8,13 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-# @TODO : trouver le moyen d'ajouter les stratégies par défaut pour comparer aussi
-# @TODO : PBSO add TP info
+# @TODO : BULK must not pass parameters, it must verride JSON file (bug) => 
+#           better identification in folder how wath it is running
+# @TODO : correct the false op_coin to the right (bug)
+# @TODO : create a legend for the Readme to understand
+# @TODO : WHen optimising on multiples coins, do, also a backtest multiple (sub directory)
+#  
+# @TODO : add the passivbot default strategy to compare
 # @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
 # @TODO : add the autocommit at the end of bulk
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
