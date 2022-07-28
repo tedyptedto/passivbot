@@ -1,6 +1,7 @@
 #!/bin/bash
 # symbols=(XRPUSDT MATICUSDT DOGEUSDT )
-symbols=(MATICUSDT DOGEUSDT AVAXUSDT )
+# symbols=(MATICUSDT DOGEUSDT AVAXUSDT )
+symbols=(XRPUSDT MATICUSDT DOGEUSDT )
 for i in "${symbols[@]}"
 do
     :
