@@ -11,6 +11,34 @@ import hashlib
 test_mode = False
 # test_mode = True
 
+
+legend = '''
+### Legend
+
+bt_* = Informations relative to backtesting
+l_* = Informations on the strategy for Long side
+s_* = Informations on the strategy for Short side
+
+"uid" : Unique Id for the config.json,
+"info" : Link to the config.json and bulk config,
+"categ" : name of the bulk,
+"bt_balance" : starting_balance,
+"bt_coin" : Symbol backtested,
+"bt_days" : No. days,
+"bt_l_adg" : Long ADG realized per exposure,
+"bt_s_adg" : Short ADG realized per exposure,
+"long" : Long enabled,
+'l_AU' : Long AutoUnstuck enabled,
+"l_gspan" : Long grid_span (height of the grid),
+"l_TP"  : Long TP distance / TP zone height /,
+"short" : Short enabled,
+'s_AU' : Short AutoUnstuck enabled,
+"s_gspan" : Short grid_span (height of the grid),
+"s_TP"  : Long TP distance / TP zone height /,
+
+
+'''
+
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
     if long_or_short == "short":
@@ -36,9 +64,21 @@ def generateReadme(only_trash=False):
         dir = os.path.dirname(file)
 
         list = glob.glob(dir + "/_backtest_*.hjson")
+        if len(list) == 0:
+            list = glob.glob(dir + "/*/_backtest_*.hjson")
         file_backtest_hjson = "unknown"
         if (len(list) == 1):
             file_backtest_hjson = list[0]
+
+        list = glob.glob(dir + "/result.txt")
+        if len(list) == 0:
+            list = glob.glob(dir + "/*/result.txt")
+        file_result_txt = "unknown"
+        if (len(list) == 1):
+            file_result_txt = list[0]
+
+
+
 
         list = glob.glob(dir + "/_harmony_*.hjson")
         file_harmony_hjson = "unknown"
@@ -54,7 +94,7 @@ def generateReadme(only_trash=False):
         group_file = {
             "file_config_json" : file,
 
-            "file_result_txt" : dir + "/result.txt",
+            "file_result_txt" : file_result_txt,
             "file_backtest_hjson" : file_backtest_hjson,
             "file_harmony_hjson" : file_harmony_hjson,
             "bulk_optimisation_hjson" : bulk_optimisation_hjson,
@@ -102,11 +142,11 @@ def generateReadme(only_trash=False):
             "bt_days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
             # "bt_end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
             
-            "l_bt_adg" : getValueInResultTxt(ftxt, 'ADG realized per exposure', 'long'),
+            "bt_l_adg" : getValueInResultTxt(ftxt, 'ADG realized per exposure', 'long'),
             # "l_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
             # "l_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
 
-            "s_bt_adg" : getValueInResultTxt(ftxt, 'ADG realized per exposure', 'short'),
+            "bt_s_adg" : getValueInResultTxt(ftxt, 'ADG realized per exposure', 'short'),
             # "s_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
             # "s_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
 
@@ -138,7 +178,7 @@ def generateReadme(only_trash=False):
     df = pd.DataFrame(data_list)
     # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
     # df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
-    df.sort_values(by=[ 'categ', 'l_bt_adg'], ascending=[ True, False], inplace=True)
+    df.sort_values(by=[ 'categ', 'bt_l_adg'], ascending=[ True, False], inplace=True)
 
     return df
         
@@ -174,11 +214,17 @@ def generateAutoFiles():
 
     readme = git_folder + "/README.md"
     text_file = open(readme, "w")
-    n = text_file.write('''# PBOS - PassivBotOnlyStrategy - PassivBot Strategies
+    n = text_file.write('''# PBOS - PassivBotOnlyStrategy
+## PassivBot Strategies
 
-[CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
 
-[README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
+''' + legend + '''
+
+### CSV version
+
+Link to [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
+
+Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
 ''' + tableau_beautiful + 
 # '''
