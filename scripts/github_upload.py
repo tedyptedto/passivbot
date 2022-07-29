@@ -154,7 +154,7 @@ def generateReadme(only_trash=False):
             "categ" : parent_dir,
             # "op_coin" : op_coin,
 
-            "bt_balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
+            # "bt_balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
             "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
             "bt_days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
             # "bt_end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
