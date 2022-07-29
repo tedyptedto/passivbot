@@ -204,8 +204,8 @@ try:
     origin = repo.remote(name='origin')
 
     print("Initialize auto generated files")
-    repo.git.add('README.md')
-    repo.git.add('strategy_list.csv')
+    repo.git.checkout('README.md')
+    repo.git.checkout('strategy_list.csv')
 
     print("Pull new strategies")
     origin.pull()
