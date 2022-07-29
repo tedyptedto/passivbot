@@ -178,13 +178,16 @@ def generateAutoFiles():
 
 [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
-''' + tableau_beautiful + '''
+''' + tableau_beautiful + 
+# '''
 
-# xx_Trash PassivBot (old) Strategies :
+# # xx_Trash PassivBot (old) Strategies :
 
-[README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
+# [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
-''' + tableau_beautiful_trash)
+# ''' + tableau_beautiful_trash +
+""
+)
     text_file.close()
 
     df.to_csv(git_folder + "/strategy_list.csv") 
