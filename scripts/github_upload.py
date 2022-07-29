@@ -197,6 +197,29 @@ def generateReadme(only_trash=False):
     # df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
     df.sort_values(by=[ 'categ', 'bt_l_adg'], ascending=[ True, False], inplace=True)
 
+
+    # bt_days	bt_l_adg	l_gspan	g_gspan
+
+    df['bt_l_adg'] = (df['bt_l_adg'].str.replace('%','')).astype(float)
+    df['bt_s_adg'] = (df['bt_s_adg'].str.replace('%','')).astype(float)
+
+    df['l_gspan'] = (df['l_gspan'].str.replace('%','')).astype(float)
+    df['s_gspan'] = (df['s_gspan'].str.replace('%','')).astype(float)
+
+    df.insert(2, "stars", True)
+
+    df['stars'] = (
+                (
+        
+                    (df['bt_days'] - df['bt_days'].min()) / (df['bt_days'].max() - df['bt_days'].min()) +
+                    (df['bt_l_adg'] - df['bt_l_adg'].min()) / (df['bt_l_adg'].max() - df['bt_l_adg'].min()) +
+                    (df['bt_s_adg'] - df['bt_s_adg'].min()) / (df['bt_s_adg'].max() - df['bt_s_adg'].min()) +
+                    (df['l_gspan'] - df['l_gspan'].min()) / (df['l_gspan'].max() - df['l_gspan'].min()) +
+                    (df['s_gspan'] - df['s_gspan'].min()) / (df['s_gspan'].max() - df['s_gspan'].min()) 
+                ) / 5 * 10
+            ).round()
+
+
     return df
         
 
@@ -223,11 +246,20 @@ def generateAutoFiles():
     # Generate the ReadMe info
     ######################
 
+
+        
     df = generateReadme()
     tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github', showindex=False))
 
-    df_trash = generateReadme(only_trash=True)
-    tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
+    df_by_stars = generateReadme()
+    df_by_stars.sort_values(by=['stars', 'bt_l_adg'], ascending=[ False, False], inplace=True)
+    tableau_beautiful_by_stars = str(tabulate(df_by_stars, headers='keys', tablefmt='github', showindex=False))
+
+    # df_trash = generateReadme(only_trash=True)
+    # tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
+
+
+    # print(df)
 
     readme = git_folder + "/README.md"
     text_file = open(readme, "w")
@@ -244,13 +276,11 @@ Link to [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list
 Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
 ''' + tableau_beautiful + 
-# '''
+'''
 
-# # xx_Trash PassivBot (old) Strategies :
+### Sorted by stars :
 
-# [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
-
-# ''' + tableau_beautiful_trash +
+''' + tableau_beautiful_by_stars  +
 ""
 )
     text_file.close()
