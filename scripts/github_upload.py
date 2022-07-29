@@ -7,6 +7,10 @@ import pandas as pd
 from tabulate import tabulate
 import hashlib
 
+
+# test_mode = False
+test_mode = True
+
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
     if long_or_short == "short":
@@ -49,6 +53,7 @@ def generateReadme(only_trash=False):
 
         group_file = {
             "file_config_json" : file,
+
             "file_result_txt" : dir + "/result.txt",
             "file_backtest_hjson" : file_backtest_hjson,
             "file_harmony_hjson" : file_harmony_hjson,
@@ -79,40 +84,44 @@ def generateReadme(only_trash=False):
 
         ftxt = group_file['file_result_txt']['data']
 
-        op_coin = len(group_file['bulk_optimisation_hjson']['data']['coin_list'])
+        # op_coin = len(group_file['bulk_optimisation_hjson']['data']['coin_list'])
 
 
         parent_dir = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[0]
 
+        uid = hashlib.md5(hjson.dumps(group_file['file_config_json']['data']).encode('utf-8')).hexdigest()[0:5]
         strat_info = {
-            "uid" : hashlib.md5(hjson.dumps(group_file['file_config_json']['data']).encode('utf-8')).hexdigest()[0:5],
-            "conf" : "[conf](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + ")",
-            "bulk" : "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + ")",
+            "uid" : uid,
+            "info" : "[conf](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + "#"+uid+")" + "/" +
+                    "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + "#"+uid+")",
             "categ" : parent_dir,
-            "balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
-            "op_coin" : op_coin,
-            "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
-            "days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
-            "end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
+            # "op_coin" : op_coin,
 
             "long" : group_file['file_config_json']['data']['long']['enabled'],
-            'l_AU' : False if (group_file['file_config_json']['data']['long']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['long']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
-            "l_gridspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
             "l_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
-            "l_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
-            "l_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
+            'l_AU' : False if (group_file['file_config_json']['data']['long']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['long']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
+            "l_gspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
             "l_TP"  : str(round(group_file['file_config_json']['data']['long']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['long']['markup_range'] * 100,2))+"%/",
-            "l_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
 
 
             "short" : group_file['file_config_json']['data']['short']['enabled'],
-            's_AU' : False if (group_file['file_config_json']['data']['short']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['short']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
-            "s_gridspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
             "s_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
-            "s_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
-            "s_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
+            's_AU' : False if (group_file['file_config_json']['data']['short']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['short']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
+            "s_gspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
             "s_TP"  : str(round(group_file['file_config_json']['data']['short']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['short']['markup_range'] * 100,2))+"%/",
-            "s_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
+
+            "bt_balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
+            "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
+            "bt_days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
+            # "bt_end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
+            
+            # "l_bt_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
+            "l_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
+            "l_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
+
+            # "s_bt_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
+            "s_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
+            "s_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
             
         }
 
@@ -126,7 +135,8 @@ def generateReadme(only_trash=False):
     
     df = pd.DataFrame(data_list)
     # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
-    df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
+    # df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
+    df.sort_values(by=[ 'categ', 'l_gspan'], ascending=[ True, False], inplace=True)
 
     return df
         
@@ -155,11 +165,9 @@ def generateAutoFiles():
     ######################
 
     df = generateReadme()
-    df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
     tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github', showindex=False))
 
     df_trash = generateReadme(only_trash=True)
-    df_trash.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
     tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
 
     readme = git_folder + "/README.md"
@@ -185,11 +193,20 @@ def generateAutoFiles():
     # text_file.write(content2)
     # text_file.close()
 
-print("Now repository exist, cool :)")
+if test_mode:
+    print("Generate Auto files (readme and csv)")
+    generateAutoFiles()
+    exit()
 
 try:
+    print("Now repository exist, cool :)")
     repo = Repo(git_directory)
     origin = repo.remote(name='origin')
+
+    print("Initialize auto generated files")
+    repo.git.add('README.md')
+    repo.git.add('strategy_list.csv')
+
     print("Pull new strategies")
     origin.pull()
 

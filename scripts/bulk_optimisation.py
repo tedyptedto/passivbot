@@ -8,13 +8,27 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
+# @TODO : in github_upload => add git checkout README.md strategy_list.csv
+# @TODO : op_coin est faux
+
 # @TODO : BULK must not pass parameters, it must verride JSON file (bug) => 
 #           better identification in folder how wath it is running
+
+# @TODO : add the passivbot default strategy to compare
+# @TODO : mon idéal
+#               Dans le readme, avoir le moins d'info possible dans le table
+#               ensuite avoir un lien détail, qui soit une ancre vers le résutlat des backtest
+#               et qu'on est 4 infos + les screenshoots  
+#                   backtest_result.txt + balance_and_equity* + whole_backtest*
+#               mais se posel a question des multicoins
 # @TODO : correct the false op_coin to the right (bug)
+# @TODO : unified backtest
+# @TODO : aussi, pour les multi opti, une fois l'opti fini, il ne fait pas de backtest évidemment, bonne idée de prochain update.  pour les opti multi, backtest les coins avec un dossier pour chaque plots
 # @TODO : create a legend for the Readme to understand
 # @TODO : WHen optimising on multiples coins, do, also a backtest multiple (sub directory)
-#  
-# @TODO : add the passivbot default strategy to compare
+#           in fact, if there is only one backtest it is the result
+# @TODO : can be interesting having grouped strategies by coins
+#
 # @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
 # @TODO : add the autocommit at the end of bulk
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
