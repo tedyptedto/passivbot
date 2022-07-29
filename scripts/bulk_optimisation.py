@@ -8,11 +8,6 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-# @TODO : in github_upload => add git checkout README.md strategy_list.csv
-# @TODO : op_coin est faux
-
-# @TODO : BULK must not pass parameters, it must verride JSON file (bug) => 
-#           better identification in folder how wath it is running
 
 # @TODO : add the passivbot default strategy to compare
 # @TODO : mon idéal
@@ -21,12 +16,7 @@
 #               et qu'on est 4 infos + les screenshoots  
 #                   backtest_result.txt + balance_and_equity* + whole_backtest*
 #               mais se posel a question des multicoins
-# @TODO : correct the false op_coin to the right (bug)
 # @TODO : unified backtest
-# @TODO : aussi, pour les multi opti, une fois l'opti fini, il ne fait pas de backtest évidemment, bonne idée de prochain update.  pour les opti multi, backtest les coins avec un dossier pour chaque plots
-# @TODO : create a legend for the Readme to understand
-# @TODO : WHen optimising on multiples coins, do, also a backtest multiple (sub directory)
-#           in fact, if there is only one backtest it is the result
 # @TODO : can be interesting having grouped strategies by coins
 #
 # @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
@@ -57,6 +47,18 @@ testing_mode = False
 if testing_mode:
     print('Testing mode ACTIVATED')
 
+
+def searchAndReplace(orig_file, src, replace):
+    # Read in the file
+    with open(orig_file, 'r') as file :
+        filedata = file.read()
+
+    # Replace the target string
+    filedata = filedata.replace(src, replace)
+
+    # Write the file out again
+    with open(orig_file, 'w') as file:
+        file.write(filedata)
 
 def convertStringPercent(string):
     if not isinstance(string, str):
@@ -157,6 +159,8 @@ for key in bo_config['override_bt_and_opti']:
     if (key in new_config_hjson):
         new_config_hjson[key]  = bo_config['override_bt_and_opti'][key]
 
+new_config_hjson["symbol"] = "SYMBOL_WILL_BE_REPLACED"
+
 with open(backtest_config, 'w') as outfile:
     hjson.dumpJSON(new_config_hjson, outfile, indent=True)
 
@@ -167,12 +171,13 @@ convertHJsonToHumanReadable(backtest_config)
 #              Generate the new harmony config OVERRIDE IT
 # -----------------------------------------------------------
 new_config_hjson = hjson.load(open(bo_config['harmony_config_file'], encoding="utf-8"))
-new_config_hjson['symbols'] = ['NOTSET']
 
 # override from "override_bt_and_opti"
 for key in bo_config['override_bt_and_opti']:
     if (key in new_config_hjson):
         new_config_hjson[key]  = bo_config['override_bt_and_opti'][key]
+
+new_config_hjson["symbols"] = "SYMBOL_WILL_BE_REPLACED"
 
 #strategies group, not main config
 bo_strat_groups = ["strategies_long_and_short","strategies_long","strategies_short"]
@@ -230,12 +235,6 @@ pbso_dir  = os.path.realpath("./../configs/live/PBSO/"+bulk_version)
 if not os.path.exists(pbso_dir):
      os.makedirs(pbso_dir)
 
-# ------------------------------------------------------------
-#             End if testing mode  
-# ------------------------------------------------------------
-if testing_mode:
-    print('END Because Testing ENABLED')
-    exit()
 
 try:
     # -----------------------------------------------------------
@@ -259,11 +258,23 @@ try:
     for coin in coin_list:
         print('Start Optimize loop', coin['coin'])
 
+
+        sub_coin_list = coin['coin'].split(',')
+
+        # update the harmony with the coin in the config
+        searchAndReplace(harmony_config, '"SYMBOL_WILL_BE_REPLACED"', str(hjson.dumps(sub_coin_list)))
+
+        # ------------------------------------------------------------
+        #             End if testing mode  
+        # ------------------------------------------------------------
+        if testing_mode:
+            print('END Because Testing ENABLED')
+            exit()
+
         #python3 harmony_search.py -o config --oh -sd startdat -ed enddate -s SYMBOL
         command_line = [
                                 "python3", "harmony_search.py", 
                                 "-o", harmony_config,
-                                "-s", coin['coin'],
                                 "-b", backtest_config
                                 ]
         if ('harmony_starting_config' in coin):
@@ -294,7 +305,8 @@ try:
 
 
         # find the last file all_results.txt (must be the new one created)
-        list_of_files = glob.glob("./../results_harmony_*/*_" + coin['coin'].upper() + "/all_results.txt", recursive=True)
+        # don't work with multicoins => list_of_files = glob.glob("./../results_harmony_*/*_" + coin['coin'].upper() + "/all_results.txt", recursive=True)
+        list_of_files = glob.glob("./../results_harmony_*/*/all_results.txt", recursive=True)
         latest_file = max(list_of_files, key=os.path.getctime)
         latest_file = os.path.realpath(latest_file)
 
@@ -324,67 +336,85 @@ try:
         best_config_dest = dir_to_save + "/config.json"
         shutil.copy(os.path.dirname(latest_file) + "/all_results_best_config.json", best_config_dest)
 
-        command_line = [
-                                    "python3", "backtest.py", 
-                                    "-s", coin['coin'],
-                                    "-b", backtest_config
-                                    ]
-
-        if bo_config['override_bt_and_opti'].get('ohlc', None) or bo_config['override_bt_and_opti'].get('ohlc_bt', None):
-            command_line.append("-oh") 
-        
-        command_line.append(best_config_dest) 
-
-
-        try:
-            print(' '.join(command_line))
-            subprocess.run(command_line, cwd="..")
-        except subprocess.TimeoutExpired:
-            print('Timeout Reached  seconds)')
-
-
-        #         Copy the backtest configuration
-        #             change the config 
-        #                 start_date: => now lower than 900 days [nb_days]
-        #                   end_date: => now 
-        #         run the backtest with this configs
-        #         Copy the strategy in 
-        #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/config.json
-        #         Copy the backtest result in 
-        #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/result.txt
-
-        # find the last file  (must be the new one created)
-        list_of_files = glob.glob("./../backtests/*/*" + coin['coin'].upper() + "*/plots/*/backtest_result.txt", recursive=True)
-        latest_result = max(list_of_files, key=os.path.getctime)
-        latest_result = os.path.realpath(latest_result)
-
-        shutil.copy(latest_result, dir_to_save + '/result.txt')
-
-
-        other_files_to_copy = [
-                            'balance_and_equity_sampled_long.png',
-                            'balance_and_equity_sampled_short.png',
-                            'whole_backtest_long.png',
-                            'whole_backtest_short.png',
-        ]
-
-        for src in other_files_to_copy:
-            src_file = os.path.dirname(latest_result) + '/' + src
-            if os.path.exists(src_file):
-                shutil.copy(src_file, dir_to_save + '/' + src)
-        
+        # save harmony file and bulk config
         shutil.copy(harmony_config, dir_to_save + '/')
-        shutil.copy(backtest_config, dir_to_save + '/')
         shutil.copy(args.bo_config, dir_to_save + '/')
+
+        #######
+        # # start the backteting loop on any coin available
+        #######
+        for sub_coin in sub_coin_list:
+
+            dir_to_save_bt = dir_to_save + '/' + sub_coin + '/'
+            os.makedirs(dir_to_save_bt)
+
+#            searchAndReplace(backtest_config, 'SYMBOL_WILL_BE_REPLACED', sub_coin) # problem looping can't replace second pass
+
+
+            command_line = [
+                                        "python3", "backtest.py", 
+                                        "-s", sub_coin,
+                                        "-b", backtest_config
+                                        ]
+
+            if bo_config['override_bt_and_opti'].get('ohlc', None) or bo_config['override_bt_and_opti'].get('ohlc_bt', None):
+                command_line.append("-oh") 
+            
+            command_line.append(best_config_dest) 
+
+
+            try:
+                print(' '.join(command_line))
+                subprocess.run(command_line, cwd="..")
+            except subprocess.TimeoutExpired:
+                print('Timeout Reached  seconds)')
+
+
+            #         Copy the backtest configuration
+            #             change the config 
+            #                 start_date: => now lower than 900 days [nb_days]
+            #                   end_date: => now 
+            #         run the backtest with this configs
+            #         Copy the strategy in 
+            #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/config.json
+            #         Copy the backtest result in 
+            #             /configs/live/PBSO/900d_1000i_0.02,0.4gs_0.02,0.4mm_0.02,0.4mr/result.txt
+
+            # find the last file  (must be the new one created)
+            list_of_files = glob.glob("./../backtests/*/*" + sub_coin.upper() + "*/plots/*/backtest_result.txt", recursive=True)
+            latest_result = max(list_of_files, key=os.path.getctime)
+            latest_result = os.path.realpath(latest_result)
+
+            shutil.copy(latest_result, dir_to_save_bt + '/result.txt')
+
+
+            other_files_to_copy = [
+                                'balance_and_equity_sampled_long.png',
+                                'balance_and_equity_sampled_short.png',
+                                'whole_backtest_long.png',
+                                'whole_backtest_short.png',
+                                'initial_entry_band_long.png',
+                                'initial_entry_band_short.png',
+                                'whole_backtest_long.png',
+                                'whole_backtest_short.png',
+            ]
+
+            for src in other_files_to_copy:
+                src_file = os.path.dirname(latest_result) + '/' + src
+                if os.path.exists(src_file):
+                    shutil.copy(src_file, dir_to_save_bt + '/' + src)
+            
+            shutil.copy(backtest_config, dir_to_save_bt + '/')
 
     print('All Results files are stored in this directory : ', pbso_dir)
 
 except KeyboardInterrupt:
     print("End of process")
 finally:
-    print("Deleting unused files")
-    os.unlink(harmony_config)
-    os.unlink(backtest_config)
+    if not testing_mode:
+        print("Deleting unused files")
+        os.unlink(harmony_config)
+        os.unlink(backtest_config)
 
 
 
