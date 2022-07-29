@@ -8,8 +8,8 @@ from tabulate import tabulate
 import hashlib
 
 
-test_mode = False
-# test_mode = True
+# test_mode = False
+test_mode = True
 
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
@@ -192,7 +192,7 @@ def generateAutoFiles():
 )
     text_file.close()
 
-    df.drop(columns=['info'])
+    df.drop(columns=['info'], inplace=True)
     df.to_csv(git_folder + "/strategy_list.csv") 
     # content2=tabulate(df, headers='keys', tablefmt="tsv")
     # text_file=open(readme + ".tabulated.csv","w")
