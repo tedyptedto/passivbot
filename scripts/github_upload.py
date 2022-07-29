@@ -97,6 +97,20 @@ def generateReadme(only_trash=False):
             "categ" : parent_dir,
             # "op_coin" : op_coin,
 
+            "bt_balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
+            "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
+            "bt_days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
+            # "bt_end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
+            
+            "l_bt_adg" : getValueInResultTxt(ftxt, 'ADG realized per exposure', 'long'),
+            # "l_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
+            # "l_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
+
+            "s_bt_adg" : getValueInResultTxt(ftxt, 'ADG realized per exposure', 'short'),
+            # "s_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
+            # "s_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
+
+
             "long" : group_file['file_config_json']['data']['long']['enabled'],
             "l_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
             'l_AU' : False if (group_file['file_config_json']['data']['long']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['long']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
@@ -110,18 +124,6 @@ def generateReadme(only_trash=False):
             "s_gspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
             "s_TP"  : str(round(group_file['file_config_json']['data']['short']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['short']['markup_range'] * 100,2))+"%/",
 
-            "bt_balance" : group_file['file_backtest_hjson']['data']['starting_balance'],
-            "bt_coin" : getValueInResultTxt(ftxt, 'Symbol', 'long'),
-            "bt_days" : int(float(getValueInResultTxt(ftxt, 'No. days', 'long'))),
-            # "bt_end" : group_file['file_backtest_hjson']['data']['end_date'].replace('-', '/').strip(','),
-            
-            # "l_bt_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'long'),
-            "l_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'long'),
-            "l_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'long'),
-
-            # "s_bt_adg" : getValueInResultTxt(ftxt, 'Average daily gain', 'short'),
-            "s_bt_gain"  : getValueInResultTxt(ftxt, 'Total gain', 'short'),
-            "s_bt_bkrupt"  : getValueInResultTxt(ftxt, 'Closest bankruptcy', 'short'),
             
         }
 
@@ -136,7 +138,7 @@ def generateReadme(only_trash=False):
     df = pd.DataFrame(data_list)
     # df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
     # df.sort_values(by=[ 'categ', 'balance', 'op_coin', 'l_gridspan'], ascending=[ True, False, False, False], inplace=True)
-    df.sort_values(by=[ 'categ', 'l_gspan'], ascending=[ True, False], inplace=True)
+    df.sort_values(by=[ 'categ', 'l_bt_adg'], ascending=[ True, False], inplace=True)
 
     return df
         
