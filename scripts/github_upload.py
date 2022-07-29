@@ -192,7 +192,7 @@ def generateAutoFiles():
 )
     text_file.close()
 
-    df.drop(['info'])
+    df.drop(columns=['info'])
     df.to_csv(git_folder + "/strategy_list.csv") 
     # content2=tabulate(df, headers='keys', tablefmt="tsv")
     # text_file=open(readme + ".tabulated.csv","w")
