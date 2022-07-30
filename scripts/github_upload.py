@@ -69,6 +69,8 @@ Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README
 
 [Sorted by ADG](https://github.com/tedyptedto/pbos#strategy-sorted-by-adg)
 
+[Sorted by COIN](https://github.com/tedyptedto/pbos#strategy-sorted-by-coin)
+
 '''
 
 def getValueInResultTxt(content, key, long_or_short):
@@ -273,6 +275,9 @@ def generateAutoFiles():
     df_by_adg = df.sort_values(by=['bt_l_adg'], ascending=[ False], inplace=False)
     tableau_beautiful_by_adg = str(tabulate(df_by_adg, headers='keys', tablefmt='github', showindex=False))
 
+    df_by_coin = df.sort_values(by=['bt_coin', 'bt_l_adg'], ascending=[ True, False], inplace=False)
+    tableau_beautiful_by_coin = str(tabulate(df_by_coin, headers='keys', tablefmt='github', showindex=False))
+
     # df_trash = generateReadme(only_trash=True)
     # tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
 
@@ -296,6 +301,11 @@ def generateAutoFiles():
 ### Strategy sorted by Adg
 ''' + tableau_beautiful_by_adg + 
 '''
+
+### Strategy sorted by COIN
+''' + tableau_beautiful_by_coin + 
+'''
+
 '''
 )
     text_file.close()
