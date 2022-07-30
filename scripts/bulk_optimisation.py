@@ -8,7 +8,8 @@
 #       After, save the config in configs/live/PBSO/COIN_DIRECTORY/config.json (the best config)
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
-
+# python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson -bd ../configs/live/PBSO/BT_UNIFORMISED/
+# 
 # @TODO : add the passivbot default strategy to compare but it is multicoin... multi coin = top 20 crypto ?
 #           Avoir un système qui permet (vu qu'on a son hamrony mais pas pour les autres stratégies)
 #           peut être partir sur un truc basique quand on a une stratégie seule ?
