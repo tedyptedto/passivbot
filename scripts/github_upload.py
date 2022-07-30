@@ -8,8 +8,8 @@ from tabulate import tabulate
 import hashlib
 
 
-# test_mode = False
-test_mode = True
+test_mode = False
+# test_mode = True
 
 
 legend = '''
