@@ -8,8 +8,8 @@ from tabulate import tabulate
 import hashlib
 
 
-test_mode = False
-# test_mode = True
+# test_mode = False
+test_mode = True
 
 
 legend = '''
@@ -53,6 +53,13 @@ s_* = Informations on the strategy for Short side
 
 "s_TP"  : Long TP distance / TP zone height /,
 
+### CSV version
+
+Link to [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
+
+### Readme version
+
+Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
 '''
 
@@ -149,8 +156,9 @@ def generateReadme(only_trash=False):
         uid = hashlib.md5(hjson.dumps(group_file['file_config_json']['data']).encode('utf-8')).hexdigest()[0:5]
         strat_info = {
             "uid" : uid,
-            "info" : "[conf](https://github.com/tedyptedto/pbos/blob/main/" + group_file['file_config_json']['file_r'] + "#"+uid+")" + "/" +
-                    "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + "#"+uid+")",
+            "info" : "[dir](https://github.com/tedyptedto/pbos/blob/main/" + os.path.dirname(group_file['file_config_json']['file_r']) + "#"+uid+")",
+                    #  + "/" +
+                    # "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + "#"+uid+")",
             "categ" : parent_dir,
             # "op_coin" : op_coin,
 
@@ -269,16 +277,12 @@ def generateAutoFiles():
 
 ''' + legend + '''
 
-### CSV version
-
-Link to [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
-
-Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
+### Strategy sorted by categ and adg :
 
 ''' + tableau_beautiful + 
 '''
 
-### Sorted by stars :
+### Strategy Sorted by stars :
 
 ''' + tableau_beautiful_by_stars  +
 ""
