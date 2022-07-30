@@ -2,7 +2,8 @@
 
 # live_config="../configs/live/a_tedy.json"
 # live_config="../configs/live/a_tedy_neat_AU_long_only.json"
-live_config="../configs/live/a_fly_8_no_short.json"
+# live_config="../configs/live/a_fly_8_no_short.json"
+live_config="../configs/live/a_af59b_only_long.json"
 # live_config="../configs/live/a_matic_MDCL.json"
 # live_config="../configs/live/a_sawyer.json"
 # live_config="../configs/live/a_pro.json"

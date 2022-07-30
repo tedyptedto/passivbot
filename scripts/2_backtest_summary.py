@@ -65,6 +65,11 @@ def arguments_management():
                         help="Show only result upper than min-days",
     )
 
+    parser.add_argument("-bd-dir","--bd-dir",
+                        type=str,required=False,dest="bd_dir",default="",
+                        help="Parse all this directory to find backtest",
+    )
+
 
 
     args = parser.parse_args()
@@ -96,23 +101,20 @@ number_coin_wanted = args.nb_best_coins
 
 print('python3 ' + __file__ + " " + (" ").join(sys.argv[1:]))
 
-# Grab all files availables
-files = glob.glob('backtests/*/*/plots/*/result.json')
+if (args.bd_dir == ""):
+    # Grab all files availables
+    files = glob.glob('backtests/**/plots/*/result.json', recursive=True)
 
-if len(files) == 0:
-    files = glob.glob('backtests/*/*/*/plots/*/result.json')
-    if len(files) == 0:
-        print('No files found')
-        exit()
+    # to avoid using a bad directory, and just the latest directory :
+    latest_file = max(files, key=os.path.getctime)
+    latest_file = os.path.realpath(latest_file)
+    dir_to_read = os.path.realpath(os.path.dirname(latest_file) + "/../../../../")
+    print("Workgin in directory : " + dir_to_read)
 
-# to avoid using a bad directory, and just the latest directory :
-latest_file = max(files, key=os.path.getctime)
-latest_file = os.path.realpath(latest_file)
-dir_to_read = os.path.realpath(os.path.dirname(latest_file) + "/../../../../")
-print("Workgin in directory : " + dir_to_read)
-
-files = glob.glob(dir_to_read + '/*/*/plots/*/result.json')
-
+    files = glob.glob(dir_to_read + '/*/*/plots/*/result.json')
+else:
+    files = glob.glob(args.bd_dir + '/**/plots/*/result.json', recursive=True)
+    dir_to_read = os.path.realpath(args.bd_dir)
 
 
 print('Reading ', len(files), ' backtests')
@@ -162,8 +164,10 @@ for file in files:
     if (gain_pct < args.min_gain) :
         continue
 
+    parent_dir = os.path.realpath(file).replace(dir_to_read, '').strip("/").split("/")[0]
 
     datas = {}
+    datas['dir']                 = parent_dir
     datas['symbol']                 = symbol
     datas['n_days']                 = n_days
     datas['h_stuck_avg_l']     = hrs_stuck_avg_long
