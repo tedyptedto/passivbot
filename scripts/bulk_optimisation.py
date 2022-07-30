@@ -9,11 +9,17 @@
 #       After, save the backtest result in configs/live/PBSO/COIN_DIRECTORY/result.txt (the Backtest of best config)
 
 
-# @TODO : add the passivbot default strategy to compare
-# @TODO : can be interesting having grouped strategies by coins
+# @TODO : add the passivbot default strategy to compare but it is multicoin... multi coin = top 20 crypto ?
+#           Avoir un système qui permet (vu qu'on a son hamrony mais pas pour les autres stratégies)
+#           peut être partir sur un truc basique quand on a une stratégie seule ?
+#           de créer les backtest qui manquent, ce serait possible
+#           Cela permettrait d'aller chercher les tratégies qui sont mentionnées ici
+#           https://github.com/JohnKearney1/PassivBot-Configurations
+#           https://github.com/hoeckxer/passivbot_configs
+#
+#           Pour le multicoin, avoir un adg moyen
 #
 # @TODO : add the autocommit at the end of bulk
-# @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
 # @TODO : add backtesting in Binance and Bybit (dotcom)
 # @TODO : Create a Lock, to avoid multiples run at same time.
 
