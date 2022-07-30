@@ -10,16 +10,8 @@
 
 
 # @TODO : add the passivbot default strategy to compare
-# @TODO : mon idéal
-#               Dans le readme, avoir le moins d'info possible dans le table
-#               ensuite avoir un lien détail, qui soit une ancre vers le résutlat des backtest
-#               et qu'on est 4 infos + les screenshoots  
-#                   backtest_result.txt + balance_and_equity* + whole_backtest*
-#               mais se posel a question des multicoins
-# @TODO : unified backtest
 # @TODO : can be interesting having grouped strategies by coins
 #
-# @TODO : Create or modify the github_upload to filter the results (use the same function via import ?)
 # @TODO : add the autocommit at the end of bulk
 # @TODO : add a default BT with 10K starting_balance and 0.1 WE => to compare
 # @TODO : add backtesting in Binance and Bybit (dotcom)
