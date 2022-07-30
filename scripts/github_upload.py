@@ -61,6 +61,12 @@ Link to [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list
 
 Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
 
+### Strategy list
+
+[Sorted by categ and adg](https://github.com/tedyptedto/pbos#strategy-sorted-by-categ-and-adg)
+[Sorted by stars](https://github.com/tedyptedto/pbos#strategy-sorted-by-stars)
+[Sorted by ADG](https://github.com/tedyptedto/pbos#strategy-sorted-by-adg)
+
 '''
 
 def getValueInResultTxt(content, key, long_or_short):
@@ -259,9 +265,11 @@ def generateAutoFiles():
     df = generateReadme()
     tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github', showindex=False))
 
-    df_by_stars = generateReadme()
-    df_by_stars.sort_values(by=['stars', 'bt_l_adg'], ascending=[ False, False], inplace=True)
+    df_by_stars = df.sort_values(by=['stars', 'bt_l_adg'], ascending=[ False, False], inplace=False)
     tableau_beautiful_by_stars = str(tabulate(df_by_stars, headers='keys', tablefmt='github', showindex=False))
+
+    df_by_adg = df.sort_values(by=['bt_l_adg'], ascending=[ False], inplace=False)
+    tableau_beautiful_by_adg = str(tabulate(df_by_adg, headers='keys', tablefmt='github', showindex=False))
 
     # df_trash = generateReadme(only_trash=True)
     # tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
@@ -273,19 +281,20 @@ def generateAutoFiles():
     text_file = open(readme, "w")
     n = text_file.write('''# PBOS - PassivBotOnlyStrategy
 ## PassivBot Strategies
-
-
 ''' + legend + '''
 
-### Strategy sorted by categ and adg :
-
+### Strategy sorted by categ and adg
 ''' + tableau_beautiful + 
 '''
 
-### Strategy Sorted by stars :
-
+### Strategy sorted by stars
 ''' + tableau_beautiful_by_stars  +
-""
+'''
+
+### Strategy sorted by Adg
+''' + tableau_beautiful_by_adg + 
+'''
+'''
 )
     text_file.close()
 
