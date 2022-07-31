@@ -13,14 +13,6 @@ import shutil
 # To be the best more realistic
 # @TODO : check the grid OK before backtesting ? 
 
-# the goal is to uniformise the backtest of many strategies
-# after we can read the results with :
-###
-# PBOS usage : 0
-# python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson \
-# -o-csv ../configs/live/PBSO/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv \
-# -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/
-###
 
 we = 1
 coin_list = ["XRPUSDT", "LTCUSDT", "ADAUSDT", "DOTUSDT", "UNIUSDT", "DOGEUSDT", "MATICUSDT", "BNBUSDT", "SOLUSDT", "TRXUSDT", "AVAXUSDT"]
@@ -42,6 +34,21 @@ def convertHJsonToHumanReadable(filename):
     # Write the file out again
     with open(filename, 'w') as file:
         file.write(filedata)
+
+def cleanningBigFiles(PBSO_uniformed_directory):
+    #second cleaning action
+    to_delete = glob.glob(PBSO_uniformed_directory+"/**/caches", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/optimize", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/fills_long.csv", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/fills_short.csv", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/stats.csv", recursive=True)
+    for delete in to_delete:
+        if os.path.exists(delete):
+            print("Cleaning : ", delete)
+            if os.path.isdir(delete):
+                shutil.rmtree(delete)
+            elif os.path.isfile(delete):
+                os.unlink(delete)
 
 
 coin_file = "./tmp/grid_ok_coins.json"
@@ -187,12 +194,7 @@ for config in a_config:
             print('Timeout Reached  seconds)')
 
         #cleaning
-        to_delete = glob.glob(backtest_directory+"/**/caches", recursive=True)
-        if os.path.exists(to_delete[0]):
-            shutil.rmtree(to_delete[0])
-        to_delete = glob.glob(backtest_directory+"/**/optimize", recursive=True)
-        if os.path.exists(to_delete[0]):
-            shutil.rmtree(to_delete[0])
+        cleanningBigFiles(PBSO_uniformed_directory)
 
     print('Delete temporary strategy')
     os.unlink(final_config)
@@ -200,6 +202,9 @@ for config in a_config:
     print('Backtest ended')
 
 #auto generate the CSV file
+
+#second cleaning action
+cleanningBigFiles(PBSO_uniformed_directory)
 
 
 #python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json 
@@ -213,6 +218,27 @@ command_line = [
                         "../configs/backtest/default.hjson", 
                         "-o-csv", "../configs/live/PBSO/bt_" + uid_bt + ".csv" ,
                         "-bd", PBSO_uniformed_directory,
+                        ]
+try:
+    print(' '.join(command_line))
+    subprocess.run(command_line)
+except subprocess.TimeoutExpired:
+    print('Timeout Reached  seconds)')
+
+
+# python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json 
+# ../configs/backtest/default.hjson 
+# -o-csv ../configs/live/PBSO/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv 
+# -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/ 
+# -min-bkr 1 -min-gain 100 -min-days 365 -max-stuck 500
+
+command_line = [
+                        "python3", "2_backtest_summary.py", 
+                        "3", config,
+                        "../configs/backtest/default.hjson", 
+                        "-o-csv", "../configs/live/PBSO/best_bt_" + uid_bt + ".csv" ,
+                        "-bd", PBSO_uniformed_directory,
+                        "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","500",
                         ]
 try:
     print(' '.join(command_line))
