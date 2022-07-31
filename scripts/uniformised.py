@@ -263,7 +263,8 @@ command_line = [
                         "../configs/backtest/default.hjson", 
                         "-o-csv", "../configs/live/PBSO/best_bt_" + uid_bt + ".csv" ,
                         "-bd", PBSO_uniformed_directory,
-                        "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","500",
+                        "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","140",
+                        "-max-stuck-avg", "2"
                         ]
 try:
     print(' '.join(command_line))
