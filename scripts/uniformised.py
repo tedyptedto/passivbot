@@ -5,20 +5,45 @@ import hjson
 import re
 import subprocess
 import shutil
-
-
-# Improvements
-# @TODO : let this script accept parameters
+import argparse
 
 # To be the best more realistic
 # @TODO : check the grid OK before backtesting ? 
 
+### Parameters management
+parser = argparse.ArgumentParser( description="This script will create a multi backtest on many strategies on PBSO",
+epilog="",
+usage="python3 " + __file__ + " "
+)
 
-we = 1
-coin_list = ["XRPUSDT", "LTCUSDT", "ADAUSDT", "DOTUSDT", "UNIUSDT", "DOGEUSDT", "MATICUSDT", "BNBUSDT", "SOLUSDT", "TRXUSDT", "AVAXUSDT"]
-start_date = "2021-01-01"
-end_date = "2022-07-23"
-starting_balance = "1000"
+parser.add_argument("-sd",
+                    type=str,required=False,dest="start_date",default="2021-01-01",
+                    help="Backtest start date",
+)
+parser.add_argument("-ed",
+                    type=str,required=False,dest="end_date",default="2022-07-23",
+                    help="Backtest end date",
+)
+parser.add_argument("-we",
+                    type=float,required=False,dest="we",default=1,
+                    help="Total WE of the strategy in backtest",
+)
+parser.add_argument("-balance",
+                    type=int,required=False,dest="starting_balance",default=1000,
+                    help="Starting balance",
+)
+parser.add_argument("-cl","--coin_list",
+                        type=str,required=False,dest="coin_list",default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT,USDCUSDT",
+                        help="A list of coin separated by coma. Ex : 'ONEUSDT,XLMUSDT'",
+)
+args = parser.parse_args()
+
+start_date = args.start_date
+end_date = args.end_date
+we = args.we
+starting_balance = str(args.starting_balance)
+coin_list = args.coin_list.split(',')
+
 
 
 def convertHJsonToHumanReadable(filename):
@@ -51,10 +76,10 @@ def cleanningBigFiles(PBSO_uniformed_directory):
                 os.unlink(delete)
 
 
-coin_file = "./tmp/grid_ok_coins.json"
-if os.path.exists(coin_file):
-    print ('AUTO LOADED config from ', coin_file)
-    coin_list = hjson.load(open(coin_file, encoding="utf-8"))
+# coin_file = "./tmp/grid_ok_coins.json"
+# if os.path.exists(coin_file):
+#     print ('AUTO LOADED config from ', coin_file)
+#     coin_list = hjson.load(open(coin_file, encoding="utf-8"))
 
 tmp_dir = os.path.realpath("./tmp/")
 if not os.path.exists(tmp_dir):
