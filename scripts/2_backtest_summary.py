@@ -138,6 +138,7 @@ for file in files:
     bt = json.load(f)
     f.close()
 
+
     symbol              = bt['result']['symbol']
     n_days              = bt['result']['n_days']
     hrs_stuck_avg_long  = bt['result']['hrs_stuck_avg_long']
@@ -178,9 +179,18 @@ for file in files:
 
     parent_dir = os.path.realpath(file).replace(dir_to_read, '').strip("/").split("/")[0]
 
+    father_full_dirname = dir_to_read + '/' + parent_dir + '/'
+    # print(father_full_dirname)
+    from_strat_data = father_full_dirname + '/unif_info.json'
+    if (os.path.exists(from_strat_data)):
+        from_strat_data = hjson.load(open(from_strat_data, encoding="utf-8"))
+    else:
+        from_strat_data = {}
+
     datas = {}
     if not (args.bd_dir == ""):
         datas['uid']                 = parent_dir.replace('strat_', '')
+
     datas['symbol']                 = symbol
     datas['n_days']                 = n_days
     datas['h_stuck_avg_l']     = hrs_stuck_avg_long
@@ -201,6 +211,8 @@ for file in files:
     datas['bkr_Short']            = closest_bkr_short
     
     
+    if 'orig_strategy' in from_strat_data:
+        datas['strat'] = from_strat_data['orig_strategy']
 
     # print(datas)
     datas_list.append(datas)
