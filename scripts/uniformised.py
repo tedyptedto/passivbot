@@ -7,22 +7,16 @@ import subprocess
 import shutil
 
 
-# @DONE : auto générer le summary à la fin
+# Improvements
+# @TODO : let this script accept parameters
 
-# @TODO : attendre la fin des backest...
-# @TODO : relancer le uniformised.py pour créer les fichiers qui vont bien de provenance de la strat
-# @TODO : relancer le uniformised.py pour vérifier que le summary fonctionne + génération du csv
-# @TODO : modifier le csv pour indiquer la provenance de la strategie à la fin 
-
-
-# @TODO : rendre paramétrable ce script
-
-# @TODO : Big => check the grid OK before backtesting ? => not possible it will change the nb coins => at the start see all the coins possible for all the strats
+# To be the best more realistic
+# @TODO : check the grid OK before backtesting ? 
 
 # the goal is to uniformise the backtest of many strategies
 # after we can read the results with :
 ###
-# PBOS usage : 
+# PBOS usage : 0
 # python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson \
 # -o-csv ../configs/live/PBSO/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv \
 # -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/
@@ -62,7 +56,7 @@ PBSO_dir = os.path.realpath("./../configs/live/PBSO/")
 
 uid_bt = start_date + "_" + end_date + "_" + starting_balance + "_" + str(we) + '_' +  "_".join(coin_list)
 
-PBSO_uniformed_directory = os.path.realpath("./../configs/live/PBSO/BT_UNIFORMISED/" + '/bt_'+ uid_bt + '/') 
+PBSO_uniformed_directory = os.path.realpath("./../configs/live/PBSO/BT_UNIFORMISED/" + '/bt_'+ uid_bt + '/') + '/'
 if not os.path.exists(PBSO_uniformed_directory):
      os.makedirs(PBSO_uniformed_directory)
 
@@ -215,10 +209,10 @@ for config in a_config:
 
 command_line = [
                         "python3", "2_backtest_summary.py", 
-                        "3", config
+                        "3", config,
                         "../configs/backtest/default.hjson", 
-                        "-o-csv", "../configs/live/PBSO/" + uid_bt + ".csv" 
-                        "-bd", PBSO_uniformed_directory
+                        "-o-csv", "../configs/live/PBSO/bt_" + uid_bt + ".csv" ,
+                        "-bd", PBSO_uniformed_directory,
                         ]
 try:
     print(' '.join(command_line))
