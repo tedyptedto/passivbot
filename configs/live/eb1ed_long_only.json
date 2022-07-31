@@ -15,7 +15,7 @@
           "max_n_entry_orders": 7,
           "min_markup": 0.0029489612267636885,
           "n_close_orders": 12,
-          "wallet_exposure_limit": 0.5},
+          "wallet_exposure_limit": 1},
  "short": {"auto_unstuck_ema_dist": 0.08284502287228132,
            "auto_unstuck_wallet_exposure_threshold": 0.4959671570301439,
            "backwards_tp": true,
