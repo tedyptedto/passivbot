@@ -9,6 +9,13 @@ import argparse
 import os
 import hjson
 
+# normal usage : python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson 
+###
+# PBOS usage : 
+# python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson \
+# -o-csv ../configs/live/PBSO/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv \
+# -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/
+###
 
 import sys
 
@@ -68,6 +75,11 @@ def arguments_management():
     parser.add_argument("-bd-dir","--bd-dir",
                         type=str,required=False,dest="bd_dir",default="",
                         help="Parse all this directory to find backtest",
+    )
+
+    parser.add_argument("-o-csv","--o-csv",
+                        type=str,required=False,dest="o_csv",default="",
+                        help="Ouput to CSV file",
     )
 
 
@@ -136,7 +148,7 @@ for file in files:
     # n_unstuck_entries_long  = bt['result']['n_unstuck_entries_long']
     # n_unstuck_closes_long  = bt['result']['n_unstuck_closes_long']
     # loss_sum_long  = bt['result']['loss_sum_long']
-    starting_balance    = bt['result']['starting_balance']
+    # starting_balance    = bt['result']['starting_balance']
 
     adg_perct           = bt['result']['adg_long']*100
     adg_perct           += bt['result']['adg_short']*100
@@ -167,7 +179,8 @@ for file in files:
     parent_dir = os.path.realpath(file).replace(dir_to_read, '').strip("/").split("/")[0]
 
     datas = {}
-    datas['dir']                 = parent_dir
+    if not (args.bd_dir == ""):
+        datas['uid']                 = parent_dir.replace('strat_', '')
     datas['symbol']                 = symbol
     datas['n_days']                 = n_days
     datas['h_stuck_avg_l']     = hrs_stuck_avg_long
@@ -178,12 +191,14 @@ for file in files:
     # datas['n_unstuck_entries_long']     = n_unstuck_entries_long
     # datas['n_unstuck_closes_long']     = n_unstuck_closes_long
     # datas['loss_sum_long']     = loss_sum_long
-    datas['adg %']                  = adg_perct
-    datas['gain %']                 = gain_pct
+    datas['l_adg %'] = bt['result']['adg_long']*100
+    datas['s_adg %'] = bt['result']['adg_short']*100
+    datas['total adg %']                  = adg_perct
+    datas['total gain %']                 = gain_pct
     datas['total gain $']                 = gain_dollard
-    datas['starting balance']       = starting_balance
-    datas['closest bkr Long']            = closest_bkr_long
-    datas['closest bkr_Short']            = closest_bkr_short
+    # datas['starting balance']       = starting_balance
+    datas['bkr Long']            = closest_bkr_long
+    datas['bkr_Short']            = closest_bkr_short
     
     
 
@@ -198,10 +213,14 @@ else:
 
 df = pd.DataFrame(datas_list)
 # df.sort_values(by=['marketcapPosition', 'adg %', 'gain %'], ascending=[True, False, False], inplace=True)
-df.sort_values(by=[ 'adg %', 'gain %'], ascending=[ False, False], inplace=True)
+df.sort_values(by=[ 'total adg %', 'total gain %'], ascending=[ False, False], inplace=True)
 best_coin = df['symbol'].values[0:number_coin_wanted].tolist()
 total_wallet_exposure = args.wallet_exposure_limit * len(best_coin)
-print(tabulate(df, headers='keys', tablefmt='psql'))
+print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+
+if not args.o_csv == "":
+    df.to_csv(args.o_csv) 
+
 print('')
 print('')
 print("--------------------------------------------------------------")
@@ -213,7 +232,7 @@ print("- Total wallet_exposure_limit (Long & Short) : ", total_wallet_exposure *
 print("- coin list : ", best_coin)
 
 # adg_pct                 = (df['adg %'].values[0:number_coin_wanted].mean() * total_wallet_exposure)
-adg_pct                 = (df['adg %'].values[0:number_coin_wanted].sum())
+adg_pct                 = (df['total adg %'].values[0:number_coin_wanted].sum())
 print("- global adg % : ", (adg_pct), "%")
 
 adg_dollard             = adg_pct * args.starting_balance / 100
