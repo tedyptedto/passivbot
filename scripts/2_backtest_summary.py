@@ -53,12 +53,12 @@ def arguments_management():
     )
 
     parser.add_argument("-max-stuck-avg","--max-hrs-stuck-avg-long",
-                        type=float,required=False,dest="max_stuck_avg",default=999999,
+                        type=float,required=False,dest="max_stuck_avg",default=99999999,
                         help="Show only result lower than max_stuck_avg",
     )
 
     parser.add_argument("-max-stuck","--max-hrs-stuck-long",
-                        type=float,required=False,dest="max_stuck",default=999999,
+                        type=float,required=False,dest="max_stuck",default=99999999,
                         help="Show only result lower than max_stuck",
     )
 
@@ -168,11 +168,17 @@ for file in files:
     if (closest_bkr_short < args.min_closest_bkr) :
         continue
     
-    # if (hrs_stuck_avg_long > args.max_stuck_avg) :
-    #     continue
+    if (hrs_stuck_avg_long > args.max_stuck_avg) :
+        continue
     
-    # if (hrs_stuck_max_long > args.max_stuck) :
-    #     continue
+    if (hrs_stuck_max_long > args.max_stuck) :
+        continue
+    
+    if (hrs_stuck_avg_short > args.max_stuck_avg) :
+        continue
+    
+    if (hrs_stuck_max_short > args.max_stuck) :
+        continue
     
     if (gain_pct < args.min_gain) :
         continue
