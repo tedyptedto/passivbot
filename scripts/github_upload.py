@@ -188,14 +188,14 @@ def generateReadme(only_trash=False):
 
             "long" : group_file['file_config_json']['data']['long']['enabled'],
             # "l_we" : group_file['file_config_json']['data']['long']['wallet_exposure_limit'],
-            'l_AU' : False if (group_file['file_config_json']['data']['long']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['long']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
+            'l_AU' : False if  (group_file['file_config_json']['data']['long']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
             "l_gspan" : str(int(group_file['file_config_json']['data']['long']['grid_span'] * 100)) + "%",
             "l_TP"  : str(round(group_file['file_config_json']['data']['long']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['long']['markup_range'] * 100,2))+"%/",
 
 
             "short" : group_file['file_config_json']['data']['short']['enabled'],
             # "s_we" : group_file['file_config_json']['data']['short']['wallet_exposure_limit'],
-            's_AU' : False if (group_file['file_config_json']['data']['short']['auto_unstuck_ema_dist'] == 0) and (group_file['file_config_json']['data']['short']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
+            's_AU' : False if  (group_file['file_config_json']['data']['short']['auto_unstuck_wallet_exposure_threshold'] == 0) else True,
             "s_gspan" : str(int(group_file['file_config_json']['data']['short']['grid_span'] * 100)) + "%",
             "s_TP"  : str(round(group_file['file_config_json']['data']['short']['min_markup'] * 100,2)) + "% /"+str(round(group_file['file_config_json']['data']['short']['markup_range'] * 100,2))+"%/",
 
