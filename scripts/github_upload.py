@@ -337,7 +337,7 @@ try:
     print('Pull is Done')
 
     question = input("Do you want tu Push some new strategies (Y/n) ? ")
-    if not (question.upper() == 'N'):
+    if (question.upper() == 'N'):
         print("Ok, script is stoped Now !")
         exit()
 
