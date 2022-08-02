@@ -334,6 +334,13 @@ try:
     print("Pull new strategies")
     origin.pull()
 
+    print('Pull is Done')
+
+    question = input("Do you want tu Push some new strategies (Y/n) ? ")
+    if not (question.upper() == 'N'):
+        print("Ok, script is stoped Now !")
+        exit()
+
     print("Generate Auto files (readme and csv)")
     generateAutoFiles()
 
