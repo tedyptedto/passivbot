@@ -47,6 +47,8 @@ async def trader_alert(d_message):
     user_name = a_message[1]
     if a_message[1] == "tedy": 
         api_keys_user = "bybit_tedy"
+    elif a_message[1] == "sawyer":
+        api_keys_user = "bybit_sawyer"
     elif a_message[1] == "jojo":
         api_keys_user = "bybit_jojo"
     elif (a_message[1] == "pro") and (d_message.channel.id in get_pro_channel_enabled()):
