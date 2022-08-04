@@ -199,6 +199,8 @@ for file in files:
     datas = {}
     if not (args.bd_dir == ""):
         datas['uid']                 = parent_dir.replace('strat_', '')
+    if 'orig_strategy' in from_strat_data:
+        datas['strat'] = from_strat_data['orig_strategy']
 
     datas['symbol']                 = symbol
     datas['n_days']                 = n_days
@@ -220,8 +222,6 @@ for file in files:
     datas['bkr_Short']            = closest_bkr_short
     
     
-    if 'orig_strategy' in from_strat_data:
-        datas['strat'] = from_strat_data['orig_strategy']
 
     # print(datas)
     datas_list.append(datas)
