@@ -94,7 +94,10 @@ def arguments_management():
         exit()
 
     live_config = hjson.load(open(args.live_config_filepath, encoding="utf-8"))
-    args.wallet_exposure_limit = live_config['long']['wallet_exposure_limit']
+    args.wallet_exposure_limit = 1
+    if ('long' in live_config):
+        if ('wallet_exposure_limit' in live_config['long']):
+            args.wallet_exposure_limit = live_config['long']['wallet_exposure_limit']
 
     args.backtest_config_filepath   = os.path.realpath(args.backtest_config_filepath)
 
