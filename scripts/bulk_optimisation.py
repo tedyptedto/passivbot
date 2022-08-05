@@ -347,7 +347,7 @@ try:
             dir_to_save_bt = dir_to_save + '/' + sub_coin + '/'
             os.makedirs(dir_to_save_bt)
 
-#            searchAndReplace(backtest_config, 'SYMBOL_WILL_BE_REPLACED', sub_coin) # problem looping can't replace second pass
+            #            searchAndReplace(backtest_config, 'SYMBOL_WILL_BE_REPLACED', sub_coin) # problem looping can't replace second pass
 
 
             command_line = [

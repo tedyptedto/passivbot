@@ -1,3 +1,4 @@
+import logging
 from git import Repo
 import os
 import glob
@@ -321,6 +322,9 @@ if test_mode:
     print("Generate Auto files (readme and csv)")
     generateAutoFiles()
     exit()
+
+
+logging.basicConfig(level=logging.DEBUG)
 
 try:
     print("Now repository exist, cool :)")
