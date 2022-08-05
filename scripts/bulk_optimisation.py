@@ -47,7 +47,7 @@ if testing_mode:
     print('Testing mode ACTIVATED')
 
 
-def searchAndReplace(orig_file, src, replace):
+def searchAndReplace(orig_file, dest_file, src, replace):
     # Read in the file
     with open(orig_file, 'r') as file :
         filedata = file.read()
@@ -56,7 +56,7 @@ def searchAndReplace(orig_file, src, replace):
     filedata = filedata.replace(src, replace)
 
     # Write the file out again
-    with open(orig_file, 'w') as file:
+    with open(dest_file, 'w') as file:
         file.write(filedata)
 
 def convertStringPercent(string):
@@ -261,7 +261,8 @@ try:
         sub_coin_list = coin['coin'].split(',')
 
         # update the harmony with the coin in the config
-        searchAndReplace(harmony_config, '"SYMBOL_WILL_BE_REPLACED"', str(hjson.dumps(sub_coin_list)))
+        harmony_config_renamed = harmony_config+".renamed.hjson"
+        searchAndReplace(harmony_config, harmony_config_renamed, '"SYMBOL_WILL_BE_REPLACED"', str(hjson.dumps(sub_coin_list)))
 
         # ------------------------------------------------------------
         #             End if testing mode  
@@ -273,7 +274,7 @@ try:
         #python3 harmony_search.py -o config --oh -sd startdat -ed enddate -s SYMBOL
         command_line = [
                                 "python3", "harmony_search.py", 
-                                "-o", harmony_config,
+                                "-o", harmony_config_renamed,
                                 "-b", backtest_config
                                 ]
         if ('harmony_starting_config' in coin):
@@ -336,7 +337,7 @@ try:
         shutil.copy(os.path.dirname(latest_file) + "/all_results_best_config.json", best_config_dest)
 
         # save harmony file and bulk config
-        shutil.copy(harmony_config, dir_to_save + '/')
+        shutil.copy(harmony_config_renamed, dir_to_save + '/')
         shutil.copy(args.bo_config, dir_to_save + '/')
 
         #######
@@ -347,13 +348,17 @@ try:
             dir_to_save_bt = dir_to_save + '/' + sub_coin + '/'
             os.makedirs(dir_to_save_bt)
 
+
+            backtest_config_renamed = backtest_config+".renamed.hjson"
+            searchAndReplace(backtest_config, backtest_config_renamed, 'SYMBOL_WILL_BE_REPLACED', sub_coin)
+
             #            searchAndReplace(backtest_config, 'SYMBOL_WILL_BE_REPLACED', sub_coin) # problem looping can't replace second pass
 
 
             command_line = [
                                         "python3", "backtest.py", 
-                                        "-s", sub_coin,
-                                        "-b", backtest_config
+                                        # "-s", sub_coin,
+                                        "-b", backtest_config_renamed
                                         ]
 
             if bo_config['override_bt_and_opti'].get('ohlc', None) or bo_config['override_bt_and_opti'].get('ohlc_bt', None):
@@ -403,7 +408,7 @@ try:
                 if os.path.exists(src_file):
                     shutil.copy(src_file, dir_to_save_bt + '/' + src)
             
-            shutil.copy(backtest_config, dir_to_save_bt + '/')
+            shutil.copy(backtest_config_renamed, dir_to_save_bt + '/')
 
     print('All Results files are stored in this directory : ', pbso_dir)
 
@@ -413,7 +418,9 @@ finally:
     if not testing_mode:
         print("Deleting unused files")
         os.unlink(harmony_config)
+        os.unlink(harmony_config_renamed)
         os.unlink(backtest_config)
+        os.unlink(backtest_config_renamed)
 
 
 
