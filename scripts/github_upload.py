@@ -335,6 +335,10 @@ try:
     repo.git.checkout('README.md')
     repo.git.checkout('strategy_list.csv')
 
+    repo.git.add('--all')
+    repo.index.commit("Init commit")
+
+
     print("Pull new strategies")
     origin.pull("--rebase")
 
