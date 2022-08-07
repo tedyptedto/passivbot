@@ -377,3 +377,5 @@ tmp/hand_tuned.json
 configs/live/PBSO
 configs/optimize/_*.hjson
 configs/backtest/_*.hjson
+
+scripts/talib

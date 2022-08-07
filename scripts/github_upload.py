@@ -336,7 +336,7 @@ try:
     repo.git.checkout('strategy_list.csv')
 
     print("Pull new strategies")
-    origin.pull()
+    origin.pull("--rebase")
 
     print('Pull is Done')
 
