@@ -125,7 +125,7 @@ async def show_wallet(Test=False):
 #initializing scheduler
 scheduler = AsyncIOScheduler()
 #sends "Your Message" at 12PM and 18PM (Local Time)
-scheduler.add_job(show_wallet, CronTrigger(hour="9", minute="0", second="0")) 
+scheduler.add_job(show_wallet, CronTrigger(hour="8", minute="0", second="0")) 
 #starting the scheduler
 scheduler.start()
 
