@@ -131,6 +131,10 @@ async def wallet(message):
 
     # JSON adding
     today = date.today().strftime('%d/%m/%Y1')
+    if not from_auto_bot:
+        today = date.today().strftime('%d/%m/%Y2')
+
+
     json_base[today] = {}
     nb_jours = len(json_base)
     json_base[today]['equity'] = wallet_data['equity']
