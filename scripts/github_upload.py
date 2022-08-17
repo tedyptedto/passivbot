@@ -13,66 +13,7 @@ test_mode = False
 # test_mode = True
 
 
-legend = '''
-### Legend
 
-bt_* = Informations relative to backtesting
-
-l_* = Informations on the strategy for Long side
-
-s_* = Informations on the strategy for Short side
-
-"uid" : Unique Id for the config.json,
-
-"info" : Link to the config.json and bulk config,
-
-"categ" : name of the bulk,
-
-"bt_balance" : starting_balance,
-
-"bt_coin" : Symbol backtested,
-
-"bt_days" : No. days,
-
-"bt_l_adg" : Long ADG realized per exposure,
-
-"bt_s_adg" : Short ADG realized per exposure,
-
-"long" : Long enabled,
-
-'l_AU' : Long AutoUnstuck enabled,
-
-"l_gspan" : Long grid_span (height of the grid),
-
-"l_TP"  : Long TP distance / TP zone height /,
-
-"short" : Short enabled,
-
-'s_AU' : Short AutoUnstuck enabled,
-
-"s_gspan" : Short grid_span (height of the grid),
-
-"s_TP"  : Long TP distance / TP zone height /,
-
-### CSV version
-
-Link to [CSV Version](https://github.com/tedyptedto/pbos/blob/main/strategy_list.csv)
-
-### Readme version
-
-Link to [README Full Screen](https://github.com/tedyptedto/pbos/blob/main/README.md)
-
-### Strategy list
-
-[Sorted by categ and adg](https://github.com/tedyptedto/pbos#strategy-sorted-by-categ-and-adg)
-
-[Sorted by stars](https://github.com/tedyptedto/pbos#strategy-sorted-by-stars)
-
-[Sorted by ADG](https://github.com/tedyptedto/pbos#strategy-sorted-by-adg)
-
-[Sorted by COIN](https://github.com/tedyptedto/pbos#strategy-sorted-by-coin)
-
-'''
 
 def getValueInResultTxt(content, key, long_or_short):
     i_finded = 1
@@ -89,7 +30,7 @@ def getValueInResultTxt(content, key, long_or_short):
                 return value
     return "N/C"
 
-def generateReadme(only_trash=False):
+def generateDatafame(only_trash=False):
     base_dir = os.path.realpath("./../configs/live/PBSO/")
     list_of_files = glob.glob(base_dir + "/**/config.json", recursive=True)
     data_list = []
@@ -167,7 +108,8 @@ def generateReadme(only_trash=False):
         uid = hashlib.md5(hjson.dumps(group_file['file_config_json']['data']).encode('utf-8')).hexdigest()[0:5]
         strat_info = {
             "uid" : uid,
-            "info" : "[dir](https://github.com/tedyptedto/pbos/blob/main/" + os.path.dirname(group_file['file_config_json']['file_r']) + "#"+uid+")",
+            # "info" : "[dir](https://github.com/tedyptedto/pbos/blob/main/" + os.path.dirname(group_file['file_config_json']['file_r']) + "#"+uid+")",
+            "info" : os.path.dirname(group_file['file_config_json']['file_r']) ,
                     #  + "/" +
                     # "[bulk](https://github.com/tedyptedto/pbos/blob/main/" + group_file['bulk_optimisation_hjson']['file_r'] + "#"+uid+")",
             "categ" : parent_dir,
@@ -267,17 +209,21 @@ def generateAutoFiles():
 
 
         
-    df = generateReadme()
-    tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github', showindex=False))
+    df = generateDatafame()
+    # tableau_beautiful = str(tabulate(df, headers='keys', tablefmt='github', showindex=False))
+    df.to_csv(git_folder + "/strategy_sorted_by_categ_and_long_adg.csv") 
 
     df_by_stars = df.sort_values(by=['stars', 'bt_l_adg'], ascending=[ False, False], inplace=False)
-    tableau_beautiful_by_stars = str(tabulate(df_by_stars, headers='keys', tablefmt='github', showindex=False))
+    # tableau_beautiful_by_stars = str(tabulate(df_by_stars, headers='keys', tablefmt='github', showindex=False))
+    df_by_stars.to_csv(git_folder + "/strategy_sorted_by_stars_and_long_adg.csv") 
 
     df_by_adg = df.sort_values(by=['bt_l_adg'], ascending=[ False], inplace=False)
-    tableau_beautiful_by_adg = str(tabulate(df_by_adg, headers='keys', tablefmt='github', showindex=False))
+    # tableau_beautiful_by_adg = str(tabulate(df_by_adg, headers='keys', tablefmt='github', showindex=False))
+    df_by_adg.to_csv(git_folder + "/strategy_sorted_by_long_adg.csv") 
 
     df_by_coin = df.sort_values(by=['bt_coin', 'bt_l_adg'], ascending=[ True, False], inplace=False)
-    tableau_beautiful_by_coin = str(tabulate(df_by_coin, headers='keys', tablefmt='github', showindex=False))
+    # tableau_beautiful_by_coin = str(tabulate(df_by_coin, headers='keys', tablefmt='github', showindex=False))
+    df_by_coin.to_csv(git_folder + "/strategy_sorted_by_coin_and_long_adg.csv") 
 
     # df_trash = generateReadme(only_trash=True)
     # tableau_beautiful_trash = str(tabulate(df_trash, headers='keys', tablefmt='github', showindex=False))
@@ -285,34 +231,8 @@ def generateAutoFiles():
 
     # print(df)
 
-    readme = git_folder + "/README.md"
-    text_file = open(readme, "w")
-    n = text_file.write('''# PBOS - PassivBotOnlyStrategy
-## PassivBot Strategies
-''' + legend + '''
-
-### Strategy sorted by categ and adg
-''' + tableau_beautiful + 
-'''
-
-### Strategy sorted by stars
-''' + tableau_beautiful_by_stars  +
-'''
-
-### Strategy sorted by Adg
-''' + tableau_beautiful_by_adg + 
-'''
-
-### Strategy sorted by COIN
-''' + tableau_beautiful_by_coin + 
-'''
-
-'''
-)
-    text_file.close()
-
-    df.drop(columns=['info'], inplace=True)
-    df.to_csv(git_folder + "/strategy_list.csv") 
+    # df.drop(columns=['info'], inplace=True)
+    # df.to_csv(git_folder + "/strategy_list.csv") 
     # content2=tabulate(df, headers='keys', tablefmt="tsv")
     # text_file=open(readme + ".tabulated.csv","w")
     # text_file.write(content2)
@@ -332,8 +252,8 @@ try:
     origin = repo.remote(name='origin')
 
     print("Initialize auto generated files")
-    repo.git.checkout('README.md')
-    repo.git.checkout('strategy_list.csv')
+    # repo.git.checkout('README.md')
+    repo.git.checkout('*.csv')
 
     repo.git.add('--all')
     repo.index.commit("Init commit")
