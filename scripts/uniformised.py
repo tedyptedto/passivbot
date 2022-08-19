@@ -17,7 +17,7 @@ usage="python3 " + __file__ + " "
 )
 
 parser.add_argument("-sd",
-                    type=str,required=False,dest="start_date",default="2021-01-01",
+                    type=str,required=False,dest="start_date",default="2020-01-01",
                     help="Backtest start date",
 )
 parser.add_argument("-ed",
@@ -208,7 +208,7 @@ for config in a_config:
                                     "-sb", starting_balance,
                                     "-bd", backtest_directory,
                                     "-np", "0",
-                                    "-oh",
+                                    # "-oh",
                                     final_config
                                     ]
 

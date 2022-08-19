@@ -1,4 +1,6 @@
 
-@TODO : Present to officil discord and trading room 
+Pas envie de coder :
 @TODO : run another backtest with covid breakdown
+
+Envie de coder :
 @TODO : add to discord the inflow outflow script
