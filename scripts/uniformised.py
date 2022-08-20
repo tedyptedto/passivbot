@@ -99,6 +99,8 @@ a_config = glob.glob(PBSO_dir+"/**/*.json", recursive=True)
 nb_config = len(a_config)
 i = 1
 a_md5 = []
+backtest_directory_previous = ''
+
 for config in a_config:
 
     print(i , "/", nb_config)
@@ -196,9 +198,33 @@ for config in a_config:
 
     shutil.copy(config, backtest_directory + '/_original_config.json')
 
+
+    #cleaning
+    if not backtest_directory_previous== "":
+        # copy the cache files
+        # trouver les cache file du previous
+        cache_to_copy = glob.glob(backtest_directory_previous+"/**/caches/*", recursive=True)
+
+        # les copier dans le nouveau
+        for cache_file in cache_to_copy:
+            src_cache  = os.path.realpath(cache_file)
+            dest_cache = src_cache.replace(backtest_directory_previous, backtest_directory)
+
+            dir_cache = os.path.dirname(dest_cache)
+            if not os.path.exists(dir_cache):
+                os.makedirs(dir_cache)
+
+            shutil.copy(src_cache, dest_cache)
+
+        # nettoyer le previous
+        cleanningBigFiles(backtest_directory_previous)
+
+
     for coin in coin_list:
         #Backtest [-h] [--nojit] [-b BACKTEST_CONFIG_PATH] [-s SYMBOL] [-u USER] [-sd START_DATE] [-ed END_DATE] [-sb STARTING_BALANCE] [-m MARKET_TYPE] [-bd BASE_DIR] [-lw LONG_WALLET_EXPOSURE_LIMIT]
         # [-sw SHORT_WALLET_EXPOSURE_LIMIT] [-le LONG_ENABLED] [-se SHORT_ENABLED] [-np N_PARTS] [-oh]
+
+
         print(i , "/", nb_config, " => ", config)
         command_line = [
                                     "python3", "backtest.py", 
@@ -218,8 +244,7 @@ for config in a_config:
         except subprocess.TimeoutExpired:
             print('Timeout Reached  seconds)')
 
-        #cleaning
-        cleanningBigFiles(PBSO_uniformed_directory)
+    backtest_directory_previous = backtest_directory
 
     print('Delete temporary strategy')
     os.unlink(final_config)
