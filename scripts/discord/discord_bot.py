@@ -62,6 +62,7 @@ class MyClient(discord.Client):
     !chart => show a chart\n\
     !ls => longshort ratio\n\
     !p => positions\n\
+    !flow => inflow outflow based on whale_alert\n\
     !w user => Show Wallet user=[tedy, jojo]\n\
         ')
 
