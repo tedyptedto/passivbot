@@ -379,3 +379,4 @@ configs/optimize/_*.hjson
 configs/backtest/_*.hjson
 
 scripts/talib
+scripts/discord/tmp/flow.png

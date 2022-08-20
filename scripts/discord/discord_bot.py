@@ -5,6 +5,7 @@ from actions.long_short import long_short
 from actions.chart import chart
 from actions.wallet import wallet
 from actions.positions import positions
+from actions.flow import flow
 from functions.functions import get_channel_id, get_bot_commands_enabled_channels, send_slack_message
 
 import os
@@ -69,6 +70,9 @@ class MyClient(discord.Client):
 
             if a_message[0] == '!chart':
                 await chart(message)
+
+            if a_message[0] == '!flow':
+                await flow(message)
 
             if a_message[0] == '!ls':
                 await long_short(message)
