@@ -380,3 +380,5 @@ configs/backtest/_*.hjson
 
 scripts/talib
 scripts/discord/tmp/flow.png
+scripts/screener.py
+scripts/tmp/*.json

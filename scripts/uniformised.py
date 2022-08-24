@@ -7,6 +7,9 @@ import subprocess
 import shutil
 import argparse
 
+
+number_of_thread = 3
+
 # To be the best more realistic
 # @TODO : check the grid OK before backtesting ? 
 
@@ -33,7 +36,8 @@ parser.add_argument("-balance",
                     help="Starting balance",
 )
 parser.add_argument("-cl","--coin_list",
-                        type=str,required=False,dest="coin_list",default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT,USDCUSDT",
+                        type=str,required=False,dest="coin_list",default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT",
+                        # type=str,required=False,dest="coin_list",default="XRPUSDT",
                         help="A list of coin separated by coma. Ex : 'ONEUSDT,XLMUSDT'",
 )
 args = parser.parse_args()
@@ -220,10 +224,19 @@ for config in a_config:
         cleanningBigFiles(backtest_directory_previous)
 
 
+    list_backtest_directories = []
+    threads = []
+
     for coin in coin_list:
         #Backtest [-h] [--nojit] [-b BACKTEST_CONFIG_PATH] [-s SYMBOL] [-u USER] [-sd START_DATE] [-ed END_DATE] [-sb STARTING_BALANCE] [-m MARKET_TYPE] [-bd BASE_DIR] [-lw LONG_WALLET_EXPOSURE_LIMIT]
         # [-sw SHORT_WALLET_EXPOSURE_LIMIT] [-le LONG_ENABLED] [-se SHORT_ENABLED] [-np N_PARTS] [-oh]
 
+        #attente des backtest lancé en // 
+        print('Waiting process to end')
+        if len(threads) == number_of_thread:
+            for p in threads:
+                p.wait()
+            threads = []  # clear the threads
 
         print(i , "/", nb_config, " => ", config)
         command_line = [
@@ -237,12 +250,24 @@ for config in a_config:
                                     # "-oh",
                                     final_config
                                     ]
+        list_backtest_directories.append(backtest_directory)
 
         try:
             print(' '.join(command_line))
-            subprocess.run(command_line, cwd="..")
+            process = subprocess.Popen(command_line, cwd="..")
+            threads.append(process)
         except subprocess.TimeoutExpired:
             print('Timeout Reached  seconds)')
+
+    #attente des backtest lancé en // au cas ou il en reste
+    print('After loop, another waiting process to end')
+    for p in threads:
+        p.wait()
+
+    # nettoyage des fichiers de cache sauf le dernier dont on va avoir besoin
+    for bt_dir in list_backtest_directories:
+        if (bt_dir != backtest_directory):
+            cleanningBigFiles(bt_dir)
 
     backtest_directory_previous = backtest_directory
 
