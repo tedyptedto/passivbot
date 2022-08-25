@@ -72,6 +72,11 @@ def arguments_management():
                         help="Show only result upper than min-days",
     )
 
+    parser.add_argument("-min-gridspan","--min-gridspan",
+                        type=float,required=False,dest="min_gridspan",default=0,
+                        help="Minimum grid span",
+    )
+
     parser.add_argument("-bd-dir","--bd-dir",
                         type=str,required=False,dest="bd_dir",default="",
                         help="Parse all this directory to find backtest",
@@ -141,6 +146,25 @@ for file in files:
     bt = json.load(f)
     f.close()
 
+    current_config_file = os.path.dirname(file) + "/live_config.json"
+    current_config = live_config = hjson.load(open(current_config_file, encoding="utf-8"))
+
+
+    l_grid_span = 0
+    if "grid_span" in current_config['long']:
+        l_grid_span = current_config['long']["grid_span"] * 100
+
+    s_grid_span = 0
+    if "grid_span" in current_config['short']:
+        s_grid_span = current_config['short']["grid_span"] * 100
+
+
+    if l_grid_span < args.min_gridspan:
+        continue
+
+    if s_grid_span < args.min_gridspan:
+        continue
+
 
     symbol              = bt['result']['symbol']
     n_days              = bt['result']['n_days']
@@ -156,6 +180,7 @@ for file in files:
 
     adg_perct           = bt['result']['adg_long']*100
     adg_perct           += bt['result']['adg_short']*100
+
     
     gain_pct            = bt['result']['gain_long']*100 
     gain_pct            += bt['result']['gain_short']*100 
@@ -208,6 +233,21 @@ for file in files:
     datas['h_stuck_max_l']     = hrs_stuck_max_long
     datas['h_stuck_avg_s']     = hrs_stuck_avg_short
     datas['h_stuck_max_s']     = hrs_stuck_max_short
+
+    datas['l_gridspan']     = l_grid_span
+    datas['s_gridspan']     = s_grid_span
+
+    datas['profit_sum_long']     = bt['result']['profit_sum_long']
+    datas['loss_sum_long']     = bt['result']['loss_sum_long']
+    datas['l_ratio_loss_profit']     = bt['result']['loss_sum_long'] / bt['result']['profit_sum_long'] if bt['result']['profit_sum_long'] > 0 else 0
+
+    datas['profit_sum_short']     = bt['result']['profit_sum_short']
+    datas['loss_sum_short']     = bt['result']['loss_sum_short']
+    datas['s_ratio_loss_profit']     = bt['result']['loss_sum_short'] / bt['result']['profit_sum_short'] if bt['result']['profit_sum_short'] > 0 else 0
+
+
+
+
     # datas['n_entries_long']     = n_entries_long
     # datas['n_unstuck_entries_long']     = n_unstuck_entries_long
     # datas['n_unstuck_closes_long']     = n_unstuck_closes_long

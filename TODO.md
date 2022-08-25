@@ -1,28 +1,74 @@
 
 
 
-@ENCOURS : i will run again the full backtest of all strats
+@DONE : i will run again the full backtest of all strats
+@DONE : git add --all / git comit / git push Puis delete nettoyer + @TODO
+@DONE : uniformized backtest, can be more speedy with running backtest in //
+        https://gist.github.com/davidgardenier/c4008e70eea93e548533fd9f93a5a330
+        Problem is for cache files and if there is other data used from the previous bt
+@DONE : en local sur machine faire un git pull
+@DONE : mettre à jour les script pour avoir le uniformized en 3 processeurs
+@DONE : Ajouter le gridspan, sum loss
+@DONE : ratio, ratio between sum(loss)/sum(profit)
 
-@TODO : développer le backtesting en // de 4 
-C'est très long sur le serveur, je vais lancer en local je pense ce sera plus fiable
 
 
-@TODO : update pbso to get the last new strats 
-@TODO : and run uniformized again after update because new strategies added
+
+@ENCOURS : faire un pull puis un nouveau uniformised.py
+
+python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson  -o-csv ../configs/live/PBSO/best_bt_2020-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2020-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/ -min-gridspan 19  -min-bkr 1 -max-stuck-avg 1
+
+
+@TODO : j'ai fait un premier filtre sur xlsx mais je me demande si il ne faut pas penser en globalité sur les coins que je test
+
+@TODO : mettre à jour le Readme pour tout présenter
+        revoir le readme avec les nouveaux CSV
+
 @TODO : delete the old directory of old backtest (but make a save on your laptop)
-@TODO : push (github_upload)
-@TODO : see he results csv files
+         delete the old CSV file ? or not ? (Make a Save in local computer)
 @TODO : and check the eb1ed strategy and on coin i am running check the jpg
 @TODO : choose a new strategy
-@TODO : delete the old CSV file ? or not ?
 
 @TODO : and after, compare again reality vs backtest
 
-@TODO : uniformized backtest, can be more speedy with running backtest in //
-        https://gist.github.com/davidgardenier/c4008e70eea93e548533fd9f93a5a330
-        Problem is for cache files and if there is other data used from the previous bt
 
-Pas envie de coder :
-@TODO : run another backtest with covid breakdown
+Question :
+@TODO : si bull, couper le AU ?
 
+
+@TODO : demande dotcom
+A cool feature would be to run the inspect_opt_results.py multiple times after the optimizer has done it's job
+so in the bulk config, you could add the different score formulas you want to do the inspect on
+["adgPADstd", "adg_mean", "adg_min", "adgPADmean", "adgrealizedPADmean", "adgrealizedPADstd"]
+these are all the options you can choose
+I mainly use "adgrealizedPADmean" and "adgrealizedPADstd"
+and then the inspect step will run multiple times, generating different configs
+then the backtest ofcourse needs to run multiple times
+probably the output in the resulting configs folder should change as well then
+for example
+GRTUSDT_20220808113925_7b781/adgrealizedPADstd/config.json
+GRTUSDT_20220808113925_7b781/adgrealizedPADstd/result.txt
+etc...
+and make a subfolder per score formula
+as an additional improvement, we can add the -p option as well to the inspect
+
+@TODO : demande MDCL
+clairement
+j'ai eu une idée a ajouter sur le script bulk. Car je vais utiliser le nouveau serveur de krishna pour faire les 3 version des harmony sur les 120 coins binance. Comme je les lancerais toutes les semaines ou deux, ce serait bien de pouvoir effacer les données des bougies uniquement si on change les dates.
+Attend, je m'explique
+quand on lance une opti avec de nouvelles dates, il telecharge les nouvelles données des dates selectionnée, une ofis qu'il la fait, il les compiles dans un gros fichier situé dans backtest/"coin"/caches/
+qui ressemble a ceci
+2019-11-01_2022-08-03_ohlcv_cache.npy
+date de départ et date de fin
+une fois que je change la date de fin pour tenir a jour les bougies, il me recrée un fichier mais ne supprime pas le précédent
+afin de gagner ded l'espace disque, le script pourrait comporter un ligne lui demandant de verifier si les dates correspondent au fichier, si non, suppression
+et reload des nouvelles données
+car les opti que je vais lancer, seront en 1 sec
+ca va etre assez FAT
+et je vais les runs toutes les semaines ou 2
+
+
+c'est absolument pas pressé, je n'ai pas encore le serveur, et le temps que je relance les batchs pas avant 2 semaines 😄
+sorry, l'exemple du dessus sont les OHLCV, les ticks sont comme ceci
+2019-11-01_2022-07-28_ticks_cache.npy 
 
