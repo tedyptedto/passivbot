@@ -328,7 +328,7 @@ command_line = [
                         # "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","140",
                         # "-max-stuck-avg", "2"
                         ]
-command_line.append()
+
 try:
     print(' '.join(command_line))
     subprocess.run(command_line)
