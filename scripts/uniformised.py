@@ -24,7 +24,7 @@ parser.add_argument("-sd",
                     help="Backtest start date",
 )
 parser.add_argument("-ed",
-                    type=str,required=False,dest="end_date",default="2022-07-23",
+                    type=str,required=False,dest="end_date",default="2022-08-26",
                     help="Backtest end date",
 )
 parser.add_argument("-we",
@@ -42,12 +42,15 @@ parser.add_argument("-cl","--coin_list",
 )
 args = parser.parse_args()
 
+
+
 start_date = args.start_date
 end_date = args.end_date
 we = args.we
 starting_balance = str(args.starting_balance)
 coin_list = args.coin_list.split(',')
 
+number_of_thread = min(len(coin_list), number_of_thread)
 
 
 def convertHJsonToHumanReadable(filename):
@@ -313,9 +316,19 @@ command_line = [
                         "../configs/backtest/default.hjson", 
                         "-o-csv", "../configs/live/PBSO/best_bt_" + uid_bt + ".csv" ,
                         "-bd", PBSO_uniformed_directory,
-                        "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","140",
-                        "-max-stuck-avg", "2"
+                        # "-min-gridspan","19","-min-bkr","1","-max-stuck-avg","5"
+
+                        "-min-eqbal_ratio_min_long", "0.8", "-max-stuck-avg", "2", "-min-gridspan", "19", "-min-gain", "100", "-max-pa_distance_mean_long", "0.02"
+
+
+
+
+                        # , "-min-gain","200"
+                        # -min-gridspan 19  -min-bkr 1 -max-stuck-avg 5
+                        # "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","140",
+                        # "-max-stuck-avg", "2"
                         ]
+command_line.append()
 try:
     print(' '.join(command_line))
     subprocess.run(command_line)
