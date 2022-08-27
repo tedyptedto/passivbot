@@ -310,27 +310,28 @@ except subprocess.TimeoutExpired:
 # -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/ 
 # -min-bkr 1 -min-gain 100 -min-days 365 -max-stuck 500
 
-command_line = [
-                        "python3", "2_backtest_summary.py", 
-                        "3", config,
-                        "../configs/backtest/default.hjson", 
-                        "-o-csv", "../configs/live/PBSO/best_bt_" + uid_bt + ".csv" ,
-                        "-bd", PBSO_uniformed_directory,
-                        # "-min-gridspan","19","-min-bkr","1","-max-stuck-avg","5"
+# command_line = [
+#                         "python3", "2_backtest_summary.py", 
+#                         "3", config,
+#                         "../configs/backtest/default.hjson", 
+#                         "-o-csv", "../configs/live/PBSO/best_bt_" + uid_bt + ".csv" ,
+#                         "-bd", PBSO_uniformed_directory,
+#                         # "-min-gridspan","19","-min-bkr","1","-max-stuck-avg","5"
 
-                        "-min-eqbal_ratio_min_long", "0.8", "-max-stuck-avg", "2", "-min-gridspan", "19", "-min-gain", "100", "-max-pa_distance_mean_long", "0.02"
-                        , "-max-loss_sum_long","500"
+#                         "-min-eqbal_ratio_min_long", "0.8", "-max-stuck-avg", "2", "-min-gridspan", "19", 
+#                         "-min-gain", "100", "-max-pa_distance_mean_long", "0.02"
+#                         , "-max-loss_sum_long","500"
 
 
 
-                        # , "-min-gain","200"
-                        # -min-gridspan 19  -min-bkr 1 -max-stuck-avg 5
-                        # "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","140",
-                        # "-max-stuck-avg", "2"
-                        ]
+#                         # , "-min-gain","200"
+#                         # -min-gridspan 19  -min-bkr 1 -max-stuck-avg 5
+#                         # "-min-bkr","1","-min-gain","100","-min-days","365","-max-stuck","140",
+#                         # "-max-stuck-avg", "2"
+#                         ]
 
-try:
-    print(' '.join(command_line))
-    subprocess.run(command_line)
-except subprocess.TimeoutExpired:
-    print('Timeout Reached  seconds)')
+# try:
+#     print(' '.join(command_line))
+#     subprocess.run(command_line)
+# except subprocess.TimeoutExpired:
+#     print('Timeout Reached  seconds)')
