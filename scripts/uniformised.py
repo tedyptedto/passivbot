@@ -319,7 +319,7 @@ command_line = [
                         # "-min-gridspan","19","-min-bkr","1","-max-stuck-avg","5"
 
                         "-min-eqbal_ratio_min_long", "0.8", "-max-stuck-avg", "2", "-min-gridspan", "19", "-min-gain", "100", "-max-pa_distance_mean_long", "0.02"
-                        "-max-loss_sum_long","500"
+                        , "-max-loss_sum_long","500"
 
 
 
