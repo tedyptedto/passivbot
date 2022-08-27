@@ -16,10 +16,8 @@
 
 @ENCOURS : faire un pull puis un nouveau uniformised.py
 
-python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json ../configs/backtest/default.hjson  -o-csv ../configs/live/PBSO/best_bt_2020-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv -bd ../configs/live/PBSO/BT_UNIFORMISED/bt_2020-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/ -min-gridspan 19  -min-bkr 1 -max-stuck-avg 1
-
-
-@TODO : j'ai fait un premier filtre sur xlsx mais je me demande si il ne faut pas penser en globalité sur les coins que je test
+@TODO : fait chier je me suis trompé de dates !!! car je voulais comparer avec maintenant et les dip
+        surtout sur ma stratégie...
 
 @TODO : mettre à jour le Readme pour tout présenter
         revoir le readme avec les nouveaux CSV
