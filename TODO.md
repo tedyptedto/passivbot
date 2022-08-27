@@ -11,23 +11,21 @@
 @DONE : Ajouter le gridspan, sum loss
 @DONE : ratio, ratio between sum(loss)/sum(profit)
 
+@DONE : faire un pull puis un nouveau uniformised.py
+@DONE : mettre à jour le Readme pour tout présenter
+        revoir le readme avec les nouveaux CSV
+@DONE : delete the old directory of old backtest (but make a save on your laptop)
+cancel =>     delete the old CSV file ? or not ? (Make a Save in local computer)
+
+@DONE : and check the eb1ed strategy and on coin i am running check the jpg
 
 
 
-@ENCOURS : faire un pull puis un nouveau uniformised.py
-
+@TODO : choose a new strategy
 @TODO : fait chier je me suis trompé de dates !!! car je voulais comparer avec maintenant et les dip
         surtout sur ma stratégie...
-
-@TODO : mettre à jour le Readme pour tout présenter
-        revoir le readme avec les nouveaux CSV
-
-@TODO : delete the old directory of old backtest (but make a save on your laptop)
-         delete the old CSV file ? or not ? (Make a Save in local computer)
-@TODO : and check the eb1ed strategy and on coin i am running check the jpg
-@TODO : choose a new strategy
-
 @TODO : and after, compare again reality vs backtest
+
 
 
 Question :
