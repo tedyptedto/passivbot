@@ -22,7 +22,7 @@ cancel =>     delete the old CSV file ? or not ? (Make a Save in local computer)
 @FORGET : fait chier je me suis trompé de dates !!! car je voulais comparer avec maintenant et les dip
         surtout sur ma stratégie...
 
-
+old => 1483b
 @TODO : choose a new strategy => b4483
 
 @TODO : and after, compare again reality vs backtest
