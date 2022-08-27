@@ -78,17 +78,17 @@ def arguments_management():
     )
 
     parser.add_argument("-min-eqbal_ratio_min_long","--min-eqbal_ratio_min_long",
-                        type=float,required=False,dest="min_eqbal_ratio_min_long",default=0,
+                        type=float,required=False,dest="min_eqbal_ratio_min_long",default=-99999999,
                         help="Minimum eqbal_ratio_min_long",
     )
 
     parser.add_argument("-max-pa_distance_mean_long","--max-pa_distance_mean_long",
-                        type=float,required=False,dest="max_pa_distance_mean_long",default=0,
+                        type=float,required=False,dest="max_pa_distance_mean_long",default=99999999999,
                         help="max pa_distance_mean_long",
     )
 
     parser.add_argument("-max-loss_sum_long","-max-loss_sum_long",
-                        type=float,required=False,dest="max_loss_sum_long",default=0,
+                        type=float,required=False,dest="max_loss_sum_long",default=9999999999999,
                         help="max_loss_sum_long",
     )
 
