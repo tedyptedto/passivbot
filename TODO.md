@@ -19,14 +19,13 @@ cancel =>     delete the old CSV file ? or not ? (Make a Save in local computer)
 
 @DONE : and check the eb1ed strategy and on coin i am running check the jpg
 
-
-
-@TODO : choose a new strategy
-@TODO : fait chier je me suis trompé de dates !!! car je voulais comparer avec maintenant et les dip
+@FORGET : fait chier je me suis trompé de dates !!! car je voulais comparer avec maintenant et les dip
         surtout sur ma stratégie...
+
+
+@TODO : choose a new strategy => b4483
+
 @TODO : and after, compare again reality vs backtest
-
-
 
 Question :
 @TODO : si bull, couper le AU ?
