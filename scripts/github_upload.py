@@ -253,7 +253,7 @@ try:
 
     print("Initialize auto generated files")
     # repo.git.checkout('README.md')
-    repo.git.checkout('*.csv')
+    # repo.git.checkout('*.csv')
 
     repo.git.add('--all')
     repo.index.commit("Init commit")
