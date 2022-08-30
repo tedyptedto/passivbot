@@ -232,8 +232,8 @@ for file in files:
     loss_sum = bt['result']['loss_sum_long']
 
     if abs(args.max_loss_sum_long) > 0:
-        if loss_sum == 0.0:
-            continue
+        # if loss_sum == 0.0:
+        #     continue
 
         if loss_sum < -abs(args.max_loss_sum_long):
             continue
