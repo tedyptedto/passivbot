@@ -45,16 +45,21 @@ for strat_dir in strats_dirs:
         we_ratio = 1 / data['long']['wallet_exposure_limit']
 
         if is_first:
-                addTo(object, 'strat_name', strat_name)
-                addTo(object, 'au', (not (data['result']['n_unstuck_closes_long'] == 0)))
-                is_first = False
+            addTo(object, 'strat_name', strat_name)
+            addTo(object, 'au', (not (data['result']['n_unstuck_closes_long'] == 0)))
+            is_first = False
+            if 'grid_span' in data['long']:
+                addTo(object, 'gridspan', int(data['long']['grid_span'] * 100))
+            else:
+                addTo(object, 'gridspan', -1)
 
-        addTo(object, 'sum_final_equity_long', (data['result']['final_equity_long'] -  data['result']['starting_balance']) * we_ratio )
-        addTo(object, 'sum_gain', (data['result']['final_balance_long'] -  data['result']['starting_balance']) * we_ratio)
+        addTo(object, 'sum_final_equity_long', ((data['result']['final_equity_long'] * we_ratio) -  data['result']['starting_balance'])  )
+        addTo(object, 'sum_gain', ((data['result']['final_balance_long'] * we_ratio) -  data['result']['starting_balance']) )
         addTo(object, 'sum_loss', data['result']['loss_sum_long'] * we_ratio)
-        addTo(object, 'Lowest equity/balance ratio', data['result']['eqbal_ratio_min_long'])
-        addTo(object, 'pa_distance_mean_long', data['result']['pa_distance_mean_long'])
-        addTo(object, 'long_we', data['long']['wallet_exposure_limit'])
+        addTo(object, 'Low. equity/balance', data['result']['eqbal_ratio_min_long'])
+        addTo(object, 'pa_dist_mean_long', data['result']['pa_distance_mean_long'])
+        addTo(object, 'l_we', data['long']['wallet_exposure_limit'])
+        addTo(object, 'we_ratio', we_ratio)
 
 
     array_info.append(object)
@@ -64,20 +69,27 @@ df = pd.DataFrame(array_info)
 df['ratio_loss']     = abs(df['sum_loss']) / df['sum_final_equity_long']       
 df['ratio_distance'] = df['sum_final_equity_long'] / df['sum_gain']       
 
-df['valid_for_me'] = (
-                        (df['ratio_loss'] < 0.20) 
-                        & 
-                        (df['ratio_distance'] < 0.70) 
-                        & 
-                        (df['Lowest equity/balance ratio'] > 4)
-                        &
-                        (df['sum_final_equity_long'] > 0)
-                        &
-                        (df['sum_final_equity_long'] > 20000)
-                        &
-                        (df['pa_distance_mean_long'] < 5)
-                        &
-                        (df['au'] == True)
+df['valid_for_me'] = (  True
+                        # (df['ratio_loss'] < 0.20) 
+                        # & 
+                        # (df['ratio_distance'] < 0.70) 
+                        # & 
+                        # (df['Low. equity/balance'] > 4)
+                        # &
+                        # (df['Low. equity/balance'] > 6)
+                        # &
+                        # (df['sum_final_equity_long'] > 0)
+                        # &
+                        # (df['gridspan'] >= 20)
+                        # &
+                        # # &
+                        # # (df['sum_final_equity_long'] > 20000)
+                        # &
+                        # (df['pa_distance_mean_long'] < 5)
+                        # &
+                        # (df['pa_distance_mean_long'] < 0.20)
+                        # &
+                        # (df['au'] == True)
                         )
 #(df['Lowest equity/balance ratio'] > 6) #& (df['pa_distance_mean_long'] < 1)
 # df['valid_for_me'] = True
