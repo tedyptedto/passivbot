@@ -36,7 +36,7 @@ for strat_dir in strats_dirs:
     object={}
     strat_name = os.path.realpath(strat_dir).replace(base_dir, '').strip("/").split("/")[0]
 
-
+    nb_coins = len(results_file)
 
     is_first = True
     for result_file in results_file:
@@ -61,6 +61,10 @@ for strat_dir in strats_dirs:
         addTo(object, 'l_we', data['long']['wallet_exposure_limit'])
         addTo(object, 'we_ratio', we_ratio)
 
+    
+    if nb_coins > 0:
+        object['pa_dist_mean_long']   = object['pa_dist_mean_long'] / nb_coins
+        object['Low. equity/balance'] = object['Low. equity/balance'] / nb_coins
 
     array_info.append(object)
 
