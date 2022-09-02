@@ -53,25 +53,27 @@ for strat_dir in strats_dirs:
             else:
                 addTo(object, 'gridspan', -1)
 
-        addTo(object, 'sum_final_equity_long', ((data['result']['final_equity_long'] * we_ratio) -  data['result']['starting_balance'])  )
+        addTo(object, 's_fi_equ_long', ((data['result']['final_equity_long'] * we_ratio) -  data['result']['starting_balance'])  )
         addTo(object, 'sum_gain', ((data['result']['final_balance_long'] * we_ratio) -  data['result']['starting_balance']) )
         addTo(object, 'sum_loss', data['result']['loss_sum_long'] * we_ratio)
-        addTo(object, 'Low. equity/balance', data['result']['eqbal_ratio_min_long'])
-        addTo(object, 'pa_dist_mean_long', data['result']['pa_distance_mean_long'])
+        addTo(object, 'Low_equ/bal', data['result']['eqbal_ratio_min_long'])
+        addTo(object, 'pa_dist_m_long', data['result']['pa_distance_mean_long'])
         addTo(object, 'l_we', data['long']['wallet_exposure_limit'])
         addTo(object, 'we_ratio', we_ratio)
 
     
     if nb_coins > 0:
-        object['pa_dist_mean_long']   = object['pa_dist_mean_long'] / nb_coins
-        object['Low. equity/balance'] = object['Low. equity/balance'] / nb_coins
+        object['pa_dist_mean_long']   = object['pa_dist_m_long'] / nb_coins
+        object['pa_dist_mean_long']   = object['pa_dist_m_long'] / nb_coins
+        object['l_we'] = object['l_we'] / nb_coins
 
     array_info.append(object)
 
 df = pd.DataFrame(array_info)
 
-df['ratio_loss']     = abs(df['sum_loss']) / df['sum_final_equity_long']       
-df['ratio_distance'] = df['sum_final_equity_long'] / df['sum_gain']       
+df['ratio_loss']     = abs(df['sum_loss']) / df['s_fi_equ_long']       
+df['ratio_distance'] = df['s_fi_equ_long'] / df['sum_gain']       
+df['krishn_ratio'] = df['s_fi_equ_long'] * df['Low_equ/bal']       
 
 df['valid_for_me'] = (  True
                         # (df['ratio_loss'] < 0.20) 
@@ -80,7 +82,7 @@ df['valid_for_me'] = (  True
                         # & 
                         # (df['Low. equity/balance'] > 4)
                         # &
-                        # (df['Low. equity/balance'] > 6)
+                        # (df['Low. equity/balance'] > 0.7)
                         # &
                         # (df['sum_final_equity_long'] > 0)
                         # &
@@ -100,6 +102,12 @@ df['valid_for_me'] = (  True
 
 df = df[df.valid_for_me == True]
 
-df.sort_values(by=[ 'valid_for_me', 'sum_final_equity_long'], ascending=[False, False], inplace=True)
+
+df.drop(columns=['valid_for_me', 'we_ratio'], inplace=True)
+
+# df.sort_values(by=[ 'krishn_ratio', 'valid_for_me', 's_fi_equ_long'], ascending=[False, False, False], inplace=True)
+df.sort_values(by=[ 's_fi_equ_long'], ascending=[ False], inplace=True)
+
+
 print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
 
