@@ -247,43 +247,45 @@ if test_mode:
 logging.basicConfig(level=logging.DEBUG)
 
 try:
-    print("Now repository exist, cool :)")
-    repo = Repo(git_directory)
-    origin = repo.remote(name='origin')
+    # print("Now repository exist, cool :)")
+    # repo = Repo(git_directory)
+    # origin = repo.remote(name='origin')
 
-    print("Initialize auto generated files")
-    # repo.git.checkout('README.md')
-    # repo.git.checkout('*.csv')
+    # print("Initialize auto generated files")
+    # # repo.git.checkout('README.md')
+    # # repo.git.checkout('*.csv')
 
-    repo.git.add('--all')
-    repo.index.commit("Init commit")
+    # repo.git.add('--all')
+    # repo.index.commit("Init commit")
 
 
-    print("Pull new strategies")
-    origin.pull("--rebase")
+    # print("Pull new strategies")
+    # origin.pull("--rebase")
 
-    print('Pull is Done')
+    # print('Pull is Done')
 
-    question = input("Do you want tu Push some new strategies (Y/n) ? ")
-    if (question.upper() == 'N'):
-        print("Ok, script is stoped Now !")
-        exit()
+    # question = input("Do you want tu Push some new strategies (Y/n) ? ")
+    # if (question.upper() == 'N'):
+    #     print("Ok, script is stoped Now !")
+    #     exit()
 
     print("Generate Auto files (readme and csv)")
     generateAutoFiles()
 
-    print("Add new files")
-    repo.git.add('--all')
-    COMMIT_MESSAGE = input('Wath are you adding to the GitHub repo (Commit comment) ? ')
-    print("Commit files")
-    repo.index.commit(COMMIT_MESSAGE)
-    origin = repo.remote(name='origin')
-    print("Push to github")
-    print('Information for FIRST USE :')    
-    print("You will be asked to enter your github login and a password")
-    print("Password is in fact a personnal token, this how you can create it : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token")
-    origin.push()
-    print('All is ok !')  
+    print("You must commit and push manually, sorry too many problems on this script")
+
+    # print("Add new files")
+    # repo.git.add('--all')
+    # COMMIT_MESSAGE = input('Wath are you adding to the GitHub repo (Commit comment) ? ')
+    # print("Commit files")
+    # repo.index.commit(COMMIT_MESSAGE)
+    # origin = repo.remote(name='origin')
+    # print("Push to github")
+    # print('Information for FIRST USE :')    
+    # print("You will be asked to enter your github login and a password")
+    # print("Password is in fact a personnal token, this how you can create it : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token")
+    # origin.push()
+    # print('All is ok !')  
 except Exception as e:
     print(e)
     print('--- INFO ---')    

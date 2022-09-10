@@ -44,7 +44,7 @@ for strat_dir in strats_dirs:
         we_ratio = 1 / data['long']['wallet_exposure_limit']
 
         if is_first:
-            addTo(object, 'strat_name', strat_name)
+            addTo(object, 'strat_name', strat_name.replace('strat_',''))
             addTo(object, 'au', (not (data['result']['n_unstuck_closes_long'] == 0)))
             is_first = False
             if 'grid_span' in data['long']:
@@ -52,8 +52,8 @@ for strat_dir in strats_dirs:
             else:
                 addTo(object, 'gs', -1)
 
-        addTo(object, 'k',   data['starting_balance'])
-        addTo(object, 's_f_equity_long', ((data['result']['final_equity_long'] * we_ratio) -  data['result']['starting_balance'])  )
+        addTo(object, 's_k',   data['starting_balance'])
+        addTo(object, 's_f_equ_long', ((data['result']['final_equity_long'] * we_ratio) -  data['result']['starting_balance'])  )
         addTo(object, 's_gain', ((data['result']['final_balance_long'] * we_ratio) -  data['result']['starting_balance']) )
         addTo(object, 's_loss', data['result']['loss_sum_long'] * we_ratio)
         addTo(object, 'low_equ_bal', data['result']['eqbal_ratio_min_long'])
@@ -76,14 +76,14 @@ for strat_dir in strats_dirs:
 df = pd.DataFrame(array_info)
 
 # df['s_loss']     = int(df['s_loss'])       
-df['ratio_loss']     = abs(df['s_loss']) / df['s_f_equity_long']       
-df['ratio_distance'] = df['s_f_equity_long'] / df['s_gain']       
-df['krishn_ratio'] = df['s_f_equity_long'] * df['low_equ_bal']       
+df['ratio_loss']     = abs(df['s_loss']) / df['s_f_equ_long']       
+df['ratio_dist'] = df['s_f_equ_long'] / df['s_gain']       
+df['krishn_ratio'] = df['s_f_equ_long'] * df['low_equ_bal']       
 
 df['valid_for_me'] = (  True
                         # (df['ratio_loss'] < 0.20) 
                         # & 
-                        # (df['ratio_distance'] < 0.70) 
+                        # (df['ratio_dist'] < 0.70) 
                         # & 
                         # (df['low_equ_bal'] > 4)
                         # &
