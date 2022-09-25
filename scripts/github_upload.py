@@ -106,6 +106,15 @@ def generateDatafame(only_trash=False):
         parent_dir = group_file['file_config_json']['file'].replace(base_dir, '').strip("/").split("/")[0]
 
         uid = hashlib.md5(hjson.dumps(group_file['file_config_json']['data']).encode('utf-8')).hexdigest()[0:5]
+
+
+        if not 'grid_span' in group_file['file_config_json']['data']['long']:
+            group_file['file_config_json']['data']['long']['grid_span'] = -1 / 100
+
+        if not 'grid_span' in group_file['file_config_json']['data']['short']:
+            group_file['file_config_json']['data']['short']['grid_span'] = -1 / 100
+
+
         strat_info = {
             "uid" : uid,
             # "info" : "[dir](https://github.com/tedyptedto/pbos/blob/main/" + os.path.dirname(group_file['file_config_json']['file_r']) + "#"+uid+")",
