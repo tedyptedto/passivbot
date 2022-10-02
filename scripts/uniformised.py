@@ -74,6 +74,11 @@ def cleanningBigFiles(PBSO_uniformed_directory):
     to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/fills_long.csv", recursive=True)
     to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/fills_short.csv", recursive=True)
     to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/stats.csv", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/psizes_plot.png", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/auto_unstuck_bands_long.png", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/auto_unstuck_bands_short.png", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/initial_entry_band_long.png", recursive=True)
+    to_delete = to_delete + glob.glob(PBSO_uniformed_directory+"/**/initial_entry_band_short.png", recursive=True)
     for delete in to_delete:
         if os.path.exists(delete):
             print("Cleaning : ", delete)
