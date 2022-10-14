@@ -10,7 +10,11 @@ import hjson
 
 # loop on all strategy
 
-base_dir = os.path.realpath("../configs/live/PBSO/BT_UNIFORMISED/bt_2020-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/")
+dir_name = 'bt_2020-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT'
+
+dir_base = "../configs/live/PBSO/"
+
+base_dir = os.path.realpath(dir_base + "BT_UNIFORMISED/" + dir_name + "/")
 # find all strategies
 
 if not os.path.exists(base_dir) :
@@ -112,3 +116,5 @@ df.drop(columns=['valid_for_me', 'au', 'we_ratio'], inplace=True)
 df.sort_values(by=[ 'adg_exposure'], ascending=[False], inplace=True)
 # df.sort_values(by=[ 'sum_final_equity_long'], ascending=[False], inplace=True)
 print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+
+df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
