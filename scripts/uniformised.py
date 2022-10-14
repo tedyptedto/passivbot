@@ -309,6 +309,17 @@ except subprocess.TimeoutExpired:
     print('Timeout Reached  seconds)')
 
 
+
+command_line = [
+                        "python3", "github_upload.py"
+                        ]
+try:
+    print(' '.join(command_line))
+    subprocess.run(command_line)
+except subprocess.TimeoutExpired:
+    print('Timeout Reached  seconds)')
+
+
 # python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json 
 # ../configs/backtest/default.hjson 
 # -o-csv ../configs/live/PBSO/bt_2021-01-01_2022-07-23_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT.csv 
