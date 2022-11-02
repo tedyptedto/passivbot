@@ -85,7 +85,7 @@ df = pd.DataFrame(array_info)
 # df['s_loss']     = int(df['s_loss'])       
 df['ratio_loss']     = abs(df['s_loss']) / df['s_f_equ_long']       
 df['ratio_dist'] = df['s_f_equ_long'] / df['s_gain']       
-df['krishn_ratio'] = df['s_f_equ_long'] * df['low_equ_bal']       
+# df['krishn_ratio'] = df['s_f_equ_long'] * df['low_equ_bal']       
 
 df['valid_for_me'] = (  True
                         # (df['ratio_loss'] < 0.20) 
@@ -116,8 +116,14 @@ df = df[df.valid_for_me == True]
 
 df.drop(columns=['valid_for_me', 'au', 'we_ratio'], inplace=True)
 
+print("---------------------")
+print("Sorted by s_f_equ_long")
+df.sort_values(by=[ 's_f_equ_long'], ascending=[False], inplace=True)
+
+print("---------------------")
+print("Sorted by adg_exposure")
 df.sort_values(by=[ 'adg_exposure'], ascending=[False], inplace=True)
-# df.sort_values(by=[ 'sum_final_equity_long'], ascending=[False], inplace=True)
+
 print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
 
 df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
