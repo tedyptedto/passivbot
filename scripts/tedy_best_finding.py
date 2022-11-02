@@ -117,13 +117,23 @@ df = df[df.valid_for_me == True]
 df.drop(columns=['valid_for_me', 'au', 'we_ratio'], inplace=True)
 
 print("---------------------")
-print("Sorted by s_f_equ_long")
+print("Top 10 : Sorted by s_f_equ_long")
 df.sort_values(by=[ 's_f_equ_long'], ascending=[False], inplace=True)
+df1 = df.head(10)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
 
 print("---------------------")
-print("Sorted by adg_exposure")
+print("Top 10 : Sorted by adg_exposure")
 df.sort_values(by=[ 'adg_exposure'], ascending=[False], inplace=True)
+df2 = df.head(10)
+print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False))
 
-print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+print("---------------------")
+print("Common on the 2 top 10 ordered by adg exposure")
+s1 = pd.merge(df1, df2, how='inner', on=['strat_name'])
+s1.drop(s1.columns[s1.columns.str.contains('_y$')], axis=1, inplace=True)
+s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
+print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False))
+
 
 df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
