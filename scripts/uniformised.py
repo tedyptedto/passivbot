@@ -146,7 +146,7 @@ for config in a_config:
         continue
     a_md5.append(md5)
     print("backtesting : " , config)
-
+    
     # 2/ update the wallet exposure of the strategy
 
     if not 'wallet_exposure_limit' in o_config['long']:

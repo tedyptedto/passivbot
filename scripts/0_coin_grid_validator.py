@@ -12,7 +12,7 @@ import requests
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
-        self.log = open("tmp/" + __file__ +".log", "a")
+        self.log = open("tmp/" + os.path.basename(__file__) +".log", "a")
    
     def write(self, message):
         self.terminal.write(message)
@@ -29,7 +29,7 @@ sys.stdout = Logger()
 def arguments_management():
     ### Parameters management
     parser = argparse.ArgumentParser( description="This script will list the coins working with the grid settings",
-    usage="python3 " + __file__ + " ../configs/live/a_tedy.json ../configs/backtest/default.hjson -mv24 0 -mt24 0",
+    usage="python3 " + os.path.basename(__file__) + " ../configs/live/a_tedy.json ../configs/backtest/default.hjson -mv24 0 -mt24 0",
     epilog="This script will use starting_balance, initial_qty_pct, wallet_exposure_limit to find coin working with the grid."
     )
     parser.add_argument("live_config_filepath", type=str, help="file path to live config")

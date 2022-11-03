@@ -22,7 +22,7 @@ import sys
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
-        self.log = open("tmp/" + __file__ +".log", "a")
+        self.log = open("tmp/" + os.path.basename(__file__) +".log", "a")
    
     def write(self, message):
         self.terminal.write(message)
@@ -40,7 +40,7 @@ def arguments_management():
     ### Parameters management
     parser = argparse.ArgumentParser( description="This script will read all the 'plots' folders from backtests and create a summary sorted by adg",
     epilog="",
-    usage="python3 " + __file__ + " 11 ../configs/live/a_tedy.json -max-stuck-avg 7 -max-stuck 200  -min-gain 10"
+    usage="python3 " + os.path.basename(__file__) + " 11 ../configs/live/a_tedy.json -max-stuck-avg 7 -max-stuck 200  -min-gain 10"
     )
     
     parser.add_argument("nb_best_coins", type=int, help="Number of coin wanted")
