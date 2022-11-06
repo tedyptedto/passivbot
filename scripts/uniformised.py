@@ -1,6 +1,7 @@
 import os
 import glob
 import hashlib
+import time
 import hjson
 import re
 import subprocess
@@ -113,6 +114,8 @@ i = 1
 a_md5 = []
 backtest_directory_previous = ''
 
+nb_new_config = 0
+
 for config in a_config:
 
     print(i , "/", nb_config)
@@ -185,7 +188,19 @@ for config in a_config:
     
     avoid_already_done_bt = False
     if os.path.exists(backtest_directory):
-        avoid_already_done_bt = True
+        if os.path.exists(backtest_directory + "/_original_config.json"):
+            avoid_already_done_bt = True
+
+
+    if avoid_already_done_bt:
+        print("Avoid to replay the BackTest")
+        os.unlink(final_config)
+        continue
+
+    print("new config finded : ", config)
+    nb_new_config = nb_new_config + 1
+    # time.sleep(2.4)
+    # continue
 
     if not os.path.exists(backtest_directory):
         os.makedirs(backtest_directory)
@@ -202,10 +217,7 @@ for config in a_config:
     with open(backtest_directory + "/README.md", 'w') as the_file:
         the_file.write("Strategy come from : " + config.replace(PBSO_dir, ''))
 
-    if avoid_already_done_bt:
-        print("Avoid to replay the BackTest")
-        os.unlink(final_config)
-        continue
+
 
 
     shutil.copy(config, backtest_directory + '/_original_config.json')
@@ -289,6 +301,7 @@ for config in a_config:
 #second cleaning action
 cleanningBigFiles(PBSO_uniformed_directory)
 
+print("New strategies backtested : ", nb_new_config)
 
 #python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json 
 # ../configs/backtest/default.hjson 
