@@ -35,6 +35,13 @@ def addTo(object, key, value):
         object[key] = value
     return object
 
+def minTo(object, key, value):
+    if key in object:
+        object[key] = min(object[key], value)
+    else:
+        object[key] = value
+    return object
+
 for strat_dir in strats_dirs:
     # find all backtests 
     results_file = glob.glob(strat_dir + '/**/result.json', recursive=True)
@@ -69,6 +76,9 @@ for strat_dir in strats_dirs:
         addTo(object, 'we_ratio', we_ratio)
         addTo(object, 'adg_exposure', data['result']['adg_per_exposure_long'] * 100)
         addTo(object, 'n_days', data['n_days'])
+
+        minTo(object, 'most_loss', data['result']['net_pnl_plus_fees_long'])
+
 
     
     if nb_coins > 0:
@@ -115,6 +125,14 @@ df['valid_for_me'] = (  True
 df = df[df.valid_for_me == True]
 
 df.drop(columns=['valid_for_me', 'au', 'we_ratio'], inplace=True)
+
+
+print("---------------------")
+print("Top 10 : Sorted by most_loss")
+df.sort_values(by=[ 'most_loss'], ascending=[False], inplace=True)
+df1 = df.head(30)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+
 
 print("---------------------")
 print("Top 10 : Sorted by s_f_equ_long")
