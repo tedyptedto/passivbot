@@ -58,7 +58,7 @@ for strat_dir in strats_dirs:
         we_ratio = 1 / data['long']['wallet_exposure_limit']
 
         if is_first:
-            addTo(object, 'strat_name', strat_name.replace('strat_',''))
+            addTo(object, 'strat', strat_name.replace('strat_',''))
             addTo(object, 'au', (not (data['result']['n_unstuck_closes_long'] == 0)))
             is_first = False
             if 'grid_span' in data['long']:
@@ -77,11 +77,17 @@ for strat_dir in strats_dirs:
         addTo(object, 'adg_exposure', data['result']['adg_per_exposure_long'] * 100)
         addTo(object, 'n_days', data['n_days'])
 
+        addTo(object, 'avg_max_stuck', data['result']['hrs_stuck_max_long'])
+        addTo(object, 'avg_hrs_stuck_avg', data['result']['hrs_stuck_avg_long'])
+        
+
         minTo(object, 'most_loss', data['result']['net_pnl_plus_fees_long'])
 
 
     
     if nb_coins > 0:
+        object['avg_hrs_stuck_avg']   = object['avg_hrs_stuck_avg'] / nb_coins
+        object['avg_max_stuck']   = object['avg_max_stuck'] / nb_coins
         object['pa_dist_mean_long']   = object['pa_dist_mean_long'] / nb_coins
         object['low_equ_bal'] = object['low_equ_bal'] / nb_coins
         object['adg_exposure'] = object['adg_exposure'] / nb_coins
@@ -93,8 +99,8 @@ for strat_dir in strats_dirs:
 df = pd.DataFrame(array_info)
 
 # df['s_loss']     = int(df['s_loss'])       
-df['ratio_loss']     = abs(df['s_loss']) / df['s_f_equ_long']       
-df['ratio_dist'] = df['s_f_equ_long'] / df['s_gain']       
+# df['ratio_loss']     = abs(df['s_loss']) / df['s_f_equ_long']       
+# df['ratio_dist'] = df['s_f_equ_long'] / df['s_gain']       
 # df['krishn_ratio'] = df['s_f_equ_long'] * df['low_equ_bal']       
 
 df['valid_for_me'] = (  True
@@ -124,7 +130,7 @@ df['valid_for_me'] = (  True
 
 df = df[df.valid_for_me == True]
 
-df.drop(columns=['valid_for_me', 'au', 'we_ratio'], inplace=True)
+df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain'], inplace=True)
 
 
 print("---------------------")
@@ -133,6 +139,17 @@ df.sort_values(by=[ 'most_loss'], ascending=[False], inplace=True)
 df1 = df.head(30)
 print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
 
+print("---------------------")
+print("Top 10 : Sorted by less avg_hrs_stuck_avg")
+df.sort_values(by=[ 'avg_hrs_stuck_avg'], ascending=[True], inplace=True)
+df1 = df.head(10)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+
+print("---------------------")
+print("Top 10 : Sorted by less avg_max_stuck")
+df.sort_values(by=[ 'avg_max_stuck'], ascending=[True], inplace=True)
+df1 = df.head(10)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
 
 print("---------------------")
 print("Top 10 : Sorted by s_f_equ_long")
@@ -148,7 +165,7 @@ print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False))
 
 print("---------------------")
 print("Common on the 2 top 10 ordered by adg exposure")
-s1 = pd.merge(df1, df2, how='inner', on=['strat_name'])
+s1 = pd.merge(df1, df2, how='inner', on=['strat'])
 s1.drop(s1.columns[s1.columns.str.contains('_y$')], axis=1, inplace=True)
 s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
 print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False))
