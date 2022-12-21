@@ -9,7 +9,7 @@ import shutil
 import argparse
 
 
-number_of_thread = 7
+number_of_thread = 5
 
 # To be the best more realistic
 # @TODO : check the grid OK before backtesting ? 
