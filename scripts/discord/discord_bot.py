@@ -28,6 +28,14 @@ from apscheduler.triggers.cron import CronTrigger
 # problem pybit de syncronisation sur WSL :  sudo hwclock -s
 #       sudo ntpdate pool.ntp.org
 
+# sur server, forçage du resolv.conf en nameserver 10.5.0.1 (approximatif)
+# script d'update du temps toutes les minuntes :
+# /usr/sbin/service ntp stop
+# /usr/sbin/ntpdate pool.ntp.org
+# /usr/sbin/service ntp start
+# /usr/sbin/hwclock --systohc
+
+
 class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
