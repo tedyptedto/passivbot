@@ -9,7 +9,7 @@ import shutil
 import argparse
 
 
-number_of_thread = 3
+number_of_thread = 11
 
 # To be the best more realistic
 # @TODO : check the grid OK before backtesting ? 
@@ -37,7 +37,7 @@ parser.add_argument("-balance",
                     help="Starting balance",
 )
 parser.add_argument("-cl","--coin_list",
-                        type=str,required=False,dest="coin_list",default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT,USDCUSDT",
+                        type=str,required=False,dest="coin_list",default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT",
                         # type=str,required=False,dest="coin_list",default="XRPUSDT",
                         help="A list of coin separated by coma. Ex : 'ONEUSDT,XLMUSDT'",
 )
