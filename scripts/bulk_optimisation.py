@@ -316,7 +316,7 @@ try:
         #                     -p 0.02
         #                             [PAD around 0.02]
 
-        #python3 inspect_opt_results.py results_harmony_search_recursive_grid/2022-07-10T18-32-36_XRPUSDT/all_results.txt -p 0.02 -d
+        #python3 inspect_opt_results.py results_harmony_search_recursive_grid/2022-07-10T18-32-36_XRPUSDT/all_results.txt -d
         command_line = [
                                 "python3", "inspect_opt_results.py", 
                                 latest_file,  
