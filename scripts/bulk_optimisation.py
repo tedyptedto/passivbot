@@ -190,7 +190,7 @@ for key in bo_config['override_harmony_config']:
         new_config_hjson[key]  = bo_config['override_harmony_config'][key]
 
 # override section "strategies_long_and_short" "strategies_long" "strategies_short"
-pb_grids = ['bounds_static_grid', 'bounds_recursive_grid', 'bounds_neat_grid', 'bounds_emas']
+pb_grids = ['bounds_static_grid', 'bounds_recursive_grid', 'bounds_neat_grid', 'bounds_clock']
 
 for bo_strat_group in bo_strat_groups: # loop in strategie bulk group 
     if bo_strat_group in bo_config['override_harmony_config']: # if group exist
