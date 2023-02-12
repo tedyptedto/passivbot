@@ -80,6 +80,8 @@ for strat_dir in strats_dirs:
         addTo(object, 'avg_max_stuck', data['result']['hrs_stuck_max_long'])
         addTo(object, 'avg_hrs_stuck_avg', data['result']['hrs_stuck_avg_long'])
         
+        addTo(object, 'pa_distance_max_long', data['result']['pa_distance_max_long'])
+        
 
         minTo(object, 'most_loss', data['result']['net_pnl_plus_fees_long'])
 
@@ -91,6 +93,7 @@ for strat_dir in strats_dirs:
         object['pa_dist_mean_long']   = object['pa_dist_mean_long'] / nb_coins
         object['low_equ_bal'] = object['low_equ_bal'] / nb_coins
         object['adg_exposure'] = object['adg_exposure'] / nb_coins
+        object['pa_distance_max_long'] = object['pa_distance_max_long'] / nb_coins
         object['n_days'] = object['n_days'] / nb_coins
         object['l_we'] = object['l_we'] / nb_coins
 
@@ -132,6 +135,12 @@ df = df[df.valid_for_me == True]
 
 df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain'], inplace=True)
 
+
+print("---------------------")
+print("Top 10 : Sorted by pa_distance_max_long")
+df.sort_values(by=[ 'pa_distance_max_long'], ascending=[True], inplace=True)
+df1 = df.head(100)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
 
 print("---------------------")
 print("Top 10 : Sorted by most_loss")
