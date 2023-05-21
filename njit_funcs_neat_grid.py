@@ -139,7 +139,7 @@ def calc_neat_grid_long(
         return [(0.0, 0.0, "")]
     entries = []
     for i in range(len(grid)):
-        if grid[i][2] < psize * 1.05 or grid[i][1] > pprice * 0.9995:
+        if grid[i][1] > pprice * 0.9995:
             continue
         if grid[i][4] > wallet_exposure_limit * 1.1:
             break
@@ -253,7 +253,7 @@ def calc_neat_grid_short(
         return [(0.0, 0.0, "")]
     entries = []
     for i in range(len(grid)):
-        if grid[i][2] > psize * 1.05 or grid[i][1] < pprice * 0.9995:
+        if grid[i][1] < pprice * 0.9995:
             continue
         if grid[i][4] > wallet_exposure_limit * 1.1:
             break
@@ -1441,7 +1441,7 @@ def backtest_neat_grid(
                     equity_short,
                 )
             )
-            next_stats_update = round(timestamps[k] + 60 * 1000)
+            next_stats_update = round(timestamps[k] + 60 * 60 * 1000)
 
     stats.append(
         (

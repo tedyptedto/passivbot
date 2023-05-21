@@ -42,6 +42,34 @@ else:
 
 
 @njit
+def calc_recursive_reentry_qty(
+    balance,
+    psize,
+    entry_price,
+    inverse,
+    qty_step,
+    min_qty,
+    min_cost,
+    c_mult,
+    initial_qty_pct,
+    ddown_factor,
+    wallet_exposure_limit,
+):
+    return max(
+        calc_min_entry_qty(entry_price, inverse, qty_step, min_qty, min_cost),
+        round_(
+            max(
+                psize * ddown_factor,
+                cost_to_qty(balance, entry_price, inverse, c_mult)
+                * wallet_exposure_limit
+                * initial_qty_pct,
+            ),
+            qty_step,
+        ),
+    )
+
+
+@njit
 def calc_recursive_entry_long(
     balance,
     psize,
@@ -69,6 +97,8 @@ def calc_recursive_entry_long(
         price_step,
         min(highest_bid, round_dn(ema_band_lower * (1 - initial_eprice_ema_dist), price_step)),
     )
+    if ientry_price == price_step:
+        return 0.0, ientry_price, ""
     min_entry_qty = calc_min_entry_qty(ientry_price, inverse, qty_step, min_qty, min_cost)
     ientry_qty = max(
         min_entry_qty,
@@ -113,13 +143,72 @@ def calc_recursive_entry_long(
                 ),
                 price_step,
             )
+            if entry_price <= price_step:
+                return 0.0, price_step, ""
             entry_price = min(highest_bid, entry_price)
-            min_entry_qty = calc_min_entry_qty(entry_price, inverse, qty_step, min_qty, min_cost)
-            entry_qty = max(min_entry_qty, round_(psize * ddown_factor, qty_step))
+            entry_qty = calc_recursive_reentry_qty(
+                balance,
+                psize,
+                entry_price,
+                inverse,
+                qty_step,
+                min_qty,
+                min_cost,
+                c_mult,
+                initial_qty_pct,
+                ddown_factor,
+                wallet_exposure_limit,
+            )
             wallet_exposure_if_filled = calc_wallet_exposure_if_filled(
                 balance, psize, pprice, entry_qty, entry_price, inverse, c_mult, qty_step
             )
+            adjust = False
             if wallet_exposure_if_filled > wallet_exposure_limit * 1.01:
+                adjust = True
+            else:
+                # preview next reentry
+                new_psize, new_pprice = calc_new_psize_pprice(
+                    psize, pprice, entry_qty, entry_price, qty_step
+                )
+                new_wallet_exposure = qty_to_cost(new_psize, new_pprice, inverse, c_mult) / balance
+                new_ratio = new_wallet_exposure / wallet_exposure_limit
+                new_entry_price = round_dn(
+                    new_pprice
+                    * (
+                        1
+                        - rentry_pprice_dist
+                        * (1 + new_ratio * rentry_pprice_dist_wallet_exposure_weighting)
+                    ),
+                    price_step,
+                )
+                new_entry_qty = calc_recursive_reentry_qty(
+                    balance,
+                    new_psize,
+                    new_entry_price,
+                    inverse,
+                    qty_step,
+                    min_qty,
+                    min_cost,
+                    c_mult,
+                    initial_qty_pct,
+                    ddown_factor,
+                    wallet_exposure_limit,
+                )
+                wallet_exposure_if_next_filled = calc_wallet_exposure_if_filled(
+                    balance,
+                    new_psize,
+                    new_pprice,
+                    new_entry_qty,
+                    new_entry_price,
+                    inverse,
+                    c_mult,
+                    qty_step,
+                )
+                if wallet_exposure_if_next_filled > wallet_exposure_limit * 1.2:
+                    adjust = True
+            if adjust:
+                # increase qty if next reentry is too small
+                # decrease qty if current reentry is too big
                 entry_qty = find_entry_qty_bringing_wallet_exposure_to_target(
                     balance,
                     psize,
@@ -130,7 +219,9 @@ def calc_recursive_entry_long(
                     qty_step,
                     c_mult,
                 )
-                entry_qty = max(entry_qty, min_entry_qty)
+                entry_qty = max(
+                    entry_qty, calc_min_entry_qty(entry_price, inverse, qty_step, min_qty, min_cost)
+                )
             return entry_qty, entry_price, "long_rentry"
 
 
@@ -214,13 +305,69 @@ def calc_recursive_entry_short(
                 price_step,
             )
             entry_price = max(entry_price, lowest_ask)
-            min_entry_qty = calc_min_entry_qty(entry_price, inverse, qty_step, min_qty, min_cost)
-            entry_qty = max(min_entry_qty, round_(abs_psize * ddown_factor, qty_step))
+            entry_qty = calc_recursive_reentry_qty(
+                balance,
+                abs_psize,
+                entry_price,
+                inverse,
+                qty_step,
+                min_qty,
+                min_cost,
+                c_mult,
+                initial_qty_pct,
+                ddown_factor,
+                wallet_exposure_limit,
+            )
             wallet_exposure_if_filled = calc_wallet_exposure_if_filled(
                 balance, abs_psize, pprice, entry_qty, entry_price, inverse, c_mult, qty_step
             )
+            adjust = False
             if wallet_exposure_if_filled > wallet_exposure_limit * 1.01:
-                # crop qty
+                adjust = True
+            else:
+                # preview next reentry
+                new_psize, new_pprice = calc_new_psize_pprice(
+                    abs_psize, pprice, entry_qty, entry_price, qty_step
+                )
+                new_wallet_exposure = qty_to_cost(new_psize, new_pprice, inverse, c_mult) / balance
+                new_ratio = new_wallet_exposure / wallet_exposure_limit
+                new_entry_price = round_up(
+                    new_pprice
+                    * (
+                        1
+                        + rentry_pprice_dist
+                        * (1 + new_ratio * rentry_pprice_dist_wallet_exposure_weighting)
+                    ),
+                    price_step,
+                )
+                new_entry_qty = calc_recursive_reentry_qty(
+                    balance,
+                    new_psize,
+                    new_entry_price,
+                    inverse,
+                    qty_step,
+                    min_qty,
+                    min_cost,
+                    c_mult,
+                    initial_qty_pct,
+                    ddown_factor,
+                    wallet_exposure_limit,
+                )
+                wallet_exposure_if_next_filled = calc_wallet_exposure_if_filled(
+                    balance,
+                    new_psize,
+                    new_pprice,
+                    new_entry_qty,
+                    new_entry_price,
+                    inverse,
+                    c_mult,
+                    qty_step,
+                )
+                if wallet_exposure_if_next_filled > wallet_exposure_limit * 1.2:
+                    adjust = True
+            if adjust:
+                # increase qty if next reentry is too small
+                # or decrease qty if current reentry is too big
                 entry_qty = find_entry_qty_bringing_wallet_exposure_to_target(
                     balance,
                     abs_psize,
@@ -231,7 +378,9 @@ def calc_recursive_entry_short(
                     qty_step,
                     c_mult,
                 )
-                entry_qty = max(entry_qty, min_entry_qty)
+                entry_qty = max(
+                    entry_qty, calc_min_entry_qty(entry_price, inverse, qty_step, min_qty, min_cost)
+                )
             return -entry_qty, entry_price, "short_rentry"
 
 
@@ -617,6 +766,8 @@ def backtest_recursive_grid(
                         auto_unstuck_ema_dist[0],
                         auto_unstuck_wallet_exposure_threshold[0],
                     )
+                    if entry_long[2] == "long_unstuck_entry":
+                        break
 
                 # check if long closes filled
                 while (
@@ -858,6 +1009,8 @@ def backtest_recursive_grid(
                         auto_unstuck_ema_dist[1],
                         auto_unstuck_wallet_exposure_threshold[1],
                     )
+                    if entry_short[2] == "short_unstuck_entry":
+                        break
                 # check if short closes filled
                 while (
                     psize_short < 0.0
@@ -970,6 +1123,6 @@ def backtest_recursive_grid(
                     equity_short,
                 )
             )
-            next_stats_update = timestamps[k] + 60 * 1000
+            next_stats_update = timestamps[k] + 60 * 60 * 1000
 
     return fills_long, fills_short, stats

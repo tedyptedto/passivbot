@@ -1,0 +1,48 @@
+{
+  // supported exchanges: [kucoin, okx, bybit, binance]
+  user: binance_01
+  twe_long: 1.6
+  twe_short: 0.8
+  n_longs: 6
+  n_shorts: 3
+  max_min_cost: 5.0
+  n_ohlcvs: 100
+  ohlcv_interval: 1h
+  leverage: 10
+  price_distance_threshold: 0.3
+
+  // set to zero to disable
+  volume_clip_threshold: 0.51  // include 51% of the highest volume coins
+  unilateralness_clip_threshold: 0.49 // include 49% of symbols with lowest unilateralness
+  noisiness_clip_threshold: 0.52 // include 52% of symbols with highest noisiness
+
+  max_n_panes: 8
+
+  // Don't create bots with these symbols
+  symbols_to_ignore: [
+    SYM1USDT
+    SYM2USDT
+  ]
+
+  // if symbol is missing from live_configs_map, default to this config
+  default_config_path: configs/live/clock_mode.example.json
+
+  // if true, allow only symbols present in live_configs_map
+  // if false, will use default_config_path when symbol is missing from live_configs_map
+  approved_symbols_only: false
+
+  live_configs_map: {
+    BTCUSDT: configs/live/clock_mode.example.json
+    ETHUSDT: configs/live/neat_grid_mode.example.json
+    DOGEUSDT: configs/live/recursive_grid_mode.example.json
+  }
+
+  // min markup when -gs
+  gs_mm: null
+  // markup range when -gs
+  gs_mr: null
+  // long WE_limit when -gs
+  gs_lw: null
+  // short WE_limit when -gs
+  gs_sw: null
+}

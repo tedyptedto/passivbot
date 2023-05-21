@@ -1,4 +1,10 @@
 {
+    "referrals": {
+        "binance": "https://accounts.binance.me/en/register?ref=TII4B07C",
+        "bybit": "https://partner.bybit.com/b/passivbot",
+        "bitget": "https://partner.bitget.com/bg/Y8FU1W",
+        "okx": "https://www.okx.com/join/15429595"
+    },
     "binance_01" : {
         "exchange": "binance",
         "key": "key",
@@ -13,5 +19,23 @@
         "exchange": "bybit",
         "key": "key",
         "secret": "secret"
+    },
+    "bitget_01" : {
+        "exchange": "bitget",
+        "key": "key",
+        "secret": "secret",
+        "passphrase": "passphrase"
+    },
+    "okx_01" : {
+        "exchange": "okx",
+        "key": "key",
+        "secret": "secret",
+        "passphrase": "passphrase"
+    },
+    "kucoin_01" : {
+        "exchange": "kucoin",
+        "key": "key",
+        "secret": "secret",
+        "passphrase": "passphrase"
     }
 }

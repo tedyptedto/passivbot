@@ -17,7 +17,7 @@ except:
     print("pandas not found, trying without...")
     pass
 
-from njit_funcs import calc_samples
+from njit_funcs import calc_samples, round_
 from pure_funcs import (
     numpyize,
     candidate_to_live_config,
@@ -29,6 +29,7 @@ from pure_funcs import (
     get_template_live_config,
     sort_dict_keys,
     make_compatible,
+    determine_passivbot_mode,
 )
 
 
@@ -77,7 +78,6 @@ async def prepare_backtest_config(args) -> dict:
         "starting_balance",
         "market_type",
         "base_dir",
-        "ohlcv",
     ]:
         if hasattr(args, key) and getattr(args, key) is not None:
             config[key] = getattr(args, key)
@@ -89,11 +89,24 @@ async def prepare_backtest_config(args) -> dict:
         config["spot"] = args.market_type == "spot"
     config["start_date"] = ts_to_date_utc(date_to_ts(config["start_date"]))[:10]
     config["end_date"] = ts_to_date_utc(date_to_ts(config["end_date"]))[:10]
-    config["exchange"], _, _ = load_exchange_key_secret(config["user"])
+    config["exchange"] = load_exchange_key_secret_passphrase(config["user"])[0]
     config["session_name"] = (
         f"{config['start_date'].replace(' ', '').replace(':', '').replace('.', '')}_"
         f"{config['end_date'].replace(' ', '').replace(':', '').replace('.', '')}"
     )
+    if config["exchange"] in ["okx", "kucoin", "mexc"]:
+        config["ohlcv"] = True
+    elif hasattr(args, "ohlcv"):
+        if args.ohlcv is None:
+            if "ohlcv" not in config:
+                config["ohlcv"] = True
+        else:
+            if args.ohlcv.lower() in ["y", "t", "yes", "true"]:
+                config["ohlcv"] = True
+            else:
+                config["ohlcv"] = False
+    elif "ohlcv" not in config:
+        config["ohlcv"] = True
 
     if config["base_dir"].startswith("~"):
         raise Exception("error: using the ~ to indicate the user's home directory is not supported")
@@ -108,14 +121,13 @@ async def prepare_backtest_config(args) -> dict:
     config["plots_dirpath"] = make_get_filepath(os.path.join(base_dirpath, "plots", ""))
 
     await add_market_specific_settings(config)
-
     return config
 
 
 async def prepare_optimize_config(args) -> dict:
     config = await prepare_backtest_config(args)
     config.update(load_hjson_config(args.optimize_config_path))
-    for key in ["starting_configs", "iters"]:
+    for key in ["starting_configs", "iters", "algorithm"]:
         if hasattr(args, key) and getattr(args, key) is not None:
             config[key] = getattr(args, key)
         elif key not in config:
@@ -125,19 +137,22 @@ async def prepare_optimize_config(args) -> dict:
 
 async def add_market_specific_settings(config):
     mss = config["caches_dirpath"] + "market_specific_settings.json"
+    symbol = config["symbol"]
     try:
-        print("fetching market_specific_settings...")
-        market_specific_settings = await fetch_market_specific_settings(config)
+        print(f"fetching market_specific_settings for {symbol}...")
+        market_specific_settings = fetch_market_specific_settings(config)
         json.dump(market_specific_settings, open(mss, "w"), indent=4)
     except Exception as e:
         traceback.print_exc()
-        print("\nfailed to fetch market_specific_settings", e, "\n")
+        print(f"\nfailed to fetch market_specific_settings for symbol {symbol}", e, "\n")
         try:
             if os.path.exists(mss):
                 market_specific_settings = json.load(open(mss))
-            print("using cached market_specific_settings")
-        except Exception:
-            raise Exception("failed to load cached market_specific_settings")
+                print("using cached market_specific_settings")
+            else:
+                raise Exception(f"no cached market_specific_settings for symbol {symbol}")
+        except:
+            raise Exception(f"failed to load cached market_specific_settings for symbol {symbol}")
     config.update(market_specific_settings)
 
 
@@ -151,14 +166,19 @@ def make_get_filepath(filepath: str) -> str:
     return filepath
 
 
-def load_exchange_key_secret(user: str) -> (str, str, str):
+def load_exchange_key_secret_passphrase(
+    user: str, api_keys_path="api-keys.json"
+) -> (str, str, str, str):
+    if api_keys_path is None:
+        api_keys_path = "api-keys.json"
     try:
-        keyfile = json.load(open("api-keys.json"))
+        keyfile = json.load(open(api_keys_path))
         if user in keyfile:
             return (
                 keyfile[user]["exchange"],
                 keyfile[user]["key"],
                 keyfile[user]["secret"],
+                keyfile[user]["passphrase"] if "passphrase" in keyfile[user] else "",
             )
         else:
             print("Looks like the keys aren't configured yet, or you entered the wrong username!")
@@ -166,6 +186,15 @@ def load_exchange_key_secret(user: str) -> (str, str, str):
     except FileNotFoundError:
         print("File Not Found!")
         raise Exception("API KeyFile Missing!")
+
+
+def load_broker_code(exchange: str) -> str:
+    try:
+        return hjson.load(open("broker_codes.hjson"))[exchange]
+    except Exception as e:
+        print(f"failed to load broker code", e)
+        traceback.print_exc()
+        return ""
 
 
 def print_(args, r=False, n=False):
@@ -182,7 +211,7 @@ def print_(args, r=False, n=False):
     return line
 
 
-async def fetch_market_specific_settings(config: dict):
+async def fetch_market_specific_settings_old(config: dict):
     user = config["user"]
     exchange = config["exchange"]
     symbol = config["symbol"]
@@ -216,9 +245,31 @@ async def fetch_market_specific_settings(config: dict):
         settings_from_exchange["maker_fee"] = 0.0001
         settings_from_exchange["taker_fee"] = 0.0006
         settings_from_exchange["exchange"] = "bybit"
+    elif exchange == "bitget":
+        if "spot" in config["market_type"]:
+            raise Exception("spot not implemented on bitget")
+        bot = await create_bitget_bot(tmp_live_settings)
+        settings_from_exchange["maker_fee"] = 0.0002
+        settings_from_exchange["taker_fee"] = 0.0006
+        settings_from_exchange["exchange"] = "bitget"
+    elif exchange == "okx":
+        if "spot" in config["market_type"]:
+            raise Exception("spot not implemented on okx")
+        bot = await create_okx_bot(tmp_live_settings)
+        settings_from_exchange["maker_fee"] = 0.0002
+        settings_from_exchange["taker_fee"] = 0.0005
+        settings_from_exchange["exchange"] = "okx"
+    elif exchange == "mexc":
+        if "spot" in config["market_type"]:
+            raise Exception("spot not implemented on mexc")
+        bot = await create_mexc_bot(tmp_live_settings)
+        settings_from_exchange["maker_fee"] = 0.0002
+        settings_from_exchange["taker_fee"] = 0.0005
+        settings_from_exchange["exchange"] = "mexc"
     else:
         raise Exception(f"unknown exchange {exchange}")
-    await bot.session.close()
+    if hasattr(bot, "session"):
+        await bot.session.close()
     if "inverse" in bot.market_type:
         settings_from_exchange["inverse"] = True
     elif any(x in bot.market_type for x in ["linear", "spot"]):
@@ -240,7 +291,7 @@ async def fetch_market_specific_settings(config: dict):
 
 
 async def create_binance_bot(config: dict):
-    from binance import BinanceBot
+    from exchanges.binance import BinanceBot
 
     bot = BinanceBot(config)
     await bot._init()
@@ -248,7 +299,7 @@ async def create_binance_bot(config: dict):
 
 
 async def create_binance_bot_spot(config: dict):
-    from binance_spot import BinanceBotSpot
+    from exchanges.binance_spot import BinanceBotSpot
 
     bot = BinanceBotSpot(config)
     await bot._init()
@@ -256,9 +307,49 @@ async def create_binance_bot_spot(config: dict):
 
 
 async def create_bybit_bot(config: dict):
-    from bybit import Bybit
+    from exchanges.bybit import BybitBot
 
-    bot = Bybit(config)
+    bot = BybitBot(config)
+    await bot._init()
+    return bot
+
+
+async def create_bybit_bot_spot(config: dict):
+    from exchanges.bybit_spot import BybitBotSpot
+
+    bot = BybitBotSpot(config)
+    await bot._init()
+    return bot
+
+
+async def create_bitget_bot(config: dict):
+    from exchanges.bitget import BitgetBot
+
+    bot = BitgetBot(config)
+    await bot._init()
+    return bot
+
+
+async def create_okx_bot(config: dict):
+    from exchanges.okx import OKXBot
+
+    bot = OKXBot(config)
+    await bot._init()
+    return bot
+
+
+async def create_kucoin_bot(config: dict):
+    from exchanges.kucoin import KuCoinBot
+
+    bot = KuCoinBot(config)
+    await bot._init()
+    return bot
+
+
+async def create_mexc_bot(config: dict):
+    from exchanges.mexc import MEXCBot
+
+    bot = MEXCBot(config)
     await bot._init()
     return bot
 
@@ -339,7 +430,17 @@ def add_argparse_args(parser):
         default=None,
         help="specify the base output directory for the results",
     )
-
+    parser.add_argument(
+        "-oh",
+        "--ohlcv",
+        type=str,
+        required=False,
+        dest="ohlcv",
+        default=None,
+        nargs="?",
+        const="y",
+        help="if no arg or [y/yes], use 1m ohlcv instead of 1s ticks, overriding param ohlcv from config/backtest/default.hjson",
+    )
     return parser
 
 
@@ -427,3 +528,155 @@ def print_async_exception(coro):
         print(f"result: {coro.result()}")
     except:
         pass
+
+
+def fetch_market_specific_settings(config: dict):
+    import ccxt
+
+    exchange = config["exchange"]
+    symbol = config["symbol"]
+    market_type = config["market_type"]
+
+    settings_from_exchange = {"exchange": exchange}
+    if exchange == "binance":
+        if "futures" in market_type:
+            if symbol.endswith("USDT") or symbol.endswith("BUSD"):
+                cc = ccxt.binanceusdm()
+                settings_from_exchange["inverse"] = False
+
+            elif symbol.endswith("PERP"):
+                cc = ccxt.binancecoinm()
+                settings_from_exchange["inverse"] = True
+            else:
+                raise Exception(f"unknown symbol {symbol}")
+            settings_from_exchange["hedge_mode"] = True
+            settings_from_exchange["spot"] = False
+
+        elif "spot" in market_type:
+            cc = ccxt.binance()
+            settings_from_exchange["spot"] = True
+            settings_from_exchange["inverse"] = False
+            settings_from_exchange["hedge_mode"] = False
+        else:
+            raise Exception(f"unknown market type {market_type}")
+        markets = cc.fetch_markets()
+        for elm in markets:
+            if elm["id"] == symbol:
+                break
+        else:
+            raise Exception(f"unknown symbol {symbol}")
+        settings_from_exchange["maker_fee"] = elm["maker"]
+        settings_from_exchange["taker_fee"] = elm["taker"]
+        settings_from_exchange["c_mult"] = 1.0 if elm["contractSize"] is None else elm["contractSize"]
+        settings_from_exchange["min_qty"] = elm["limits"]["amount"]["min"]
+        for elm1 in elm["info"]["filters"]:
+            if elm1["filterType"] == "LOT_SIZE":
+                settings_from_exchange["qty_step"] = float(elm1["stepSize"])
+            if elm1["filterType"] == "PRICE_FILTER":
+                settings_from_exchange["price_step"] = float(elm1["tickSize"])
+    elif exchange == "bitget":
+        cc = ccxt.bitget()
+        markets = cc.fetch_markets()
+        for elm in markets:
+            if elm["type"] == "swap" and elm["id"] == symbol + "_UMCBL":
+                break
+        else:
+            raise Exception(f"unknown symbol {symbol}")
+        settings_from_exchange["hedge_mode"] = True
+        settings_from_exchange["maker_fee"] = elm["maker"]
+        settings_from_exchange["taker_fee"] = elm["taker"]
+        settings_from_exchange["c_mult"] = 1.0
+        settings_from_exchange["price_step"] = round_(
+            (10 ** (-int(elm["info"]["pricePlace"]))) * int(elm["info"]["priceEndStep"]), 1e-12
+        )
+        settings_from_exchange["qty_step"] = round_(
+            10 ** (-int(elm["info"]["volumePlace"])), 0.00000001
+        )
+        settings_from_exchange["min_qty"] = float(elm["info"]["minTradeNum"])
+        settings_from_exchange["min_cost"] = 5.0
+        settings_from_exchange["spot"] = elm["spot"]
+        settings_from_exchange["inverse"] = not elm["linear"]
+    elif exchange == "okx":
+        cc = ccxt.okx()
+        markets = cc.fetch_markets()
+        for elm in markets:
+            if elm["type"] == "swap" and symbol in elm["id"].replace("-", ""):
+                break
+        else:
+            raise Exception(f"unknown symbol {symbol}")
+        settings_from_exchange["hedge_mode"] = True
+        settings_from_exchange["maker_fee"] = elm["maker"]
+        settings_from_exchange["taker_fee"] = elm["taker"]
+        settings_from_exchange["c_mult"] = elm["contractSize"]
+        settings_from_exchange["qty_step"] = elm["precision"]["amount"]
+        settings_from_exchange["price_step"] = elm["precision"]["price"]
+        settings_from_exchange["spot"] = elm["spot"]
+        settings_from_exchange["inverse"] = not elm["linear"]
+        settings_from_exchange["min_qty"] = elm["limits"]["amount"]["min"]
+    elif exchange == "bybit":
+        cc = ccxt.bybit()
+        markets = cc.fetch_markets()
+        for elm in markets:
+            if elm["id"] == symbol:
+                break
+        else:
+            raise Exception(f"unknown symbol {symbol}")
+        settings_from_exchange["hedge_mode"] = True
+        settings_from_exchange["maker_fee"] = 0.0001
+        settings_from_exchange["taker_fee"] = 0.0006
+        settings_from_exchange["c_mult"] = elm["contractSize"]
+        settings_from_exchange["qty_step"] = float(elm["info"]["lot_size_filter"]["qty_step"])
+        settings_from_exchange["price_step"] = float(elm["info"]["price_filter"]["tick_size"])
+        settings_from_exchange["spot"] = False
+        settings_from_exchange["inverse"] = not elm["linear"]
+        settings_from_exchange["min_qty"] = elm["limits"]["amount"]["min"]
+    elif exchange == "kucoin":
+        cc = ccxt.kucoinfutures()
+        markets = cc.fetch_markets()
+        for elm in markets:
+            if elm["id"] == symbol + "M":
+                break
+        else:
+            raise Exception(f"unknown symbol {symbol}")
+        settings_from_exchange["hedge_mode"] = True
+        settings_from_exchange["maker_fee"] = elm["maker"]
+        settings_from_exchange["taker_fee"] = elm["taker"]
+        settings_from_exchange["c_mult"] = elm["contractSize"]
+        settings_from_exchange["qty_step"] = elm["precision"]["amount"]
+        settings_from_exchange["price_step"] = elm["precision"]["price"]
+        settings_from_exchange["spot"] = False
+        settings_from_exchange["inverse"] = not elm["linear"]
+        settings_from_exchange["min_qty"] = (
+            0.0 if elm["limits"]["amount"]["min"] is None else elm["limits"]["amount"]["min"]
+        )
+        settings_from_exchange["min_qty"] = float(elm["info"]["lotSize"])
+    else:
+        raise Exception(f"unknown exchange {exchange}")
+    if "min_cost" not in settings_from_exchange:
+        settings_from_exchange["min_cost"] = (
+            0.0 if elm["limits"]["cost"]["min"] is None else elm["limits"]["cost"]["min"]
+        )
+    for key in [
+        "c_mult",
+        "exchange",
+        "hedge_mode",
+        "inverse",
+        "maker_fee",
+        "min_cost",
+        "min_qty",
+        "price_step",
+        "qty_step",
+        "spot",
+        "taker_fee",
+    ]:
+        assert key in settings_from_exchange, f"missing {key}"
+    # import pprint
+    # pprint.pprint(elm)
+    return sort_dict_keys(settings_from_exchange)
+
+
+if __name__ == "__main__":
+    for exchange in ["kucoin", "bitget", "binance", "bybit", "okx"]:
+        cfg = {"exchange": exchange, "symbol": "ETHUSDT", "market_type": "futures"}
+        mss = fetch_market_specific_settings(cfg)
+        print(mss)

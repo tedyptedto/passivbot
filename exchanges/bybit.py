@@ -11,8 +11,8 @@ from uuid import uuid4
 import aiohttp
 import numpy as np
 
-from njit_funcs import round_
-from passivbot import Bot
+from njit_funcs import round_, calc_diff
+from passivbot import Bot, logging
 from procedures import print_async_exception, print_
 from pure_funcs import ts_to_date, sort_dict_keys, date_to_ts
 
@@ -23,6 +23,16 @@ def first_capitalized(s: str):
 
 def determine_pos_side(o: dict) -> str:
     if o["side"].lower() == "buy":
+        if "reduce_only" in o:
+            if o["reduce_only"]:
+                return "short"
+            else:
+                return "long"
+        if "closed_size" in o:
+            if o["closed_size"] != 0.0:
+                return "short"
+            else:
+                return "long"
         if "entry" in o["order_link_id"]:
             return "long"
         elif "close" in o["order_link_id"]:
@@ -30,6 +40,16 @@ def determine_pos_side(o: dict) -> str:
         else:
             return "both"
     else:
+        if "reduce_only" in o:
+            if o["reduce_only"]:
+                return "long"
+            else:
+                return "short"
+        if "closed_size" in o:
+            if o["closed_size"] != 0.0:
+                return "long"
+            else:
+                return "short"
         if "entry" in o["order_link_id"]:
             return "short"
         elif "close" in o["order_link_id"]:
@@ -38,21 +58,31 @@ def determine_pos_side(o: dict) -> str:
             return "both"
 
 
-class Bybit(Bot):
+class BybitBot(Bot):
     def __init__(self, config: dict):
         self.exchange = "bybit"
-        self.min_notional = 0.0
+        self.min_notional = 1.0
+        self.max_n_orders_per_batch = 5
+        self.max_n_cancellations_per_batch = 10
         super().__init__(config)
         self.base_endpoint = "https://api.bybit.com"
+        if self.test_mode:
+            self.base_endpoint = "https://api-testnet.bybit.com"
         self.endpoints = {
             "balance": "/v2/private/wallet/balance",
             "exchange_info": "/v2/public/symbols",
             "ticker": "/v2/public/tickers",
             "funds_transfer": "/asset/v1/private/transfer",
         }
-        self.session = aiohttp.ClientSession(headers={"referer": "passivbotbybit"})
+        self.session = aiohttp.ClientSession(
+            headers=({"referer": self.broker_code} if self.broker_code else {})
+        )
 
     def init_market_type(self):
+        websockets_base_endpoint = "wss://stream.bybit.com"
+        if self.test_mode:
+            websockets_base_endpoint = "wss://stream-testnet.bybit.com"
+
         if self.symbol.endswith("USDT"):
             print("linear perpetual")
             self.market_type += "_linear_perpetual"
@@ -65,8 +95,8 @@ class Bybit(Bot):
                 "ticks": "/public/linear/recent-trading-records",
                 "fills": "/private/linear/trade/execution/list",
                 "ohlcvs": "/public/linear/kline",
-                "websocket_market": "wss://stream.bybit.com/realtime_public",
-                "websocket_user": "wss://stream.bybit.com/realtime_private",
+                "websocket_market": f"{websockets_base_endpoint}/realtime_public",
+                "websocket_user": f"{websockets_base_endpoint}/realtime_private",
                 "income": "/private/linear/trade/closed-pnl/list",
                 "created_at_key": "created_time",
             }
@@ -84,8 +114,8 @@ class Bybit(Bot):
                     "ticks": "/v2/public/trading-records",
                     "fills": "/v2/private/execution/list",
                     "ohlcvs": "/v2/public/kline/list",
-                    "websocket_market": "wss://stream.bybit.com/realtime",
-                    "websocket_user": "wss://stream.bybit.com/realtime",
+                    "websocket_market": f"{websockets_base_endpoint}/realtime",
+                    "websocket_user": f"{websockets_base_endpoint}/realtime",
                     "income": "/v2/private/trade/closed-pnl/list",
                     "created_at_key": "created_at",
                 }
@@ -102,13 +132,16 @@ class Bybit(Bot):
                     "ticks": "/v2/public/trading-records",
                     "fills": "/futures/private/execution/list",
                     "ohlcvs": "/v2/public/kline/list",
-                    "websocket_market": "wss://stream.bybit.com/realtime",
-                    "websocket_user": "wss://stream.bybit.com/realtime",
+                    "websocket_market": f"{websockets_base_endpoint}/realtime",
+                    "websocket_user": f"{websockets_base_endpoint}/realtime",
                     "income": "/futures/private/trade/closed-pnl/list",
                     "created_at_key": "created_at",
                 }
 
         self.spot_base_endpoint = "https://api.bybit.com"
+        if self.test_mode:
+            self.spot_base_endpoint = "https://api-testnet.bybit.com"
+
         self.endpoints["spot_balance"] = "/spot/v1/account"
         self.endpoints["balance"] = "/v2/private/wallet/balance"
         self.endpoints["exchange_info"] = "/v2/public/symbols"
@@ -124,24 +157,31 @@ class Bybit(Bot):
             raise Exception(f"symbol missing {self.symbol}")
         self.max_leverage = e["leverage_filter"]["max_leverage"]
         self.coin = e["base_currency"]
-        self.quot = e["quote_currency"]
+        self.quote = e["quote_currency"]
         self.price_step = self.config["price_step"] = float(e["price_filter"]["tick_size"])
         self.qty_step = self.config["qty_step"] = float(e["lot_size_filter"]["qty_step"])
         self.min_qty = self.config["min_qty"] = float(e["lot_size_filter"]["min_trading_qty"])
-        self.min_cost = self.config["min_cost"] = 0.0
+        self.min_cost = self.config["min_cost"] = 1.0
         self.init_market_type()
-        self.margin_coin = self.coin if self.inverse else self.quot
+        self.margin_coin = self.coin if self.inverse else self.quote
         await super()._init()
         await self.init_order_book()
         await self.update_position()
 
     async def init_order_book(self):
-        ticker = await self.private_get(self.endpoints["ticker"], {"symbol": self.symbol})
-        self.ob = [
-            float(ticker["result"][0]["bid_price"]),
-            float(ticker["result"][0]["ask_price"]),
-        ]
-        self.price = float(ticker["result"][0]["last_price"])
+        ticker = None
+        try:
+            ticker = await self.private_get(self.endpoints["ticker"], {"symbol": self.symbol})
+            self.ob = [
+                float(ticker["result"][0]["bid_price"]),
+                float(ticker["result"][0]["ask_price"]),
+            ]
+            self.price = float(ticker["result"][0]["last_price"])
+            return True
+        except Exception as e:
+            logging.error(f"error updating order book {e}")
+            print_async_exception(ticker)
+            return False
 
     async def fetch_open_orders(self) -> [dict]:
         fetched = await self.private_get(self.endpoints["open_orders"], {"symbol": self.symbol})
@@ -221,46 +261,81 @@ class Bybit(Bot):
 
     async def fetch_position(self) -> dict:
         position = {}
-        if "linear_perpetual" in self.market_type:
-            fetched, bal = await asyncio.gather(
-                self.private_get(self.endpoints["position"], {"symbol": self.symbol}),
-                self.private_get(self.endpoints["balance"], {"coin": self.quot}),
-            )
-            long_pos = [e for e in fetched["result"] if e["side"] == "Buy"][0]
-            short_pos = [e for e in fetched["result"] if e["side"] == "Sell"][0]
-            position["wallet_balance"] = float(bal["result"][self.quot]["wallet_balance"])
-        else:
-            fetched, bal = await asyncio.gather(
-                self.private_get(self.endpoints["position"], {"symbol": self.symbol}),
-                self.private_get(self.endpoints["balance"], {"coin": self.coin}),
-            )
-            position["wallet_balance"] = float(bal["result"][self.coin]["wallet_balance"])
-            if "inverse_perpetual" in self.market_type:
-                if fetched["result"]["side"] == "Buy":
-                    long_pos = fetched["result"]
-                    short_pos = {"size": 0.0, "entry_price": 0.0, "liq_price": 0.0}
-                else:
-                    long_pos = {"size": 0.0, "entry_price": 0.0, "liq_price": 0.0}
-                    short_pos = fetched["result"]
-            elif "inverse_futures" in self.market_type:
-                long_pos = [e["data"] for e in fetched["result"] if e["data"]["position_idx"] == 1][0]
-                short_pos = [e["data"] for e in fetched["result"] if e["data"]["position_idx"] == 2][
-                    0
-                ]
+        fetched, bal = None, None
+        try:
+            if "linear_perpetual" in self.market_type:
+                fetched, bal = await asyncio.gather(
+                    self.private_get(self.endpoints["position"], {"symbol": self.symbol}),
+                    self.private_get(self.endpoints["balance"], {"coin": self.quote}),
+                )
+                long_pos = [e for e in fetched["result"] if e["side"] == "Buy"][0]
+                short_pos = [e for e in fetched["result"] if e["side"] == "Sell"][0]
+                position["wallet_balance"] = float(bal["result"][self.quote]["wallet_balance"])
             else:
-                raise Exception("unknown market type")
+                fetched, bal = await asyncio.gather(
+                    self.private_get(self.endpoints["position"], {"symbol": self.symbol}),
+                    self.private_get(self.endpoints["balance"], {"coin": self.coin}),
+                )
+                position["wallet_balance"] = float(bal["result"][self.coin]["wallet_balance"])
+                if "inverse_perpetual" in self.market_type:
+                    if fetched["result"]["side"] == "Buy":
+                        long_pos = fetched["result"]
+                        short_pos = {"size": 0.0, "entry_price": 0.0, "liq_price": 0.0}
+                    else:
+                        long_pos = {"size": 0.0, "entry_price": 0.0, "liq_price": 0.0}
+                        short_pos = fetched["result"]
+                elif "inverse_futures" in self.market_type:
+                    long_pos = [
+                        e["data"] for e in fetched["result"] if e["data"]["position_idx"] == 1
+                    ][0]
+                    short_pos = [
+                        e["data"] for e in fetched["result"] if e["data"]["position_idx"] == 2
+                    ][0]
+                else:
+                    raise Exception("unknown market type")
 
-        position["long"] = {
-            "size": round_(float(long_pos["size"]), self.qty_step),
-            "price": float(long_pos["entry_price"]),
-            "liquidation_price": float(long_pos["liq_price"]),
-        }
-        position["short"] = {
-            "size": -round_(float(short_pos["size"]), self.qty_step),
-            "price": float(short_pos["entry_price"]),
-            "liquidation_price": float(short_pos["liq_price"]),
-        }
-        return position
+            position["long"] = {
+                "size": round_(float(long_pos["size"]), self.qty_step),
+                "price": float(long_pos["entry_price"]),
+                "liquidation_price": float(long_pos["liq_price"]),
+            }
+            position["short"] = {
+                "size": -round_(float(short_pos["size"]), self.qty_step),
+                "price": float(short_pos["entry_price"]),
+                "liquidation_price": float(short_pos["liq_price"]),
+            }
+            return position
+        except Exception as e:
+            logging.error(f"error fetching pos or balance {e}")
+            print_async_exception(fetched)
+            print_async_exception(bal)
+            traceback.print_exc()
+            return None
+
+    async def execute_orders(self, orders: [dict]) -> [dict]:
+        if not orders:
+            return []
+        creations = []
+        for order in sorted(orders, key=lambda x: calc_diff(x["price"], self.price)):
+            creation = None
+            try:
+                creation = asyncio.create_task(self.execute_order(order))
+                creations.append((order, creation))
+            except Exception as e:
+                print(f"error creating order {order} {e}")
+                print_async_exception(creation)
+                traceback.print_exc()
+        results = []
+        for creation in creations:
+            result = None
+            try:
+                result = await creation[1]
+                results.append(result)
+            except Exception as e:
+                print(f"error creating order {creation} {e}")
+                print_async_exception(result)
+                traceback.print_exc()
+        return results
 
     async def execute_order(self, order: dict) -> dict:
         o = None
@@ -308,6 +383,31 @@ class Bybit(Bot):
             traceback.print_exc()
             return {}
 
+    async def execute_cancellations(self, orders: [dict]) -> [dict]:
+        if not orders:
+            return []
+        cancellations = []
+        for order in sorted(orders, key=lambda x: calc_diff(x["price"], self.price)):
+            cancellation = None
+            try:
+                cancellation = asyncio.create_task(self.execute_cancellation(order))
+                cancellations.append((order, cancellation))
+            except Exception as e:
+                print(f"error cancelling order {order} {e}")
+                print_async_exception(cancellation)
+                traceback.print_exc()
+        results = []
+        for cancellation in cancellations:
+            result = None
+            try:
+                result = await cancellation[1]
+                results.append(result)
+            except Exception as e:
+                print(f"error cancelling order {cancellation} {e}")
+                print_async_exception(result)
+                traceback.print_exc()
+        return results
+
     async def execute_cancellation(self, order: dict) -> dict:
         cancellation = None
         try:
@@ -324,9 +424,21 @@ class Bybit(Bot):
                 "price": order["price"],
             }
         except Exception as e:
-            print(f"error cancelling order {order} {e}")
-            print_async_exception(cancellation)
-            traceback.print_exc()
+            if (
+                cancellation is not None
+                and "ret_code" in cancellation
+                and cancellation["ret_code"] == 20001
+            ):
+                error_cropped = {
+                    k: v for k, v in cancellation.items() if k in ["ret_msg", "ret_code"]
+                }
+                logging.error(
+                    f"error cancelling order {error_cropped} {order}"
+                )  # neater error message
+            else:
+                print(f"error cancelling order {order} {e}")
+                print_async_exception(cancellation)
+                traceback.print_exc()
             self.ts_released["force_update"] = 0.0
             return {}
 
@@ -510,6 +622,48 @@ class Bybit(Bot):
             print_async_exception(fetched)
             return []
 
+    async def fetch_latest_fills(self):
+        fetched = None
+        try:
+            fetched = await self.private_get(
+                self.endpoints["fills"],
+                {
+                    "symbol": self.symbol,
+                    "limit": 200,
+                    "start_time": int((time() - 60 * 60 * 24) * 1000),
+                },
+            )
+            if "inverse_perpetual" in self.market_type:
+                fetched_data = fetched["result"]["trade_list"]
+            elif "linear_perpetual" in self.market_type:
+                fetched_data = fetched["result"]["data"]
+            if fetched_data is None and fetched["ret_code"] == 0 and fetched["ret_msg"] == "OK":
+                return []
+            fills = [
+                {
+                    "order_id": elm["order_id"],
+                    "symbol": elm["symbol"],
+                    "status": elm["exec_type"].lower(),
+                    "custom_id": elm["order_link_id"],
+                    "price": float(elm["exec_price"]),
+                    "qty": float(elm["exec_qty"]),
+                    "original_qty": float(elm["order_qty"]),
+                    "type": elm["order_type"].lower(),
+                    "reduce_only": None,
+                    "side": elm["side"].lower(),
+                    "position_side": determine_pos_side(elm),
+                    "timestamp": elm["trade_time_ms"],
+                }
+                for elm in fetched_data
+                if elm["exec_type"] == "Trade"
+            ]
+        except Exception as e:
+            print("error fetching latest fills", e)
+            print_async_exception(fetched)
+            traceback.print_exc()
+            return []
+        return fills
+
     async def fetch_fills(
         self,
         limit: int = 200,
@@ -517,42 +671,67 @@ class Bybit(Bot):
         start_time: int = None,
         end_time: int = None,
     ):
-        return []
-        ffills, fpnls = await asyncio.gather(
-            self.private_get(self.endpoints["fills"], {"symbol": self.symbol, "limit": limit}),
-            self.private_get(self.endpoints["pnls"], {"symbol": self.symbol, "limit": 50}),
-        )
-        return ffills, fpnls
+        fetched = None
         try:
+            if start_time is None:
+                start_time = int((time() - 60 * 60 * 24) * 1000)
+            if end_time is None:
+                end_time = int((time() + 60 * 60 * 2) * 1000)
             fills = []
-            for x in fetched["result"]["data"][::-1]:
-                qty, price = float(x["order_qty"]), float(x["price"])
-                if not qty or not price:
-                    continue
-                fill = {
-                    "symbol": x["symbol"],
-                    "id": str(x["exec_id"]),
-                    "order_id": str(x["order_id"]),
-                    "side": x["side"].lower(),
-                    "price": price,
-                    "qty": qty,
-                    "realized_pnl": 0.0,
-                    "cost": (cost := qty / price if self.inverse else qty * price),
-                    "fee_paid": float(x["exec_fee"]),
-                    "fee_token": self.margin_coin,
-                    "timestamp": int(x["trade_time_ms"]),
-                    "position_side": determine_pos_side(x),
-                    "is_maker": x["fee_rate"] < 0.0,
-                }
-                fills.append(fill)
-            return fills
+            page = 1
+            last_order = None
+            while True:
+                fetched = await self.private_get(
+                    self.endpoints["fills"],
+                    {
+                        "symbol": self.symbol,
+                        "limit": 200,
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "exec_type": "Trade",
+                        "page": page,
+                    },
+                )
+                fetched = fetched["result"][
+                    "data" if "linear_perpetual" in self.market_type else "trade_list"
+                ]
+                if fetched is None:
+                    break
+                if fetched == []:
+                    break
+                if fetched[-1] == last_order:
+                    break
+                fills += fetched
+                if fetched[-1]["trade_time_ms"] >= end_time:
+                    break
+                last_order = fetched[-1]
+                page += 1
+                print(last_order)
+            fills_f = []
+            for k, elm in {x["order_id"]: x for x in fills}.items():
+                fills_f.append(
+                    {
+                        "order_id": elm["order_id"],
+                        "symbol": elm["symbol"],
+                        "status": elm["exec_type"].lower(),
+                        "custom_id": elm["order_link_id"],
+                        "price": float(elm["exec_price"]),
+                        "qty": float(elm["exec_qty"]),
+                        "original_qty": float(elm["order_qty"]),
+                        "type": elm["order_type"].lower(),
+                        "reduce_only": None,
+                        "side": elm["side"].lower(),
+                        "position_side": determine_pos_side(elm),
+                        "timestamp": elm["trade_time_ms"],
+                    }
+                )
+            return sorted(fills_f, key=lambda x: x["timestamp"], reverse=False)
         except Exception as e:
-            print("error fetching fills", e)
+            print("error fetching latest fills", e)
+            print_async_exception(fetched)
+            traceback.print_exc()
             return []
-        print("ntufnt")
-        return fetched
-        print("fetch_fills not implemented for Bybit")
-        return []
+        return fills
 
     async def init_exchange_config(self):
         try:
@@ -563,18 +742,17 @@ class Bybit(Bot):
                         "/futures/private/position/leverage/save",
                         {
                             "symbol": self.symbol,
-                            "position_idx": 1,
-                            "buy_leverage": 0,
-                            "sell_leverage": 0,
+                            "buy_leverage": self.leverage,
+                            "sell_leverage": self.leverage,
                         },
                     ),
                     self.private_post(
-                        "/futures/private/position/leverage/save",
+                        "/futures/private/position/switch-isolated",
                         {
                             "symbol": self.symbol,
-                            "position_idx": 2,
-                            "buy_leverage": 0,
-                            "sell_leverage": 0,
+                            "is_isolated": False,
+                            "buy_leverage": self.leverage,
+                            "sell_leverage": self.leverage,
                         },
                     ),
                 )
@@ -586,27 +764,48 @@ class Bybit(Bot):
                 print(res)
             elif "linear_perpetual" in self.market_type:
                 res = await self.private_post(
+                    "/private/linear/position/switch-mode",
+                    {
+                        "symbol": self.symbol,
+                        "mode": "BothSide",
+                    },
+                )
+                print(res)
+                res = await self.private_post(
                     "/private/linear/position/switch-isolated",
                     {
                         "symbol": self.symbol,
                         "is_isolated": False,
-                        "buy_leverage": 7,
-                        "sell_leverage": 7,
+                        "buy_leverage": self.leverage,
+                        "sell_leverage": self.leverage,
                     },
                 )
                 print(res)
                 res = await self.private_post(
                     "/private/linear/position/set-leverage",
-                    {"symbol": self.symbol, "buy_leverage": 7, "sell_leverage": 7},
+                    {
+                        "symbol": self.symbol,
+                        "buy_leverage": self.leverage,
+                        "sell_leverage": self.leverage,
+                    },
                 )
                 print(res)
             elif "inverse_perpetual" in self.market_type:
                 res = await self.private_post(
-                    "/v2/private/position/leverage/save",
-                    {"symbol": self.symbol, "leverage": 0},
+                    "/v2/private/position/switch-isolated",
+                    {
+                        "symbol": self.symbol,
+                        "is_isolated": False,
+                        "buy_leverage": self.leverage,
+                        "sell_leverage": self.leverage,
+                    },
                 )
-
-                print(res)
+                print("1", res)
+                res = await self.private_post(
+                    "/v2/private/position/leverage/save",
+                    {"symbol": self.symbol, "leverage": self.leverage, "leverage_only": True},
+                )
+                print("2", res)
         except Exception as e:
             print(e)
 
@@ -630,10 +829,10 @@ class Bybit(Bot):
         while True:
             await asyncio.sleep(27)
             try:
-                await self.ws.send(json.dumps({"op": "ping"}))
+                await self.ws_user.send(json.dumps({"op": "ping"}))
             except Exception as e:
                 traceback.print_exc()
-                print_(["error sending heartbeat", e])
+                print_(["error sending heartbeat user", e])
 
     async def subscribe_to_market_stream(self, ws):
         await ws.send(json.dumps({"op": "subscribe", "args": ["trade." + self.symbol]}))
