@@ -33,7 +33,7 @@
   adg_n_subdivisions: 10
 
   # interactive plot configs:
-  enable_interactive_plot: true
+  enable_interactive_plot: false
   plot_theme: light
   plot_candles_interval: 1m
 }
