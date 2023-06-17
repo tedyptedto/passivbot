@@ -13,7 +13,7 @@ import hjson
 
 # ../configs/live/PBSO/BT_UNIFORMISED/bt_2020-01-01_2022-10-13_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/
 
-dir_name = 'bt_2020-01-01_2022-12-19_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT'
+dir_name = 'bt_2020-01-01_2023-05-20_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT'
 
 dir_base = "../configs/live/PBSO/"
 
@@ -29,6 +29,15 @@ strats_dirs = glob.glob(base_dir + '/strat_*')
 array_info = []
 
 def addTo(object, key, value):
+
+    if key in ["avg_hrs_stuck_avg", "avg_max_stuck"]:
+        if value == "NaN,":
+            value = 9999
+
+    if key in ["low_equ_bal"]:
+        if value == "NaN,":
+            value = 0
+
     if key in object:
         object[key] += value
     else:
@@ -133,51 +142,51 @@ df['valid_for_me'] = (  True
 
 df = df[df.valid_for_me == True]
 
-df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain'], inplace=True)
+df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain', 'n_days'], inplace=True)
 
 
 print("---------------------")
-print("Top 10 : Sorted by pa_distance_max_long")
+print("Top 20 : Sorted by pa_distance_max_long")
 df.sort_values(by=[ 'pa_distance_max_long'], ascending=[True], inplace=True)
-df1 = df.head(100)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+df1 = df.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 10 : Sorted by most_loss")
+print("Top 20 : Sorted by most_loss")
 df.sort_values(by=[ 'most_loss'], ascending=[False], inplace=True)
-df1 = df.head(30)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+df1 = df.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 10 : Sorted by less avg_hrs_stuck_avg")
+print("Top 20 : Sorted by less avg_hrs_stuck_avg")
 df.sort_values(by=[ 'avg_hrs_stuck_avg'], ascending=[True], inplace=True)
-df1 = df.head(10)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+df1 = df.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 10 : Sorted by less avg_max_stuck")
+print("Top 20 : Sorted by less avg_max_stuck")
 df.sort_values(by=[ 'avg_max_stuck'], ascending=[True], inplace=True)
-df1 = df.head(10)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+df1 = df.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 10 : Sorted by s_f_equ_long")
+print("Top 20 : Sorted by s_f_equ_long")
 df.sort_values(by=[ 's_f_equ_long'], ascending=[False], inplace=True)
-df1 = df.head(10)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False))
+df1 = df.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 10 : Sorted by adg_exposure")
+print("Top 20 : Sorted by adg_exposure")
 df.sort_values(by=[ 'adg_exposure'], ascending=[False], inplace=True)
-df2 = df.head(10)
-print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False))
+df2 = df.head(20)
+print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
 print("Common on the 2 top 10 ordered by adg exposure")
 s1 = pd.merge(df1, df2, how='inner', on=['strat'])
 s1.drop(s1.columns[s1.columns.str.contains('_y$')], axis=1, inplace=True)
 s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
-print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False))
+print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 
 df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
