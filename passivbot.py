@@ -1418,6 +1418,7 @@ class Bot:
                             res = self.calc_minutes_until_next_orders()
                             if do_long:
                                 line += f"entry long: {res['entry_long']:.1f}, close long: {res['close_long']:.1f}"
+                                line += " | " if do_short else ""
                             if do_short:
                                 line += f"entry short: {res['entry_short']:.1f}, close short: {res['close_short']:.1f}"
                         except Exception as e:
@@ -1465,8 +1466,8 @@ class Bot:
             millis_delay_next_entry_short = calc_delay_between_fills_ms_ask(
                 self.position["short"]["price"],
                 self.price,
-                self.xk["delay_between_fills_ms_entry"][0],
-                self.xk["delay_weight_entry"][0],
+                self.xk["delay_between_fills_ms_entry"][1],
+                self.xk["delay_weight_entry"][1],
             )
             millis_since_prev_close_short = (
                 self.server_time - self.last_fills_timestamps["clock_entry_short"]
@@ -1477,8 +1478,8 @@ class Bot:
         millis_delay_next_close_short = calc_delay_between_fills_ms_bid(
             self.position["short"]["price"],
             self.price,
-            self.xk["delay_between_fills_ms_close"][0],
-            self.xk["delay_weight_close"][0],
+            self.xk["delay_between_fills_ms_close"][1],
+            self.xk["delay_weight_close"][1],
         )
         millis_since_prev_close_short = (
             self.server_time - self.last_fills_timestamps["clock_close_short"]
@@ -1705,7 +1706,7 @@ async def main() -> None:
         required=False,
         dest="price_distance_threshold",
         default=0.5,
-        help="only create limit orders closer to price than threshold.  default=0.5 (50%)",
+        help="only create limit orders closer to price than threshold.  default=0.5 (50%%)",
     )
     parser.add_argument(
         "-ak",

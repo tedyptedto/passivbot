@@ -277,6 +277,46 @@ def date_to_ts(d):
     return int(parser.parse(d).replace(tzinfo=datetime.timezone.utc).timestamp() * 1000)
 
 
+def date_to_ts2(datetime_string):
+    try:
+        date_formats = [
+            "%Y",
+            "%Y-%m",
+            "%Y-%m-%d",
+            "%Y-%m-%dT%H",
+            "%Y-%m-%dT%H:%M",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%SZ",
+        ]
+        for format in date_formats:
+            try:
+                date_obj = datetime.datetime.strptime(datetime_string, format)
+                if format == "%Y" or format == "%Y-%m" or format == "%Y-%m-%d":
+                    date_obj = date_obj.replace(hour=0, minute=0, second=0, microsecond=0)
+                timestamp = date_obj.replace(tzinfo=datetime.timezone.utc).timestamp()
+                timestamp_ms = int(timestamp * 1000)
+                return timestamp_ms
+            except ValueError:
+                pass
+        raise ValueError("Invalid datetime format")
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+
+def get_day(date):
+    # date can be str datetime or float/int timestamp
+    try:
+        return ts_to_date_utc(date_to_ts2(date))[:10]
+    except:
+        pass
+    try:
+        return ts_to_date_utc(date)[:10]
+    except:
+        pass
+    raise Exception(f"failed to get day from {date}")
+
+
 def get_utc_now_timestamp() -> int:
     """
     Creates a millisecond based timestamp of UTC now.
@@ -1399,6 +1439,7 @@ def calc_scores(config: dict, results: dict):
     # [(key_name, higher_is_better)]
     keys = [
         ("adg_weighted_per_exposure", True),
+        ("exposure_ratios_mean", False),
         ("hrs_stuck_max", False),
         ("pa_distance_mean", False),
         ("pa_distance_std", False),
@@ -1463,73 +1504,6 @@ def calc_scores(config: dict, results: dict):
     }
 
 
-def calc_scores_old(config: dict, results: dict):
-    sides = ["long", "short"]
-    keys = [
-        ("adg_realized_per_exposure", True),
-        ("pa_distance_std", False),
-        ("pa_distance_mean", False),
-        ("hrs_stuck_max", False),
-        ("loss_profit_ratio", False),
-        ("eqbal_ratio_min", True),
-    ]
-    means = {side: {} for side in sides}  # adjusted means
-    scores = {side: -1.0 for side in sides}
-    raws = {side: {} for side in sides}  # unadjusted means
-    individual_raws = {side: {sym: {} for sym in results} for side in sides}
-    individual_vals = {side: {sym: {} for sym in results} for side in sides}
-    individual_scores = {side: {sym: -1.0 for sym in results} for side in sides}
-    symbols_to_include = {side: [] for side in sides}
-    for side in sides:
-        for sym in results:
-            for key, mult in keys:
-                key_side = f"{key}_{side}"
-                if key_side not in results[sym]:
-                    results[sym][key_side] = results[sym][key]
-                individual_raws[side][sym][key] = results[sym][key_side]
-                if (max_key := f"maximum_{key}_{side}") in config:
-                    if config[max_key] >= 0.0:
-                        val = max(config[max_key], results[sym][key_side])
-                    else:
-                        val = 1.0
-                elif (min_key := f"minimum_{key}_{side}") in config:
-                    if config[min_key] >= 0.0:
-                        val = min(config[min_key], results[sym][key_side])
-                    else:
-                        val = 1.0
-                else:
-                    val = results[sym][key_side]
-                individual_vals[side][sym][key] = val
-                if mult:
-                    individual_scores[side][sym] *= val
-                else:
-                    individual_scores[side][sym] /= val
-        raws[side] = {
-            key: np.mean([individual_raws[side][sym][key] for sym in results]) for key, _ in keys
-        }
-        symbols_to_include[side] = sorted(
-            individual_scores[side], key=lambda x: individual_scores[side][x]
-        )[: max(1, int(len(individual_scores[side]) * (1 - config["clip_threshold"])))]
-        # print(symbols_to_include, individual_scores[side], config["clip_threshold"])
-        means[side] = {
-            key: np.mean([individual_vals[side][sym][key] for sym in symbols_to_include[side]])
-            for key, _ in keys
-        }
-        for key, mult in keys:
-            if mult:
-                scores[side] *= means[side][key]
-            else:
-                scores[side] /= means[side][key]
-    return {
-        "scores": scores,
-        "means": means,
-        "raws": raws,
-        "individual_scores": individual_scores,
-        "keys": keys,
-        "symbols_to_include": symbols_to_include,
-    }
-
-
 def configs_are_equal(cfg0, cfg1) -> bool:
     try:
         cfg0 = candidate_to_live_config(cfg0)
@@ -1563,3 +1537,40 @@ def shorten_custom_id(id_: str) -> str:
     ]:
         id0 = id0.replace(k_, r_)
     return id0
+
+
+def determine_pos_side_ccxt(open_order: dict) -> str:
+    oo = open_order["info"]
+    keys_map = {key.lower().replace("_", ""): key for key in oo}
+    for poskey in ["posside", "positionside"]:
+        if poskey in keys_map:
+            return oo[keys_map[poskey]].lower()
+    if oo["side"].lower() == "buy":
+        if "reduceonly" in keys_map:
+            if oo[keys_map["reduceonly"]]:
+                return "short"
+            else:
+                return "long"
+        if "closedsize" in keys_map:
+            if float(oo[keys_map["closedsize"]]) != 0.0:
+                return "short"
+            else:
+                return "long"
+    if oo["side"].lower() == "sell":
+        if "reduceonly" in keys_map:
+            if oo[keys_map["reduceonly"]]:
+                return "long"
+            else:
+                return "short"
+        if "closedsize" in keys_map:
+            if float(oo[keys_map["closedsize"]]) != 0.0:
+                return "long"
+            else:
+                return "short"
+    for key in ["order_link_id", "clOrdId", "clientOid"]:
+        if key in oo:
+            if "long" in oo[key] or "lng" in oo[key]:
+                return "long"
+            if "short" in oo[key] or "shrt" in oo[key]:
+                return "short"
+    return "both"

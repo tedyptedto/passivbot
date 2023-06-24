@@ -2,7 +2,6 @@ import os
 
 os.environ["NOJIT"] = "false"
 
-from downloader import Downloader, load_hlc_cache
 import argparse
 import asyncio
 import json
@@ -263,6 +262,7 @@ class HarmonySearch:
                     "latency_simulation_ms",
                     "market_type",
                     "adg_n_subdivisions",
+                    "slim_analysis"
                 ]
             },
             **{"symbol": self.symbols[0], "config_no": self.iter_counter},
@@ -337,6 +337,7 @@ class HarmonySearch:
                     "latency_simulation_ms",
                     "market_type",
                     "adg_n_subdivisions",
+                    "slim_analysis"
                 ]
             },
             **{"symbol": self.symbols[0], "initial_eval_key": hm_key, "config_no": self.iter_counter},
