@@ -7,6 +7,7 @@ from tabulate import tabulate
 import argparse
 import os
 import hjson
+from tqdm import tqdm
 
 # loop on all strategy
 
@@ -51,8 +52,14 @@ def minTo(object, key, value):
         object[key] = value
     return object
 
-for strat_dir in strats_dirs:
-    # find all backtests 
+# progress_strats_dirs = 0
+# progress_nb_full = len(strats_dirs)
+
+for strat_dir in tqdm(strats_dirs):
+    # find all backtests
+    # progress_strats_dirs = progress_strats_dirs +  1
+    # print("(" + str(progress_strats_dirs) + " / " + str(progress_nb_full) +")" + strat_dir)
+
     results_file = glob.glob(strat_dir + '/**/result.json', recursive=True)
 
     object={}
@@ -145,48 +152,48 @@ df = df[df.valid_for_me == True]
 df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain', 'n_days'], inplace=True)
 
 
-print("---------------------")
-print("Top 20 : Sorted by pa_distance_max_long")
-df.sort_values(by=[ 'pa_distance_max_long'], ascending=[True], inplace=True)
-df1 = df.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+# print("---------------------")
+# print("Top 20 : Sorted by pa_distance_max_long")
+# df.sort_values(by=[ 'pa_distance_max_long'], ascending=[True], inplace=True)
+# df1 = df.head(20)
+# print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+
+# print("---------------------")
+# print("Top 20 : Sorted by most_loss")
+# df.sort_values(by=[ 'most_loss'], ascending=[False], inplace=True)
+# df1 = df.head(20)
+# print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+
+# print("---------------------")
+# print("Top 20 : Sorted by less avg_hrs_stuck_avg")
+# df.sort_values(by=[ 'avg_hrs_stuck_avg'], ascending=[True], inplace=True)
+# df1 = df.head(20)
+# print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+
+# print("---------------------")
+# print("Top 20 : Sorted by less avg_max_stuck")
+# df.sort_values(by=[ 'avg_max_stuck'], ascending=[True], inplace=True)
+# df1 = df.head(20)
+# print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 20 : Sorted by most_loss")
-df.sort_values(by=[ 'most_loss'], ascending=[False], inplace=True)
-df1 = df.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
-
-print("---------------------")
-print("Top 20 : Sorted by less avg_hrs_stuck_avg")
-df.sort_values(by=[ 'avg_hrs_stuck_avg'], ascending=[True], inplace=True)
-df1 = df.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
-
-print("---------------------")
-print("Top 20 : Sorted by less avg_max_stuck")
-df.sort_values(by=[ 'avg_max_stuck'], ascending=[True], inplace=True)
-df1 = df.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
-
-print("---------------------")
-print("Top 20 : Sorted by s_f_equ_long")
+print("Top 100 : Sorted by s_f_equ_long")
 df.sort_values(by=[ 's_f_equ_long'], ascending=[False], inplace=True)
-df1 = df.head(20)
+df1 = df.head(100)
 print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
-print("---------------------")
-print("Top 20 : Sorted by adg_exposure")
-df.sort_values(by=[ 'adg_exposure'], ascending=[False], inplace=True)
-df2 = df.head(20)
-print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+# print("---------------------")
+# print("Top 20 : Sorted by adg_exposure")
+# df.sort_values(by=[ 'adg_exposure'], ascending=[False], inplace=True)
+# df2 = df.head(20)
+# print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
-print("---------------------")
-print("Common on the 2 top 10 ordered by adg exposure")
-s1 = pd.merge(df1, df2, how='inner', on=['strat'])
-s1.drop(s1.columns[s1.columns.str.contains('_y$')], axis=1, inplace=True)
-s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
-print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+# print("---------------------")
+# print("Common on the 2 top 10 ordered by adg exposure")
+# s1 = pd.merge(df1, df2, how='inner', on=['strat'])
+# s1.drop(s1.columns[s1.columns.str.contains('_y$')], axis=1, inplace=True)
+# s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
+# print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 
 df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
