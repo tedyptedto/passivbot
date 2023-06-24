@@ -113,6 +113,11 @@ async def show_wallet(Test=False):
         message = Struct(**data)
         await wallet(message)
 
+        c = client.get_channel(get_channel_id("passivbot"))  
+        data = {'content': "!w tedy1 from_auto_bot_x15", 'channel': c}
+        message = Struct(**data)
+        await wallet(message)
+
         c = client.get_channel(get_channel_id("pro"))  
         data = {'content': "!w pro from_auto_bot_x15", 'channel': c}
         message = Struct(**data)

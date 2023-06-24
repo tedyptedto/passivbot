@@ -150,8 +150,11 @@ async def wallet(message):
 
     json_base = fill_calculation(json_base)
 
-    previous = json_base[list(json_base.keys())[-2]]
-
+    if len(json_base) > 2:
+        previous = json_base[list(json_base.keys())[-2]]
+    else:
+        previous = json_base[today]
+        
     now_data = json_base[today]
 
 
