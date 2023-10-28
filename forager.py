@@ -3,6 +3,11 @@ import os
 os.environ["NOJIT"] = "true"
 
 import ccxt.async_support as ccxt
+
+ccxt_version_req = "4.1.13"
+assert (
+    ccxt.__version__ == ccxt_version_req
+), f"Currently ccxt {ccxt.__version__} is installed. Please pip reinstall requirements.txt or install ccxt v{ccxt_version_req} manually"
 import json
 import hjson
 import pprint
@@ -12,9 +17,9 @@ import time
 import subprocess
 import argparse
 import traceback
-from procedures import load_exchange_key_secret_passphrase, utc_ms
+from procedures import load_exchange_key_secret_passphrase, utc_ms, make_get_filepath, get_first_ohlcv_timestamps
 from njit_funcs import calc_emas
-from pure_funcs import determine_pos_side_ccxt
+from pure_funcs import determine_pos_side_ccxt, date_to_ts2
 
 
 def score_func_old(ohlcv):
@@ -102,12 +107,12 @@ def generate_yaml(
     sorted_syms = [x[1] for x in sorted_syms]
     current_positions_long = sorted(set(current_positions_long + current_open_orders_long))
     current_positions_short = sorted(set(current_positions_short + current_open_orders_short))
-    if config["approved_symbols_only"]:
-        approved_longs = set(config["live_configs_map_long"]) | set(config["live_configs_map"])
-        approved_shorts = set(config["live_configs_map_short"]) | set(config["live_configs_map"])
-    else:
-        approved_longs = set(sorted_syms)
-        approved_shorts = set(sorted_syms)
+    approved_longs = (
+        set(config["approved_symbols_long"]) if len(config["approved_symbols_long"]) > 0 else set(sorted_syms)
+    )
+    approved_shorts = (
+        set(config["approved_symbols_short"]) if len(config["approved_symbols_short"]) > 0 else set(sorted_syms)
+    )
     ideal_longs = [x for x in sorted_syms if x in approved_longs][:n_longs]
     ideal_shorts = [x for x in sorted_syms if x in approved_shorts][:n_shorts]
 
@@ -120,6 +125,12 @@ def generate_yaml(
     active_shorts = [sym for sym in ideal_shorts if sym in current_positions_short]
     active_shorts += [sym for sym in ideal_shorts if sym not in active_shorts][:free_slots_short]
     shorts_on_gs = [sym for sym in current_positions_short if sym not in active_shorts]
+
+    if config["graceful_stop"]:
+        longs_on_gs = sorted(set(longs_on_gs + active_longs))
+        active_longs = []
+        shorts_on_gs = sorted(set(shorts_on_gs + active_shorts))
+        active_shorts = []
 
     print("ideal_longs", sorted(ideal_longs))
     print("ideal_shorts", sorted(ideal_shorts))
@@ -137,7 +148,9 @@ def generate_yaml(
             bots_on_gs.append(elm)
 
     bot_instances = []
+    sleep_duration = -config["sleep_interval"]
     for sym, long_enabled, short_enabled in active_bots + bots_on_gs:
+        sleep_duration += config["sleep_interval"]
         lm = "n" if long_enabled and lw > 0.0 else "gs"
         sm = "n" if short_enabled and sw > 0.0 else "gs"
         if sym in config["live_configs_map_long"]:
@@ -160,7 +173,7 @@ def generate_yaml(
             conf_path_long = conf_path_short
 
         if conf_path_long == conf_path_short:
-            pane = f"    - shell_command:\n      - python3 passivbot.py {user} {sym} {conf_path_long} "
+            pane = f"    - shell_command:\n      - sleep {sleep_duration}; python3 passivbot.py {user} {sym} {conf_path_long} "
             pane += f"-lw {lw} -sw {sw} -lm {lm} -sm {sm} -lev {config['leverage']} -cd -pt {config['price_distance_threshold']}"
             bot_instances.append((sym, pane))
         else:
@@ -169,18 +182,18 @@ def generate_yaml(
             short_active = sym in active_shorts or sym in current_positions_short
             if long_active and short_active:
                 # two separate bot instances for long & short
-                pane = f"    - shell_command:\n      - python3 passivbot.py {user} {sym} {conf_path_long} "
+                pane = f"    - shell_command:\n      - sleep {sleep_duration}; python3 passivbot.py {user} {sym} {conf_path_long} "
                 pane += f"-lw {lw} -sw {sw} -lm {lm} -sm m -lev {config['leverage']} -cd -pt {config['price_distance_threshold']}"
                 bot_instances.append((sym, pane))
-                pane = f"    - shell_command:\n      - python3 passivbot.py {user} {sym} {conf_path_short} "
+                pane = f"    - shell_command:\n      - sleep {sleep_duration}; python3 passivbot.py {user} {sym} {conf_path_short} "
                 pane += f"-lw {lw} -sw {sw} -lm m -sm {sm} -lev {config['leverage']} -cd -pt {config['price_distance_threshold']}"
                 bot_instances.append((sym, pane))
             elif long_active:
-                pane = f"    - shell_command:\n      - python3 passivbot.py {user} {sym} {conf_path_long} "
+                pane = f"    - shell_command:\n      - sleep {sleep_duration}; python3 passivbot.py {user} {sym} {conf_path_long} "
                 pane += f"-lw {lw} -sw {sw} -lm {lm} -sm {sm} -lev {config['leverage']} -cd -pt {config['price_distance_threshold']}"
                 bot_instances.append((sym, pane))
             elif short_active:
-                pane = f"    - shell_command:\n      - python3 passivbot.py {user} {sym} {conf_path_short} "
+                pane = f"    - shell_command:\n      - sleep {sleep_duration}; python3 passivbot.py {user} {sym} {conf_path_short} "
                 pane += f"-lw {lw} -sw {sw} -lm {lm} -sm {sm} -lev {config['leverage']} -cd -pt {config['price_distance_threshold']}"
                 bot_instances.append((sym, pane))
 
@@ -192,7 +205,7 @@ def generate_yaml(
             both_on_gs = True
         if z % config["max_n_panes"] == 0:
             yaml += f"- window_name: {config['user']}_{'gs' if both_on_gs else 'normal'}_{z}\n  layout: "
-            yaml += f"even-vertical\n  shell_command_before:\n    - cd ~/passivbot\n  panes:\n"
+            yaml += f"even-vertical\n  shell_command_before:\n    - cd {config['passivbot_root_dir']}\n  panes:\n"
         yaml += pane + "\n"
         z += 1
     return yaml
@@ -235,26 +248,22 @@ async def get_current_symbols(cc):
     current_open_orders = []
     poss = await cc.fetch_positions()
     for elm in poss:
-        if elm["contracts"] != 0.0:
+        if elm["contracts"] is not None and elm["contracts"] != 0.0:
             if elm["side"] == "long":
                 current_positions_long.append(elm["symbol"])
             elif elm["side"] == "short":
                 current_positions_short.append(elm["symbol"])
-    if cc.id == "bybit":
-        oos = []
-        delay_s = 0.5
-        for symbol in cc.markets:
-            if symbol.endswith("USDT"):
-                sts = time.time()
-                oosf = await cc.fetch_open_orders(symbol=symbol)
-                spent = time.time() - sts
-                print(f"\r fetching open orders for {symbol}     ", end=" ")
-                oos += oosf
-                time.sleep(max(0.0, delay_s - spent))
-        print()
+    if cc.id == "bitget":
+        oos = await cc.private_mix_get_order_margincoincurrent({"productType": "umcbl"})
+        oos = oos["data"]
+        for i in range(len(oos)):
+            oos[i]["symbol"] = oos[i]["symbol"].replace("_UMCBL", "")
     elif cc.id == "binanceusdm":
         cc.options["warnOnFetchOpenOrdersWithoutSymbol"] = False
         oos = await cc.fetch_open_orders()
+    elif cc.id == "bingx":
+        oos = await cc.swap_v2_private_get_trade_openorders()
+        oos = [{**elm, **{"symbol": elm["symbol"].replace("-", "")}} for elm in oos["data"]["orders"]]
     else:
         oos = await cc.fetch_open_orders()
     current_open_orders_long, current_open_orders_short = [], []
@@ -264,6 +273,7 @@ async def get_current_symbols(cc):
             current_open_orders_short.append(elm["symbol"])
         else:
             current_open_orders_long.append(elm["symbol"])
+
     current_positions_long = sorted(set(current_positions_long))
     current_positions_short = sorted(set(current_positions_short))
     current_open_orders_long = sorted(set(current_open_orders_long))
@@ -276,36 +286,60 @@ async def get_current_symbols(cc):
     )
 
 
-async def get_min_costs(cc):
+async def get_min_costs_and_contract_multipliers(cc):
     exchange = cc.id
     info = await cc.fetch_markets()
-    tickers = await cc.fetch_tickers()
+
+    # tickers format is {"COIN/USDT:USDT": {"last": float, ...}, ...}
+    if exchange == "kucoinfutures":
+        tickers = {elm["symbol"]: {"last": float(elm["info"]["lastTradePrice"])} for elm in info}
+    elif exchange == "okx":
+        tickers = await cc.fetch_tickers_by_type(type="swap")
+    elif exchange == "bitget":
+        tickers = await cc.public_mix_get_market_tickers(params={"productType": "UMCBL"})
+        bitget_id_map = {elm["id"]: elm["symbol"] for elm in info}
+        tickers = {
+            bitget_id_map[elm["symbol"]]: {"last": float(elm["last"])}
+            for elm in tickers["data"]
+            if elm["symbol"] in bitget_id_map
+        }
+    elif exchange == "bingx":
+        tickers = await cc.swap_v2_public_get_quote_price()
+        bingx_id_map = {elm["id"]: elm["symbol"] for elm in info}
+        tickers = {
+            bingx_id_map[elm["symbol"]]: {"last": float(elm["price"])}
+            for elm in tickers["data"]
+            if elm["symbol"] in bingx_id_map
+        }
+    else:
+        tickers = await cc.fetch_tickers()
     min_costs = {}
     c_mults = {}
     for x in info:
         symbol = x["symbol"]
         if symbol.endswith("USDT"):
             if x["type"] != "spot":
-                if exchange in ["okx", "bitget", "kucoinfutures"]:
-                    ticker_symbol = symbol.replace(":USDT", "")
-                else:
-                    ticker_symbol = symbol
-                if ticker_symbol in tickers:
+                if symbol in tickers:
                     if exchange == "bitget":
                         min_cost = 5.0
                         c_mult = 1.0
                         min_qty = float(x["info"]["minTradeNum"])
-                        last_price = tickers[ticker_symbol]["last"]
+                        last_price = tickers[symbol]["last"]
                     elif exchange == "kucoinfutures":
                         min_qty = 1.0
                         min_cost = 0.0
                         c_mult = float(x["info"]["multiplier"])
-                        last_price = float(tickers[ticker_symbol]["info"]["last"])
+                        last_price = float(tickers[symbol]["last"])
+                    elif exchange == "bingx":
+                        min_cost = 2.0
+                        min_qty = x["contractSize"]
+                        c_mult = 1.0
+                        last_price = tickers[symbol]["last"]
                     else:
                         min_cost = 0.0 if x["limits"]["cost"]["min"] is None else x["limits"]["cost"]["min"]
                         c_mult = 1.0 if x["contractSize"] is None else x["contractSize"]
                         min_qty = 0.0 if x["limits"]["amount"]["min"] is None else x["limits"]["amount"]["min"]
-                        last_price = tickers[ticker_symbol]["last"]
+                        last_price = tickers[symbol]["last"]
                     min_costs[symbol] = max(min_cost, min_qty * c_mult * last_price)
                     c_mults[symbol] = c_mult
     return min_costs, c_mults
@@ -314,21 +348,50 @@ async def get_min_costs(cc):
 async def dump_yaml(cc, config):
     max_min_cost = config["max_min_cost"]
     print("getting min costs...")
-    min_costs, c_mults = await get_min_costs(cc)
+    min_costs, c_mults = await get_min_costs_and_contract_multipliers(cc)
     symbols_map = {sym: sym.replace(":USDT", "").replace("/", "") for sym in min_costs}
     symbols_map_inv = {v: k for k, v in symbols_map.items()}
+
+    for side in ["long", "short"]:
+        if config[f"live_configs_dir_{side}"] and os.path.exists(config[f"live_configs_dir_{side}"]):
+            fnames = sorted([f for f in os.listdir(config[f"live_configs_dir_{side}"]) if f.endswith(".json")])
+            if fnames:
+                for symbol in symbols_map_inv:
+                    fnamesf = [f for f in fnames if symbol in f]
+                    if fnamesf and not any(
+                        [symbol in x for x in [config[f"live_configs_map_{side}"], config["live_configs_map"]]]
+                    ):
+                        config[f"live_configs_map_{side}"][symbol] = os.path.join(
+                            config[f"live_configs_dir_{side}"], fnamesf[0]
+                        )
+
     approved = [symbols_map[k] for k, v in min_costs.items() if v <= max_min_cost and k in symbols_map]
+    if config["market_age_threshold"] not in ["0", 0, 0.0]:
+        first_timestamp_threshold = 0
+        try:
+            first_timestamp_threshold = date_to_ts2(config["market_age_threshold"])
+        except Exception as e:
+            print(f"invalid param market_age_threshold: {config['market_age_threshold']} {e}")
+        if first_timestamp_threshold:
+            try:
+                first_timestamps = await get_first_ohlcv_timestamps(symbols=list(symbols_map), cc=cc)
+                if first_timestamps:
+                    new_approved = [
+                        s
+                        for s in approved
+                        if (symbols_map_inv[s] in first_timestamps)
+                        and (first_timestamps[symbols_map_inv[s]] < first_timestamp_threshold)
+                    ]
+                    removed = sorted(set(approved) - set(new_approved))
+                    print(f"symbols younger than {config['market_age_threshold']} disapproved: {removed}")
+                    approved = new_approved
+            except:
+                pass
     approved = sorted(set(approved) - set(config["symbols_to_ignore"]))
-    if config["approved_symbols_only"]:
-        # only use approved symbols
-        approved = sorted(
-            set(approved)
-            & (
-                set(config["live_configs_map"])
-                | set(config["live_configs_map_long"])
-                | set(config["live_configs_map_short"])
-            )
-        )
+    if (config["approved_symbols_long"] or config["n_longs"] == 0) and (
+        config["approved_symbols_short"] or config["n_shorts"] == 0
+    ):
+        approved = set(approved) & (set(config["approved_symbols_long"]) | set(config["approved_symbols_short"]))
 
     print("getting current bots...")
     (
@@ -381,12 +444,26 @@ async def main():
         "okx": "okx",
         "bybit": "bybit",
         "binance": "binanceusdm",
+        "bitget": "bitget",
+        "bingx": "bingx",
     }
     parser = argparse.ArgumentParser(prog="forager", description="start forager")
     parser.add_argument("forager_config_path", type=str, help="path to forager config")
+    parser.add_argument(
+        "-n", "--noloop", "--no-loop", "--no_loop", dest="no_loop", help="break after first iter", action="store_true"
+    )
+    parser.add_argument(
+        "-gs",
+        "--graceful_stop",
+        "--graceful-stop",
+        dest="graceful_stop",
+        help="set all bots to graceful stop",
+        action="store_true",
+    )
     args = parser.parse_args()
     config = hjson.load(open(args.forager_config_path))
     config["yaml_filepath"] = f"{config['user']}.yaml"
+    config["graceful_stop"] = args.graceful_stop
     user = config["user"]
     for key, value in [
         ("volume_clip_threshold", 0.5),
@@ -400,10 +477,25 @@ async def main():
         ("symbols_to_ignore", []),
         ("live_configs_map_long", {}),
         ("live_configs_map_short", {}),
+        ("live_configs_dir_long", ""),
+        ("live_configs_dir_short", ""),
         ("update_interval_minutes", 60),
+        ("market_age_threshold", 0),
+        ("passivbot_root_dir", "~/passivbot"),
+        ("sleep_interval", 5),
     ]:
         if key not in config:
             config[key] = value
+    sides = ["long", "short"]
+    if "approved_symbols_only" in config:
+        for side in sides:
+            if config["approved_symbols_only"]:
+                if f"approved_symbols_{side}" not in config:
+                    config[f"approved_symbols_{side}"] = sorted(
+                        set(config["live_configs_map"]) | set(config[f"live_configs_map_{side}"])
+                    )
+            else:
+                config[f"approved_symbols_{side}"] = []
     exchange, key, secret, passphrase = load_exchange_key_secret_passphrase(config["user"])
     max_n_tries_per_hour = 5
     error_timestamps = []
@@ -418,6 +510,8 @@ async def main():
             print()
             subprocess.run(["tmux", "kill-session", "-t", config["user"]])
             subprocess.run(["tmuxp", "load", "-d", config["yaml_filepath"]])
+            if args.no_loop:
+                return
             for i in range(config["update_interval_minutes"] * 60, -1, -1):
                 time.sleep(1)
                 print(f"\rcountdown: {i}    ", end=" ")

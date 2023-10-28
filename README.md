@@ -4,7 +4,7 @@
 
 :warning: **Use at own risk** :warning:
 
-v5.9.10
+v6.0.0
 
 
 ## Overview
@@ -19,7 +19,14 @@ automatically creating and cancelling limit buy and sell orders.
 Because passivbot's live behavior is deterministic, it may be simulated on historical price data, using the included backtester.  
 Also included is an optimizer, which finds better configurations by iterating thousands of backtests with different candidates.  
 
-The strategy is integrated -- the bot only needs a predefined configuration to run.
+The strategy is integrated -- the bot only needs a predefined configuration to run.  
+
+## Controlling the bot
+
+Passivbot is controlled via terminal commands.  
+There is an integrated manager for controlling multiple bots (see docs/manager.md).  
+There is also a script, forager.py, which uses tmux to manage multiple bot instances (see docs/forager.md).  
+See also https://github.com/msei99/pbgui/ for a web based passivbot GUI.  
 
 ## Requirements
 
@@ -49,7 +56,9 @@ See also https://www.futuresboard.xyz/guides.html
 https://accounts.binance.me/en/register?ref=TII4B07C  
 https://partner.bybit.com/b/passivbot  
 https://partner.bitget.com/bg/Y8FU1W  
-https://www.okx.com/join/PASSIVBOT  (20% rebate)
+https://www.okx.com/join/PASSIVBOT  (20% rebate)  
+https://www.kucoin.com/r/rf/QBSFZ5HT  
+https://bingx.com/invite/DFONXA  
 
 https://www.buymeacoffee.com/enarjord  
 
