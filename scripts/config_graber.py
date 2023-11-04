@@ -9,6 +9,7 @@ zip_files = [
             {'Name': 'Flyingtoaster', 'url': 'https://github.com/donewiththedollar/passivbot_v5.8.0/archive/refs/heads/main.zip'}, 
             # {'Name': 'hoeckxer', 'url': 'https://github.com/hoeckxer/passivbot_configs/archive/refs/heads/main.zip'}, 
             {'Name': 'JohnKearney1', 'url': 'https://github.com/JohnKearney1/PassivBot-Configurations/archive/refs/heads/main.zip'}, 
+            {'Name': 'NaiMul', 'url': 'https://github.com/Nai-mul/passivbot_configs/archive/refs/heads/main.zip'}, 
         
 ]
 
