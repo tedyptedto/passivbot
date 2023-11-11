@@ -187,7 +187,7 @@ async def wallet(message):
     if wallet_data['error'] == "":
         colonne = 20
         message_content = \
-        "" + user_name.upper() + \
+        "------\n**" + user_name.upper() + "**" + \
         " | Positions : " + print_el(now_data, previous, 'total_position', show_icon=True) + \
         " | Margin used : " + print_el(now_data, previous, 'used_margin', show_icon=True) + \
         " | Risk : " + str(round(now_data['risk'])) + "%" + \
