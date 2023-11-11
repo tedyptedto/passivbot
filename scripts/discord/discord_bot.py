@@ -94,15 +94,15 @@ class MyClient(discord.Client):
                 await positions(message)
 
             if a_message[0] == '!all':
-                message.contenet = "!w jojo"
+                message.content = "!w jojo"
                 await wallet(message)
-                message.contenet = "!w pro"
+                message.content = "!w pro"
                 await wallet(message)
-                message.contenet = "!w tedy"
+                message.content = "!w tedy"
                 await wallet(message)
-                message.contenet = "!w tedy1"
+                message.content = "!w tedy1"
                 await wallet(message)
-                message.contenet = "!w sawyer"
+                message.content = "!w sawyer"
                 await wallet(message)
 
             # Garé pour les infos
