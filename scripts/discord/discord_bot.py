@@ -94,8 +94,6 @@ class MyClient(discord.Client):
                 await positions(message)
 
             if a_message[0] == '!all':
-                message.content = "!w jojo"
-                await wallet(message)
                 message.content = "!w pro"
                 await wallet(message)
                 message.content = "!w tedy"
