@@ -72,6 +72,7 @@ class MyClient(discord.Client):
     !p => positions\n\
     !flow => inflow outflow based on whale_alert\n\
     !w user => Show Wallet user=[tedy, jojo]\n\
+    !all => Show all data for all users\n\
         ')
 
             if a_message[0] == '!hello':
@@ -91,6 +92,18 @@ class MyClient(discord.Client):
 
             if a_message[0] == '!p':
                 await positions(message)
+
+            if a_message[0] == '!all':
+                message.contenet = "!w jojo"
+                await wallet(message)
+                message.contenet = "!w pro"
+                await wallet(message)
+                message.contenet = "!w tedy"
+                await wallet(message)
+                message.contenet = "!w tedy1"
+                await wallet(message)
+                message.contenet = "!w sawyer"
+                await wallet(message)
 
             # Garé pour les infos
             # await message.channel.send('Hello {0.author.mention}'.format(message))
