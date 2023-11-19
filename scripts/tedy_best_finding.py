@@ -83,8 +83,8 @@ for strat_dir in tqdm(strats_dirs):
                 addTo(object, 'gs', -1)
 
         addTo(object, 's_k',   data['starting_balance'])
-        addTo(object, 's_f_equ_long', ((data['result']['final_equity_long'] * we_ratio) -  data['result']['starting_balance'])  )
-        addTo(object, 's_gain', ((data['result']['final_balance_long'] * we_ratio) -  data['result']['starting_balance']) )
+        addTo(object, 's_f_equ_long', ((data['result']['final_equity_long']) -  data['result']['starting_balance'] * we_ratio )  )
+        addTo(object, 's_gain', ((data['result']['final_balance_long'] -  data['result']['starting_balance']) * we_ratio)  )
         addTo(object, 's_loss', data['result']['loss_sum_long'] * we_ratio)
         addTo(object, 'low_equ_bal', data['result']['eqbal_ratio_min_long'])
         addTo(object, 'pa_dist_mean_long', data['result']['pa_distance_mean_long'])
