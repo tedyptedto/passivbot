@@ -109,6 +109,11 @@ class MyClient(discord.Client):
                 message.content = "!p tedy1"
                 await positions(message)
 
+                message.content = "!w tedy2"
+                await wallet(message)
+                message.content = "!p tedy2"
+                await positions(message)
+
                 message.content = "!w sawyer"
                 await wallet(message)
                 message.content = "!p sawyer"

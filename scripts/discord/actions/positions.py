@@ -49,6 +49,8 @@ async def trader_alert(d_message):
         api_keys_user = "bybit_tedy"
     elif a_message[1] == "tedy1":
         api_keys_user = "bybit_tedySUB1"
+    elif a_message[1] == "tedy2":
+        api_keys_user = "bybit_tedySUB2"
     elif a_message[1] == "sawyer":
         api_keys_user = "bybit_sawyer"
     elif a_message[1] == "jojo":

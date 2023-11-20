@@ -54,6 +54,8 @@ async def wallet(message):
         api_keys_user = "bybit_tedy"
     elif a_message[1] == "tedy1":
         api_keys_user = "bybit_tedySUB1"    
+    elif a_message[1] == "tedy2":
+        api_keys_user = "bybit_tedySUB2"    
     elif a_message[1] == "jojo":
         api_keys_user = "bybit_jojo"
     elif a_message[1] == "sawyer":
