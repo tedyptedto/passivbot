@@ -4,6 +4,6 @@ for i in "${symbols[@]}"
 do
     :
     echo "Kill screen for $i"
-    screen -S "bybit_tedySUB1_$i" -X quit
+    screen -S "bybit_tedySUB2_$i" -X quit
 done
 
