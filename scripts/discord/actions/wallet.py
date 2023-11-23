@@ -1,6 +1,7 @@
 from email import message
 from pybit import HTTP  # supports inverse perp & futures, usdt perp, spot.
 
+import time
 import os
 import hjson
 from tabulate import tabulate
