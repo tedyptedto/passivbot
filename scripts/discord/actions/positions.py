@@ -70,7 +70,7 @@ async def trader_alert(d_message):
     else:
         return {'error' : 'Problem loading keys'}
 
-    time.sleep(5)
+    # time.sleep(5)
     session_auth = HTTP(
         endpoint="https://api.bybit.com",
         api_key=keys[api_keys_user]['key'],
