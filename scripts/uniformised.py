@@ -22,7 +22,8 @@ usage="python3 " + __file__ + " "
 )
 
 parser.add_argument("-sd",
-                    type=str,required=False,dest="start_date",default="2020-01-01",
+                    # type=str,required=False,dest="start_date",default="2020-01-01",
+                    type=str,required=False,dest="start_date",default="2022-06-20",
                     help="Backtest start date",
 )
 parser.add_argument("-ed",
