@@ -107,7 +107,7 @@ for strat_dir in tqdm(strats_dirs):
         addTo(object, 'avg_max_stuck', data['result']['hrs_stuck_max_long'])
         addTo(object, 'avg_hrs_stuck_avg', data['result']['hrs_stuck_avg_long'])
         
-        addTo(object, 'pa_distance_max_long', data['result']['pa_distance_max_long'])
+        # addTo(object, 'pa_distance_max_long', data['result']['pa_distance_max_long'])
         
 
         minTo(object, 'most_loss', data['result']['net_pnl_plus_fees_long'])
@@ -188,9 +188,15 @@ df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 'n_days'], inplace=Tru
 # print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 print("---------------------")
-print("Top 100 : Sorted by s_f_equ_long")
+print("Top 20 : Sorted by s_f_balance")
 df.sort_values(by=[ 's_f_balance', 's_f_equ_long'], ascending=[False, False], inplace=True)
-df1 = df.head(100)
+df1 = df.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+
+print("---------------------")
+print("Top 20 : Sorted by s_f_equ_long")
+df.sort_values(by=[ 's_f_equ_long', 's_f_balance'], ascending=[False, False], inplace=True)
+df1 = df.head(20)
 print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 # print("---------------------")
