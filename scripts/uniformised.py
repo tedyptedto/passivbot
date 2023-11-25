@@ -101,7 +101,7 @@ if not os.path.exists(tmp_dir):
     os.makedirs(tmp_dir)
 PBSO_dir = os.path.realpath("./../configs/live/PBSO/")
 
-uid_bt = start_date + "_" + end_date + "_" + starting_balance + "_" + str(we) + '_' +  "_".join(coin_list)
+uid_bt = start_date + "_" + end_date + "_" + starting_balance + "_" + str(we) # + '_' +  "_".join(coin_list)
 
 PBSO_uniformed_directory = os.path.realpath("./../configs/live/PBSO/BT_UNIFORMISED/" + '/bt_'+ uid_bt + '/') + '/'
 if not os.path.exists(PBSO_uniformed_directory):
@@ -138,7 +138,7 @@ for config in aConfigTqdm:
         continue
 
     o_config = hjson.load(open(config, encoding="utf-8"))
-    md5 = hashlib.md5(hjson.dumps(o_config).encode('utf-8')).hexdigest()[0:5]
+    md5 = hashlib.md5(hjson.dumps(o_config).encode('utf-8')).hexdigest() # [0:5]
 
     # check if it is a strategy
     if not 'config_name' in o_config:

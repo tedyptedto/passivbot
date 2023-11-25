@@ -91,7 +91,7 @@ for strat_dir in tqdm(strats_dirs):
                     )  
             )
         
-        addTo(object, 's_gain', 
+        addTo(object, 's_f_balance', 
                     (
                         (data['result']['final_balance_long'] -  data['result']['starting_balance']) * (invert_we_ratio)
                     )  
@@ -160,7 +160,7 @@ df['valid_for_me'] = (  True
 
 df = df[df.valid_for_me == True]
 
-df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain', 'n_days'], inplace=True)
+df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 'n_days'], inplace=True)
 
 
 # print("---------------------")
@@ -189,7 +189,7 @@ df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 's_gain', 'n_days'], i
 
 print("---------------------")
 print("Top 100 : Sorted by s_f_equ_long")
-df.sort_values(by=[ 's_f_equ_long'], ascending=[False], inplace=True)
+df.sort_values(by=[ 's_f_balance', 's_f_equ_long'], ascending=[False, False], inplace=True)
 df1 = df.head(100)
 print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
