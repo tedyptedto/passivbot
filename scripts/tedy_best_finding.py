@@ -160,7 +160,7 @@ df['valid_for_me'] = (  True
 
 df = df[df.valid_for_me == True]
 
-df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k', 'n_days'], inplace=True)
+df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k'], inplace=True)
 
 
 # print("---------------------")
