@@ -120,7 +120,7 @@ for strat_dir in tqdm(strats_dirs):
         object['pa_dist_mean_long']   = object['pa_dist_mean_long'] / nb_coins
         object['low_equ_bal'] = object['low_equ_bal'] / nb_coins
         object['adg_exposure'] = object['adg_exposure'] / nb_coins
-        object['pa_distance_max_long'] = object['pa_distance_max_long'] / nb_coins
+        # object['pa_distance_max_long'] = object['pa_distance_max_long'] / nb_coins
         object['n_days'] = object['n_days'] / nb_coins
         object['l_we'] = object['l_we'] / nb_coins
 
