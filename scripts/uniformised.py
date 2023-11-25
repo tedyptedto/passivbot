@@ -4,10 +4,11 @@ import hashlib
 import time
 import hjson
 import re
+import sys
 import subprocess
 import shutil
 import argparse
-
+from tqdm import tqdm
 
 number_of_thread = 11
 
@@ -37,7 +38,8 @@ parser.add_argument("-balance",
                     help="Starting balance",
 )
 parser.add_argument("-cl","--coin_list",
-                        type=str,required=False,dest="coin_list",default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT",
+                        type=str,required=False,dest="coin_list",
+                        default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT",
                         # type=str,required=False,dest="coin_list",default="XRPUSDT",
                         help="A list of coin separated by coma. Ex : 'ONEUSDT,XLMUSDT'",
 )
@@ -108,70 +110,96 @@ if not os.path.exists(PBSO_uniformed_directory):
 
 
 # 1/ find all the strategies
+print('Get the list of configs')
 a_config = glob.glob(PBSO_dir+"/**/*.json", recursive=True)
 nb_config = len(a_config)
 i = 1
 a_md5 = []
 backtest_directory_previous = ''
 
-nb_new_config = 0
 
-for config in a_config:
-
-    print(i , "/", nb_config)
-    i = i + 1
+# -----------------
+# Filter the configs
+# ------------------
+print("Filter All the configs")
+aConfigFiltered = []
+aConfigTqdm = tqdm(a_config)
+for config in aConfigTqdm:
+    aConfigTqdm.refresh()
 
     parent_dir = config.replace(PBSO_dir, '').strip("/").split("/")[0]
     # avoid trash directory
     if parent_dir == "xx_trash":
-        print("Avoid Trash Directory")
+        # print("Avoid Trash Directory")
         continue
     # avoid BT_UNIFORMISED
     if parent_dir == "BT_UNIFORMISED":
-        print("Avoid BT_UNIFORMISED Directory")
+        # print("Avoid BT_UNIFORMISED Directory")
         continue
-
 
     o_config = hjson.load(open(config, encoding="utf-8"))
     md5 = hashlib.md5(hjson.dumps(o_config).encode('utf-8')).hexdigest()[0:5]
 
     # check if it is a strategy
     if not 'config_name' in o_config:
-        print("Not a config")
+        # print("Not a config")
         continue
     if not 'long' in o_config:
-        print("Not a config")
+        # print("Not a config")
         continue
 
     # memory check to avoid playing twice the same strategy
     if md5 in a_md5:
-        print('Avoid already BACKTESTED strategy')
+        # print('Avoid already LOADED strategy, same as alredy seen')
         continue
     a_md5.append(md5)
-    print("backtesting : " , config)
+    aConfigFiltered.append(config)
+    # print('FilterCOnfig : New strat finded : ', config)
+    # aConfigTqdm.refresh()
+
+
+# -----------------
+# Run the backtests
+# ------------------
+nb_new_config = 0
+tqdmAConfigFiltered = tqdm(aConfigFiltered)
+for config in tqdmAConfigFiltered :
+
+    # tqdmAConfigFiltered.set_description(config)
+    tqdmAConfigFiltered.refresh()
+
+    
+    o_config = hjson.load(open(config, encoding="utf-8"))
+    md5 = hashlib.md5(hjson.dumps(o_config).encode('utf-8')).hexdigest()[0:5]
+
+    print("RunConfig : backtesting : " , config)
     
     # 2/ update the wallet exposure of the strategy
 
     if not 'wallet_exposure_limit' in o_config['long']:
-        print('to Old configuration, continue')
+        print('RunConfig : to Old configuration, continue')
         continue
 
-    print('Original WE Long : ', o_config['long']['enabled'], o_config['long']['wallet_exposure_limit'])
-    print('Original WE Short : ', o_config['short']['enabled'], o_config['short']['wallet_exposure_limit'])
+    print('RunConfig : Original WE Long : ', o_config['long']['enabled'], o_config['long']['wallet_exposure_limit'])
+    print('RunConfig : Original WE Short : ', o_config['short']['enabled'], o_config['short']['wallet_exposure_limit'])
 
-    if o_config['long']['enabled'] and o_config['short']['enabled']:
-        ratio = we / (o_config['long']['wallet_exposure_limit'] + o_config['short']['wallet_exposure_limit'])
-        o_config['long']['wallet_exposure_limit'] = o_config['long']['wallet_exposure_limit'] * ratio
-        o_config['short']['wallet_exposure_limit'] = o_config['short']['wallet_exposure_limit'] * ratio
-    elif o_config['long']['enabled']:
-        ratio = we / (o_config['long']['wallet_exposure_limit'])
-        o_config['long']['wallet_exposure_limit'] = o_config['long']['wallet_exposure_limit'] * ratio
-    elif o_config['short']['enabled']:
-        ratio = we / (o_config['short']['wallet_exposure_limit'])
-        o_config['short']['wallet_exposure_limit'] = o_config['short']['wallet_exposure_limit'] * ratio
+    # if o_config['long']['enabled'] and o_config['short']['enabled']:
+    #     ratio = we / (o_config['long']['wallet_exposure_limit'] + o_config['short']['wallet_exposure_limit'])
+    #     o_config['long']['wallet_exposure_limit'] = o_config['long']['wallet_exposure_limit'] * ratio
+    #     o_config['short']['wallet_exposure_limit'] = o_config['short']['wallet_exposure_limit'] * ratio
+    # elif o_config['long']['enabled']:
+    #     ratio = we / (o_config['long']['wallet_exposure_limit'])
+    #     o_config['long']['wallet_exposure_limit'] = o_config['long']['wallet_exposure_limit'] * ratio
+    # elif o_config['short']['enabled']:
+    #     ratio = we / (o_config['short']['wallet_exposure_limit'])
+    #     o_config['short']['wallet_exposure_limit'] = o_config['short']['wallet_exposure_limit'] * ratio
+    o_config['long']['wallet_exposure_limit'] = 1
+    o_config['short']['wallet_exposure_limit'] = 1 
+    o_config['long']['enabled'] = True
+    o_config['short']['enabled'] = False
 
-    print('Final WE Long : ', o_config['long']['enabled'], o_config['long']['wallet_exposure_limit'])
-    print('Final WE Short : ', o_config['short']['enabled'], o_config['short']['wallet_exposure_limit'])
+    print('RunConfig : Final WE Long : ', o_config['long']['enabled'], o_config['long']['wallet_exposure_limit'])
+    print('RunConfig : Final WE Short : ', o_config['short']['enabled'], o_config['short']['wallet_exposure_limit'])
 
     final_config = tmp_dir + '/' + md5 + '.json'
 
@@ -193,11 +221,11 @@ for config in a_config:
 
 
     if avoid_already_done_bt:
-        print("Avoid to replay the BackTest")
+        print("RunConfig : Avoid to replay the BackTest")
         os.unlink(final_config)
         continue
 
-    print("new config finded : ", config)
+    print("RunConfig : new config finded : ", config)
     nb_new_config = nb_new_config + 1
     # time.sleep(2.4)
     # continue
@@ -252,13 +280,13 @@ for config in a_config:
         # [-sw SHORT_WALLET_EXPOSURE_LIMIT] [-le LONG_ENABLED] [-se SHORT_ENABLED] [-np N_PARTS] [-oh]
 
         #attente des backtest lancé en // 
-        print('Waiting process to end')
+        print('RunConfig : Waiting process to end')
         if len(threads) == number_of_thread:
             for p in threads:
                 p.wait()
             threads = []  # clear the threads
 
-        print(i , "/", nb_config, " => ", config)
+        # print(i , "/", nb_config, " => ", config)
         command_line = [
                                     "python3", "backtest.py", 
                                     "-s", coin,
@@ -277,10 +305,10 @@ for config in a_config:
             process = subprocess.Popen(command_line, cwd="..")
             threads.append(process)
         except subprocess.TimeoutExpired:
-            print('Timeout Reached  seconds)')
+            print('RunConfig : Timeout Reached  seconds)')
 
     #attente des backtest lancé en // au cas ou il en reste
-    print('After loop, another waiting process to end')
+    print('RunConfig : After loop, another waiting process to end')
     for p in threads:
         p.wait()
 
@@ -291,17 +319,18 @@ for config in a_config:
 
     backtest_directory_previous = backtest_directory
 
-    print('Delete temporary strategy')
+    print('RunConfig : Delete temporary strategy')
     os.unlink(final_config)
     
-    print('Backtest ended')
+    print('RunConfig : Backtest ended')
 
 #auto generate the CSV file
+
 
 #second cleaning action
 cleanningBigFiles(PBSO_uniformed_directory)
 
-print("New strategies backtested : ", nb_new_config)
+print("Main : New strategies backtested : ", nb_new_config)
 
 #python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json 
 # ../configs/backtest/default.hjson 
@@ -319,7 +348,7 @@ try:
     print(' '.join(command_line))
     subprocess.run(command_line)
 except subprocess.TimeoutExpired:
-    print('Timeout Reached  seconds)')
+    print('Main : Timeout Reached  seconds)')
 
 
 
@@ -330,7 +359,7 @@ try:
     print(' '.join(command_line))
     subprocess.run(command_line)
 except subprocess.TimeoutExpired:
-    print('Timeout Reached  seconds)')
+    print('Main : Timeout Reached  seconds)')
 
 
 # python3 2_backtest_summary.py 3 ../configs/live/a_tedy.json 
