@@ -5,10 +5,14 @@ import requests, zipfile, io
 zip_files = [
 
             # {'Name': 'MDCL', 'url': 'https://github.com/Skanouch/passivbot/archive/refs/heads/master.zip'}, 
+            # {'Name': 'hoeckxer', 'url': 'https://github.com/hoeckxer/passivbot_configs/archive/refs/heads/main.zip'}, 
+
+            {'Name': 'Scud', 'url': 'https://github.com/Scud0/pb/archive/refs/heads/main.zip'}, 
+            {'Name': 'Enarjord', 'url': 'https://github.com/enarjord/passivbot/archive/refs/heads/master.zip'}, 
             {'Name': 'DotCom', 'url': 'https://github.com/raftheunis87/pb-configs/archive/refs/heads/main.zip'}, 
             {'Name': 'Flyingtoaster', 'url': 'https://github.com/donewiththedollar/passivbot_v5.8.0/archive/refs/heads/main.zip'}, 
-            # {'Name': 'hoeckxer', 'url': 'https://github.com/hoeckxer/passivbot_configs/archive/refs/heads/main.zip'}, 
-            {'Name': 'JohnKearney1', 'url': 'https://github.com/JohnKearney1/PassivBot-Configurations/archive/refs/heads/main.zip'}, 
+            {'Name': 'donewiththedollar', 'url': 'https://github.com/donewiththedollar/passivbot_optimizations/archive/refs/heads/main.zip'}, 
+            {'Name': 'JohnKearney1', 'url': 'https://github.com/JohnKearney1/PassivBot-Configurations/archive/refs/heads/main.zip'},
             {'Name': 'NaiMul', 'url': 'https://github.com/Nai-mul/passivbot_configs/archive/refs/heads/main.zip'}, 
         
 ]
