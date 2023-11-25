@@ -171,7 +171,7 @@ for config in tqdmAConfigFiltered :
 
     
     o_config = hjson.load(open(config, encoding="utf-8"))
-    md5 = hashlib.md5(hjson.dumps(o_config).encode('utf-8')).hexdigest()[0:5]
+    md5 = hashlib.md5(hjson.dumps(o_config).encode('utf-8')).hexdigest() #[0:5]
 
     print("RunConfig : backtesting : " , config)
     
