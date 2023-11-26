@@ -1,5 +1,5 @@
 from email import message
-from pybit import HTTP  # supports inverse perp & futures, usdt perp, spot.
+from pybit.inverse_futures import HTTP  # supports inverse perp & futures, usdt perp, spot.
 
 import time
 import os

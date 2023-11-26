@@ -1,7 +1,7 @@
 # import requests
 import time
 # from pybit import usdt_perpetual
-from pybit import HTTP  # supports inverse perp & futures, usdt perp, spot.
+from pybit.inverse_futures import HTTP  # supports inverse perp & futures, usdt perp, spot.
 from functions.functions import get_pro_channel_enabled, send_slack_message
 import os
 import hjson
