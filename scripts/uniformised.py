@@ -27,7 +27,7 @@ parser.add_argument("-sd",
                     help="Backtest start date",
 )
 parser.add_argument("-ed",
-                    type=str,required=False,dest="end_date",default="2023-10-29",
+                    type=str,required=False,dest="end_date",default="2023-11-25",
                     help="Backtest end date",
 )
 parser.add_argument("-we",
