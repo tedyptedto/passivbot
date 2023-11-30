@@ -19,7 +19,7 @@ def print_trade_info(info: dict, d_message) -> None:
     # Mobile affiche 25 caractères sur une ligne
     message =   (f"{sens}") \
               + (f"{int(info['notional'])}$ ").rjust(7) \
-              + (f"{info['symbol']}").ljust(10) \
+              + (f"{info['symbol'].split('/')[0]}").ljust(10) \
               + (f"{info['entryPrice']}").rjust(10) \
               + "\n" \
               + (f"{info['unrealizedPnl']:.2f}$").rjust(17) \
