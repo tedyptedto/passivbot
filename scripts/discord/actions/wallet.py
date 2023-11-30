@@ -1,5 +1,5 @@
 from email import message
-from pybit import HTTP  # supports inverse perp & futures, usdt perp, spot.
+# from pybit import HTTP  # supports inverse perp & futures, usdt perp, spot.
 
 import time
 import os
@@ -15,6 +15,10 @@ from plotly.subplots import make_subplots
 import sys
 from PIL import Image
 from functions.functions import get_pro_channel_enabled, send_slack_message
+
+import ccxt.async_support as ccxt
+
+
 
 
 def fill_calculation(json_base):
@@ -80,7 +84,7 @@ async def wallet(message):
     api_keys_file = "../../api-keys.json"
     coin_ballance = "USDT"
 
-    def get_equity_and_pnl(api_keys_file, api_keys_user, coin_ballance):
+    async def get_equity_and_pnl(api_keys_file, api_keys_user, coin_ballance):
 
         keys = ""
         if os.path.exists(api_keys_file) :
@@ -89,34 +93,34 @@ async def wallet(message):
             return {'error' : 'Problem loading keys'}
 
         # time.sleep(5)
-        session_auth = HTTP(
-            endpoint="https://api.bybit.com",
-            api_key=keys[api_keys_user]['key'],
-            api_secret=keys[api_keys_user]['secret']
-        )
-
-        result = session_auth.get_wallet_balance(coin=coin_ballance)
-        print(result)
+        ccxtOnline = ccxt.bybit({"apiKey": keys[api_keys_user]['key'],"secret": keys[api_keys_user]['secret']})
         
-        positions = session_auth.my_position(endpoint='/private/linear/position/list')
+        # result = await ccxtOnline.fetch_balance(coin=coin_ballance)
+        result = await ccxtOnline.fetch_balance({"coin" : coin_ballance})
+        # print(json.dumps(result, indent=2))
+        
+        positions =  await ccxtOnline.fetch_positions()
+        # print(json.dumps(positions, indent=2))
 
+        await ccxtOnline.close()
 
         # print(json.dumps(positions['result'][0]['data']))
         # print(json.dumps(positions['result'][1]['data']))
         total_position = 0
-        for key in positions['result']:
-            total_position += key['data']['position_value']
+        for key in positions:
+            total_position += float(key['info']['positionValue'])
 
-        if result['ret_code'] != 0:
-            return {'error' : 'bad ret_code'}
-        if result['ret_msg'] != "OK":
-            return {'error' : 'bad ret_code'}
+        # if result['ret_code'] != 0:
+        #     return {'error' : 'bad ret_code'}
+        # if result['ret_msg'] != "OK":
+        #     return {'error' : 'bad ret_code'}
 
+        # for coins in result['info']['result']['list']
         return {
                     'error'  : '',
-                    'equity' : float('%.4f'%(result['result'][coin_ballance]['equity'])),
-                    'cum_realised_pnl' : float('%.4f'%(result['result'][coin_ballance]['cum_realised_pnl'])),
-                    'used_margin' : float('%.4f'%(result['result'][coin_ballance]['used_margin'])),
+                    'equity' : float('%.4f'%(result[coin_ballance]['total'])),
+                    'cum_realised_pnl' : float('%.4f'%(float(result['info']['result']['list'][0]['coin'][0]['cumRealisedPnl']))),
+                    'used_margin' : float('%.4f'%(result[coin_ballance]['used'])),
                     'total_position' : total_position
         }
         
@@ -124,7 +128,7 @@ async def wallet(message):
         
 
 
-    wallet_data = get_equity_and_pnl(api_keys_file, api_keys_user, coin_ballance)
+    wallet_data = await get_equity_and_pnl(api_keys_file, api_keys_user, coin_ballance)
 
     discord_message_to_send = ""
 

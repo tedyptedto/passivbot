@@ -1,11 +1,11 @@
 import discord
 from actions.hello import hello
 from actions.pumpdump import pumpdump
-from actions.long_short import long_short
-from actions.chart import chart
+# from actions.long_short import long_short
+# from actions.chart import chart
 from actions.wallet import wallet
 from actions.positions import positions
-from actions.flow import flow
+# from actions.flow import flow
 from functions.functions import get_channel_id, get_bot_commands_enabled_channels, send_slack_message
 
 import os
@@ -67,10 +67,7 @@ class MyClient(discord.Client):
             if a_message[0] == '!help':
                 await message.channel.send('Commandes disponibles \n\
     !hello => just say hello :)\n\
-    !chart => show a chart\n\
-    !ls => longshort ratio\n\
     !p => positions\n\
-    !flow => inflow outflow based on whale_alert\n\
     !w user => Show Wallet user=[tedy, jojo]\n\
     !all => Show all data for all users\n\
         ')
@@ -78,14 +75,14 @@ class MyClient(discord.Client):
             if a_message[0] == '!hello':
                 await hello(message)
 
-            if a_message[0] == '!chart':
-                await chart(message)
+            # if a_message[0] == '!chart':
+            #     await chart(message)
 
-            if a_message[0] == '!flow':
-                await flow(message)
+            # if a_message[0] == '!flow':
+            #     await flow(message)
 
-            if a_message[0] == '!ls':
-                await long_short(message)
+            # if a_message[0] == '!ls':
+            #     await long_short(message)
 
             if a_message[0] == '!w':
                 await wallet(message)
