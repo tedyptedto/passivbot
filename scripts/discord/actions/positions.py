@@ -77,9 +77,13 @@ async def trader_alert(d_message):
 
 
     #while True:
+    # print('ask position')
     x = await ccxtOnline.fetch_positions()  # recupere toutes les positions
+    # print('end position')
+    # print('ask close')
     await ccxtOnline.close() 
     # print(json.dumps(x, indent=2))
+    # print('end position')
     
     discord_message = ""
     total_position = 0
