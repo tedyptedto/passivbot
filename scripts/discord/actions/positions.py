@@ -8,6 +8,8 @@ import json
 import hjson
 import ccxt.async_support as ccxt
 
+from actions.poolConnector import ccxt_connectors
+
 
 def print_trade_info(info: dict, d_message) -> None:
     sens = info["side"]
@@ -73,15 +75,19 @@ async def trader_alert(d_message):
         return {'error' : 'Problem loading keys'}
 
     # time.sleep(5)
-    ccxtOnline = ccxt.bybit({"apiKey": keys[api_keys_user]['key'],"secret": keys[api_keys_user]['secret']})
+    global ccxt_connectors
+    if user_name in ccxt_connectors :
+        ccxtOnline = ccxt_connectors[user_name]
+    else:
+        ccxtOnline = ccxt_connectors[user_name] = ccxt.bybit({"apiKey": keys[api_keys_user]['key'],"secret": keys[api_keys_user]['secret']})
 
 
     #while True:
-    # print('ask position')
+    #print('ask position')
     x = await ccxtOnline.fetch_positions()  # recupere toutes les positions
-    # print('end position')
+    #print('end position')
     # print('ask close')
-    await ccxtOnline.close() 
+    # await ccxtOnline.close() 
     # print(json.dumps(x, indent=2))
     # print('end position')
     

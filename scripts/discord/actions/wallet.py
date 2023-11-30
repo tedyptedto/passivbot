@@ -18,7 +18,7 @@ from functions.functions import get_pro_channel_enabled, send_slack_message
 
 import ccxt.async_support as ccxt
 
-
+from actions.poolConnector import ccxt_connectors
 
 
 def fill_calculation(json_base):
@@ -93,7 +93,12 @@ async def wallet(message):
             return {'error' : 'Problem loading keys'}
 
         # time.sleep(5)
-        ccxtOnline = ccxt.bybit({"apiKey": keys[api_keys_user]['key'],"secret": keys[api_keys_user]['secret']})
+        global ccxt_connectors
+        if user_name in ccxt_connectors :
+            ccxtOnline = ccxt_connectors[user_name]
+        else:
+            ccxtOnline = ccxt_connectors[user_name] = ccxt.bybit({"apiKey": keys[api_keys_user]['key'],"secret": keys[api_keys_user]['secret']})
+
         
         # result = await ccxtOnline.fetch_balance(coin=coin_ballance)
         result = await ccxtOnline.fetch_balance({"coin" : coin_ballance})
@@ -102,7 +107,7 @@ async def wallet(message):
         positions =  await ccxtOnline.fetch_positions()
         # print(json.dumps(positions, indent=2))
 
-        await ccxtOnline.close()
+        # await ccxtOnline.close()
 
         # print(json.dumps(positions['result'][0]['data']))
         # print(json.dumps(positions['result'][1]['data']))

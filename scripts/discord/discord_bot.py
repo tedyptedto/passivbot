@@ -16,6 +16,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 
+
 # python3 -m pip install python-binance
 # pip install ta
 # pip install apscheduler
