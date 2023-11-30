@@ -93,28 +93,28 @@ class MyClient(discord.Client):
             if a_message[0] == '!all':
                 message.content = "!w pro"
                 await wallet(message)
-                # message.content = "!p pro"
-                # await positions(message)
+                message.content = "!p pro"
+                await positions(message)
 
                 message.content = "!w tedy"
                 await wallet(message)
-                # message.content = "!p tedy"
-                # await positions(message)
+                message.content = "!p tedy"
+                await positions(message)
 
                 message.content = "!w tedy1"
                 await wallet(message)
-                # message.content = "!p tedy1"
-                # await positions(message)
+                message.content = "!p tedy1"
+                await positions(message)
 
                 message.content = "!w tedy2"
                 await wallet(message)
-                # message.content = "!p tedy2"
-                # await positions(message)
+                message.content = "!p tedy2"
+                await positions(message)
 
                 message.content = "!w sawyer"
                 await wallet(message)
-                # message.content = "!p sawyer"
-                # await positions(message)
+                message.content = "!p sawyer"
+                await positions(message)
 
             # Garé pour les infos
             # await message.channel.send('Hello {0.author.mention}'.format(message))
