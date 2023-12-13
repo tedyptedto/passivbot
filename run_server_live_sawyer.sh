@@ -2,7 +2,7 @@
 current_pwd=`pwd`
 gs=' -gs '
 gs=''
-symbols=(CHZUSDT ATOMUSDT MATICUSDT CRVUSDT ETHUSDT )
+symbols=(CHZUSDT ATOMUSDT MATICUSDT CRVUSDT XRPUSDT DOGEUSDT )
 for i in "${symbols[@]}"
 do
     :
