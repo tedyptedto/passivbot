@@ -194,7 +194,10 @@ async def wallet(message):
         return (str(round(number=now[key], ndigits=2)) + symbol).replace('.', ',') + icon
         
 
-
+    if api_keys_user == "bybit_tedy":
+        text_if_tedy = "ancien compte Tol. Rea PNL + 1582,5$"
+    else:
+        text_if_tedy = ""
 
     if wallet_data['error'] == "":
         colonne = 20
@@ -214,7 +217,7 @@ async def wallet(message):
         "Monthly Gain".ljust(colonne)                                 +  "Year Gain".ljust(colonne) + "\n" + \
         print_el(now_data, previous, 'monthly_gain_$').ljust(colonne) +  print_el(now_data, previous, 'year_gain_$').ljust(colonne) + "\n" + \
         "```"
-        discord_message_to_send = message_content
+        discord_message_to_send = message_content + text_if_tedy
     else:
         await message.channel.send("Problem :"+wallet_data['error'])
         return
