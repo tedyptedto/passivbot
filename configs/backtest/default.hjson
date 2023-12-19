@@ -3,7 +3,8 @@
   market_type: futures
 
   # exchange from api-keys.json is used
-  user: binance_tedy                       # force binance to get all data history 
+  user: binance_tedy
+  # force binance to get all data history 
 
   symbol: SYMBOLUSDT
   latency_simulation_ms: 1000
