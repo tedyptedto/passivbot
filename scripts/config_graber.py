@@ -14,6 +14,8 @@ zip_files = [
             {'Name': 'donewiththedollar', 'url': 'https://github.com/donewiththedollar/passivbot_optimizations/archive/refs/heads/main.zip'}, 
             {'Name': 'JohnKearney1', 'url': 'https://github.com/JohnKearney1/PassivBot-Configurations/archive/refs/heads/main.zip'},
             {'Name': 'NaiMul', 'url': 'https://github.com/Nai-mul/passivbot_configs/archive/refs/heads/main.zip'}, 
+            {'Name': 'RustyCZ', 'url': 'https://github.com/RustyCZ/pb-configs/archive/refs/heads/main.zip'}, 
+            {'Name': 'jnkxnxx', 'url': 'https://github.com/jnkxnxx/pb-configs/archive/refs/heads/main.zip'}, 
         
 ]
 

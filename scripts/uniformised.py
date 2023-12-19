@@ -22,12 +22,11 @@ usage="python3 " + __file__ + " "
 )
 
 parser.add_argument("-sd",
-                    # type=str,required=False,dest="start_date",default="2020-01-01",
-                    type=str,required=False,dest="start_date",default="2022-06-20",
+                    type=str,required=False,dest="start_date",default="2020-01-01",
                     help="Backtest start date",
 )
 parser.add_argument("-ed",
-                    type=str,required=False,dest="end_date",default="2023-11-25",
+                    type=str,required=False,dest="end_date",default="2023-12-18",
                     help="Backtest end date",
 )
 parser.add_argument("-we",
