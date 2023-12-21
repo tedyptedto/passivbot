@@ -12,6 +12,7 @@ from pure_funcs import determine_pos_side_ccxt, floatify, calc_hash, ts_to_date_
 import ccxt.async_support as ccxt
 
 from procedures import load_ccxt_version
+
 ccxt_version_req = load_ccxt_version()
 assert (
     ccxt.__version__ == ccxt_version_req
@@ -119,9 +120,6 @@ class BybitBot(Bot):
             print_async_exception(open_orders)
             traceback.print_exc()
             return False
-
-    async def transfer_from_derivatives_to_spot(self, coin: str, amount: float):
-        return
 
     async def get_server_time(self):
         server_time = None
@@ -303,6 +301,24 @@ class BybitBot(Bot):
             print_async_exception(ohlcvs)
             traceback.print_exc()
 
+    async def transfer_from_derivatives_to_spot(self, coin: str, amount: float):
+        transferred = None
+        try:
+            transferred = await self.cc.private_post_v5_asset_transfer_inter_transfer(
+                params={
+                    "transferId": str(uuid4()),
+                    "coin": coin,
+                    "amount": str(amount),
+                    "fromAccountType": "CONTRACT",
+                    "toAccountType": "SPOT",
+                }
+            )
+            return transferred
+        except Exception as e:
+            logging.error(f"error transferring from derivatives to spot {e}")
+            print_async_exception(transferred)
+            traceback.print_exc()
+
     async def get_all_income(
         self,
         symbol: str = None,
@@ -310,17 +326,30 @@ class BybitBot(Bot):
         income_type: str = "Trade",
         end_time: int = None,
     ):
-        return await self.fetch_income(symbol=symbol, start_time=start_time, end_time=end_time)
-
-    async def transfer_from_derivatives_to_spot(self, coin: str, amount: float):
-        transferred = None
-        try:
-            transferred = await self.cc.transfer(coin, amount, "CONTRACT", "SPOT")
-            return transferred
-        except:
-            logging.error(f"error transferring from derivatives to spot {e}")
-            print_async_exception(transferred)
-            traceback.print_exc()
+        if start_time is not None:
+            week = 1000 * 60 * 60 * 24 * 7
+            income = []
+            if end_time is None:
+                end_time = int(utc_ms() + 1000 * 60 * 60 * 24)
+            # bybit has limit of 7 days per pageinated fetch
+            # fetch multiple times
+            i = 1
+            while i < 52:  # limit n fetches to 52 (one year)
+                sts = end_time - week * i
+                ets = sts + week
+                sts = max(sts, start_time)
+                fetched = await self.fetch_income(symbol=symbol, start_time=sts, end_time=ets)
+                income.extend(fetched)
+                if sts <= start_time:
+                    break
+                i += 1
+                logging.debug(f"fetching income for more than a week {ts_to_date_utc(sts)}")
+                # print(f"fetching income for more than a week {ts_to_date_utc(sts)}")
+            return sorted(
+                {calc_hash(elm): elm for elm in income}.values(), key=lambda x: x["timestamp"]
+            )
+        else:
+            return await self.fetch_income(symbol=symbol, start_time=start_time, end_time=end_time)
 
     async def fetch_income(
         self,
@@ -329,30 +358,44 @@ class BybitBot(Bot):
         end_time: int = None,
     ):
         fetched = None
-        incomed = {}
+        income_d = {}
+        limit = 100
         try:
-            limit = 100
             params = {"category": "linear", "limit": limit}
             if symbol is not None:
                 params["symbol"] = symbol
+            if start_time is not None:
+                params["startTime"] = int(start_time)
             if end_time is not None:
                 params["endTime"] = int(end_time)
             fetched = await self.cc.private_get_v5_position_closed_pnl(params)
-            fetched["result"]["list"] = floatify(fetched["result"]["list"])
+            fetched["result"]["list"] = sorted(
+                floatify(fetched["result"]["list"]), key=lambda x: x["updatedTime"]
+            )
             while True:
                 if fetched["result"]["list"] == []:
                     break
+                # print(f"fetching income {ts_to_date_utc(fetched['result']['list'][-1]['updatedTime'])}")
+                logging.debug(
+                    f"fetching income {ts_to_date_utc(fetched['result']['list'][-1]['updatedTime'])}"
+                )
+                if (
+                    calc_hash(fetched["result"]["list"][0]) in income_d
+                    and calc_hash(fetched["result"]["list"][-1]) in income_d
+                ):
+                    break
                 for elm in fetched["result"]["list"]:
-                    incomed[calc_hash(elm)] = elm
+                    income_d[calc_hash(elm)] = elm
                 if start_time is None:
                     break
-                if fetched["result"]["list"][-1]["updatedTime"] <= start_time:
+                if fetched["result"]["list"][0]["updatedTime"] <= start_time:
+                    break
+                if not fetched["result"]["nextPageCursor"]:
                     break
                 params["cursor"] = fetched["result"]["nextPageCursor"]
                 fetched = await self.cc.private_get_v5_position_closed_pnl(params)
-                fetched["result"]["list"] = floatify(fetched["result"]["list"])
-                logging.debug(
-                    f"fetching income {ts_to_date_utc(fetched['result']['list'][-1]['updatedTime'])}"
+                fetched["result"]["list"] = sorted(
+                    floatify(fetched["result"]["list"]), key=lambda x: x["updatedTime"]
                 )
             return [
                 {
@@ -360,13 +403,14 @@ class BybitBot(Bot):
                     "income": elm["closedPnl"],
                     "token": "USDT",
                     "timestamp": elm["updatedTime"],
+                    "date": ts_to_date_utc(elm["updatedTime"]),
                     "info": elm,
                     "transaction_id": elm["orderId"],
                     "trade_id": elm["orderId"],
+                    "position_side": determine_pos_side_ccxt(elm),
                 }
-                for elm in sorted(incomed.values(), key=lambda x: x["updatedTime"])
+                for elm in sorted(income_d.values(), key=lambda x: x["updatedTime"])
             ]
-            return sorted(incomed.values(), key=lambda x: x["updatedTime"])
         except Exception as e:
             logging.error(f"error fetching income {e}")
             print_async_exception(fetched)
