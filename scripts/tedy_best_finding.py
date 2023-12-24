@@ -8,17 +8,77 @@ import argparse
 import os
 import hjson
 from tqdm import tqdm
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
+
+
+
+# Fonction pour parcourir les fichiers et extraire result.sharpe_ratio_long
+def parcourir_et_afficher_sharpe_ratio_long(repertoire):
+    resultats = []  # Liste pour stocker les résultats
+
+    # Parcourir les fichiers
+    for dossier_racine, dossiers, fichiers in os.walk(repertoire):
+        for nom_fichier in fichiers:
+            if nom_fichier == 'result.json':
+                chemin_fichier = os.path.join(dossier_racine, nom_fichier)
+                with open(chemin_fichier, 'r') as file:
+                    try:
+                        data = json.load(file)
+                        sharpe_ratio_long = data.get('result', {}).get('sharpe_ratio_long')
+                        if sharpe_ratio_long is not None:
+                            coin = chemin_fichier.replace(repertoire, '').split('/')[1]
+                            resultats.append((sharpe_ratio_long, coin))  # Ajouter le tuple (sharpe_ratio_long, coin)
+                    except json.JSONDecodeError as e:
+                        print(f"Erreur de décodage JSON pour le fichier {chemin_fichier} : {e}")
+
+    # Trier et afficher les résultats du plus grand au plus petit sharpe_ratio_long
+    resultats_tries = sorted(resultats, reverse=True)  # Tri décroissant
+    for sharpe_ratio, coin in resultats_tries:
+        print(f"sharpe_ratio_long : {coin} : {sharpe_ratio}")
 
 # loop on all strategy
 
 
 # ../configs/live/PBSO/BT_UNIFORMISED/bt_2020-01-01_2022-10-13_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/
 
-dir_name = 'bt_2022-06-20_2023-11-25_1000_1'
+# dir_name = 'FILLED_AFTER'
+dir_base = "../configs/live/PBSO/BT_UNIFORMISED/"
 
-dir_base = "../configs/live/PBSO/"
+# repertoire_actuel = os.getcwd()
+# print("Le répertoire actuel est :", repertoire_actuel)
+# exit()
 
-base_dir = os.path.realpath(dir_base + "BT_UNIFORMISED/" + dir_name + "/")
+# Vérification que dir_base est bien un répertoire
+if not os.path.isdir(dir_base):
+    print("Le chemin spécifié n'est pas un répertoire valide.")
+else:
+    while True:
+        print(f"Liste des répertoires dans {dir_base} :")
+        repertoires = [d for d in os.listdir(dir_base) if os.path.isdir(os.path.join(dir_base, d))]
+
+        for index, repertoire in enumerate(repertoires, start=1):
+            print(f"{index}. {repertoire}")
+
+        if len(repertoires) > 1:
+            choix = input("Veuillez choisir un répertoire en entrant le numéro correspondant : ")
+        else:
+            choix = 1
+        try:
+            choix = int(choix)
+            if 1 <= choix <= len(repertoires):
+                base_dir = os.path.join(dir_base, repertoires[choix - 1])
+                # Réalisez vos traitements avec le nouveau chemin sélectionné (base_dir)
+                print(f"Vous avez choisi : {base_dir}")
+                break  # Sortir de la boucle une fois que le choix est valide
+            else:
+                print("Choix invalide.")
+        except ValueError:
+            print("Veuillez entrer un numéro valide.")
+
+
+# base_dir = os.path.realpath(dir_base + "BT_UNIFORMISED/" + dir_name + "/")
+base_dir = os.path.realpath(base_dir + "/")
 # find all strategies
 
 if not os.path.exists(base_dir) :
@@ -54,7 +114,9 @@ def minTo(object, key, value):
 
 # progress_strats_dirs = 0
 # progress_nb_full = len(strats_dirs)
-
+compteur = 0
+limit_for_test = False
+# limit_for_test = True
 for strat_dir in tqdm(strats_dirs):
     # find all backtests
     # progress_strats_dirs = progress_strats_dirs +  1
@@ -67,6 +129,10 @@ for strat_dir in tqdm(strats_dirs):
 
     nb_coins = len(results_file)
 
+    compteur = compteur + 1
+    if (compteur > 10) and (limit_for_test):
+        break
+
     is_first = True
     for result_file in results_file:
         data = hjson.load(open(result_file, encoding="utf-8"))
@@ -75,7 +141,8 @@ for strat_dir in tqdm(strats_dirs):
         invert_we_ratio = 1 / data['long']['wallet_exposure_limit']
 
         if is_first:
-            addTo(object, 'strat', strat_name.replace('strat_',''))
+            object['strat'] = str(strat_name.replace('strat_','')[:5])
+            addTo(object, 'Path', result_file)
             addTo(object, 'au', (not (data['result']['n_unstuck_closes_long'] == 0)))
             is_first = False
             if 'grid_span' in data['long']:
@@ -108,10 +175,11 @@ for strat_dir in tqdm(strats_dirs):
         addTo(object, 'avg_hrs_stuck_avg', data['result']['hrs_stuck_avg_long'])
         
         # addTo(object, 'pa_distance_max_long', data['result']['pa_distance_max_long'])
+        addTo(object, 'sharpe', data['result']['sharpe_ratio_long'])
+        addTo(object, 'sum_sharpe', data['result']['sharpe_ratio_long'])
         
 
         minTo(object, 'most_loss', data['result']['net_pnl_plus_fees_long'])
-
 
     
     if nb_coins > 0:
@@ -123,6 +191,7 @@ for strat_dir in tqdm(strats_dirs):
         # object['pa_distance_max_long'] = object['pa_distance_max_long'] / nb_coins
         object['n_days'] = object['n_days'] / nb_coins
         object['l_we'] = object['l_we'] / nb_coins
+        object['sharpe'] = object['sharpe'] / nb_coins
 
     array_info.append(object)
 
@@ -160,7 +229,7 @@ df['valid_for_me'] = (  True
 
 df = df[df.valid_for_me == True]
 
-df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k'], inplace=True)
+df_cleaned = df.drop(columns=['valid_for_me', 'gs', 'au', 'we_ratio', 's_k', 'Path', 'l_we', 'pa_dist_mean_long'])
 
 
 # print("---------------------")
@@ -189,15 +258,21 @@ df.drop(columns=['valid_for_me', 'au', 'we_ratio', 's_k'], inplace=True)
 
 print("---------------------")
 print("Top 20 : Sorted by s_f_balance")
-df.sort_values(by=[ 's_f_balance', 's_f_equ_long'], ascending=[False, False], inplace=True)
-df1 = df.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+df_cleaned.sort_values(by=[ 's_f_balance', 's_f_equ_long'], ascending=[False, False], inplace=True)
+df1 = df_cleaned.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 
 print("---------------------")
 print("Top 20 : Sorted by s_f_equ_long")
-df.sort_values(by=[ 's_f_equ_long', 's_f_balance'], ascending=[False, False], inplace=True)
-df1 = df.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
+df_cleaned.sort_values(by=[ 's_f_equ_long', 's_f_balance'], ascending=[False, False], inplace=True)
+df1 = df_cleaned.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
+
+print("---------------------")
+print("Top 20 : Sharpe ratio")
+df_cleaned.sort_values(by=[ 'sharpe'], ascending=[False], inplace=True)
+df1 = df_cleaned.head(20)
+print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 
 # print("---------------------")
 # print("Top 20 : Sorted by adg_exposure")
@@ -213,4 +288,27 @@ print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 # print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 
-df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
+# df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
+
+while True:
+    # Création d'un ensemble des noms de stratégies pour la complétion
+    df['strat'] = df['strat'].astype(str)
+    strategies = set(df['strat'].tolist())
+    strategy_completer = WordCompleter(strategies)
+
+    # Demander à l'utilisateur quelle stratégie il souhaite voir
+    selected_strategy = prompt('Veuillez choisir une stratégie : ', completer=strategy_completer)
+    # print("\033[F\033[K", end="")  # Retour à la ligne et effacement
+
+    # Vérifier si la stratégie choisie est présente dans le DataFrame
+    if selected_strategy in strategies:
+        # Récupérer le chemin associé à la stratégie sélectionnée
+        path = df.loc[df['strat'] == selected_strategy, 'Path'].values[0]
+
+        # Remonter de trois niveaux pour obtenir le répertoire désiré
+        repertoire_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(path))))
+
+        # Ouvrir le répertoire désiré dans l'explorateur de fichiers
+        if os.path.exists(repertoire_parent):
+            parcourir_et_afficher_sharpe_ratio_long(repertoire_parent)
+            os.system(f'xdg-open "{repertoire_parent}"')
