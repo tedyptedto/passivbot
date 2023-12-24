@@ -11,6 +11,8 @@ from tqdm import tqdm
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 
+limit_for_test = False
+# limit_for_test = True
 
 
 # Fonction pour parcourir les fichiers et extraire result.sharpe_ratio_long
@@ -115,8 +117,10 @@ def minTo(object, key, value):
 # progress_strats_dirs = 0
 # progress_nb_full = len(strats_dirs)
 compteur = 0
-limit_for_test = False
-# limit_for_test = True
+
+# Dictionnaire pour stocker le meilleur sharpe_ratio_long pour chaque symbol
+meilleur_sharpe_ratio = {}
+
 for strat_dir in tqdm(strats_dirs):
     # find all backtests
     # progress_strats_dirs = progress_strats_dirs +  1
@@ -180,6 +184,13 @@ for strat_dir in tqdm(strats_dirs):
         
 
         minTo(object, 'most_loss', data['result']['net_pnl_plus_fees_long'])
+
+        sharpe_ratio_long = data['result']['sharpe_ratio_long']
+        symbol = data['symbol']
+
+        if sharpe_ratio_long is not None and symbol is not None:
+            if symbol not in meilleur_sharpe_ratio or meilleur_sharpe_ratio[symbol]['sharpe_ratio'] < sharpe_ratio_long:
+                meilleur_sharpe_ratio[symbol] = {'sharpe_ratio': sharpe_ratio_long, 'nom_fichier': result_file.replace(base_dir, '')}
 
     
     if nb_coins > 0:
@@ -287,37 +298,42 @@ print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 # s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
 # print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
+# Affichage des meilleurs sharpe_ratio_long pour chaque symbol à la fin
+for symbol, info in sorted(meilleur_sharpe_ratio.items(), key=lambda x: x[1]['sharpe_ratio'], reverse=True):
+    print(f"'{symbol}', Best Sharpe_ratio_long : {info['sharpe_ratio']} [{info['nom_fichier']}]")
 
 # df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
 
 df['strat'] = df['strat'].astype(str)
 
-df_combined = pd.concat([df1, df2, df3], ignore_index=True)
+# df_combined = pd.concat([df1, df2, df3], ignore_index=True)
+# df_filtre = df[df['strat'].isin(df_combined['strat'])]
+df_filtre = df
 
-df_filtre = df[df['strat'].isin(df_combined['strat'])]
+try:
+    while True:
+        # Création d'un ensemble des noms de stratégies pour la complétion
+        # df_filtre['strat'] = df_filtre['strat'].astype(str)
+        # df_filtre.loc[:, 'strat'] = df_filtre['strat'].astype(str)
 
+        strategies = set(df_filtre['strat'].tolist())
+        strategy_completer = WordCompleter(strategies)
 
-while True:
-    # Création d'un ensemble des noms de stratégies pour la complétion
-    # df_filtre['strat'] = df_filtre['strat'].astype(str)
-    # df_filtre.loc[:, 'strat'] = df_filtre['strat'].astype(str)
+        # Demander à l'utilisateur quelle stratégie il souhaite voir
+        selected_strategy = prompt('Veuillez choisir une stratégie : ', completer=strategy_completer)
+        # print("\033[F\033[K", end="")  # Retour à la ligne et effacement
 
-    strategies = set(df_filtre['strat'].tolist())
-    strategy_completer = WordCompleter(strategies)
+        # Vérifier si la stratégie choisie est présente dans le DataFrame
+        if selected_strategy in strategies:
+            # Récupérer le chemin associé à la stratégie sélectionnée
+            path = df_filtre.loc[df_filtre['strat'] == selected_strategy, 'Path'].values[0]
 
-    # Demander à l'utilisateur quelle stratégie il souhaite voir
-    selected_strategy = prompt('Veuillez choisir une stratégie : ', completer=strategy_completer)
-    # print("\033[F\033[K", end="")  # Retour à la ligne et effacement
+            # Remonter de trois niveaux pour obtenir le répertoire désiré
+            repertoire_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(path))))
 
-    # Vérifier si la stratégie choisie est présente dans le DataFrame
-    if selected_strategy in strategies:
-        # Récupérer le chemin associé à la stratégie sélectionnée
-        path = df_filtre.loc[df_filtre['strat'] == selected_strategy, 'Path'].values[0]
-
-        # Remonter de trois niveaux pour obtenir le répertoire désiré
-        repertoire_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(path))))
-
-        # Ouvrir le répertoire désiré dans l'explorateur de fichiers
-        if os.path.exists(repertoire_parent):
-            parcourir_et_afficher_sharpe_ratio_long(repertoire_parent)
-            os.system(f'xdg-open "{repertoire_parent}"')
+            # Ouvrir le répertoire désiré dans l'explorateur de fichiers
+            if os.path.exists(repertoire_parent):
+                parcourir_et_afficher_sharpe_ratio_long(repertoire_parent)
+                os.system(f'xdg-open "{repertoire_parent}"')
+except KeyboardInterrupt:
+    print("Interruption clavier détectée. Arrêt du programme.")
