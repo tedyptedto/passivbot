@@ -130,7 +130,7 @@ for strat_dir in tqdm(strats_dirs):
     nb_coins = len(results_file)
 
     compteur = compteur + 1
-    if (compteur > 10) and (limit_for_test):
+    if (compteur > 100) and (limit_for_test):
         break
 
     is_first = True
@@ -265,14 +265,14 @@ print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 print("---------------------")
 print("Top 20 : Sorted by s_f_equ_long")
 df_cleaned.sort_values(by=[ 's_f_equ_long', 's_f_balance'], ascending=[False, False], inplace=True)
-df1 = df_cleaned.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
+df2 = df_cleaned.head(20)
+print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 
 print("---------------------")
 print("Top 20 : Sharpe ratio")
 df_cleaned.sort_values(by=[ 'sharpe'], ascending=[False], inplace=True)
-df1 = df_cleaned.head(20)
-print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
+df3 = df_cleaned.head(20)
+print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 
 # print("---------------------")
 # print("Top 20 : Sorted by adg_exposure")
@@ -290,10 +290,19 @@ print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 
 # df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
 
+df['strat'] = df['strat'].astype(str)
+
+df_combined = pd.concat([df1, df2, df3], ignore_index=True)
+
+df_filtre = df[df['strat'].isin(df_combined['strat'])]
+
+
 while True:
     # Création d'un ensemble des noms de stratégies pour la complétion
-    df['strat'] = df['strat'].astype(str)
-    strategies = set(df['strat'].tolist())
+    # df_filtre['strat'] = df_filtre['strat'].astype(str)
+    # df_filtre.loc[:, 'strat'] = df_filtre['strat'].astype(str)
+
+    strategies = set(df_filtre['strat'].tolist())
     strategy_completer = WordCompleter(strategies)
 
     # Demander à l'utilisateur quelle stratégie il souhaite voir
@@ -303,7 +312,7 @@ while True:
     # Vérifier si la stratégie choisie est présente dans le DataFrame
     if selected_strategy in strategies:
         # Récupérer le chemin associé à la stratégie sélectionnée
-        path = df.loc[df['strat'] == selected_strategy, 'Path'].values[0]
+        path = df_filtre.loc[df_filtre['strat'] == selected_strategy, 'Path'].values[0]
 
         # Remonter de trois niveaux pour obtenir le répertoire désiré
         repertoire_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(path))))
