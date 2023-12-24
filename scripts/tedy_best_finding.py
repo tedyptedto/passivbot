@@ -190,7 +190,11 @@ for strat_dir in tqdm(strats_dirs):
 
         if sharpe_ratio_long is not None and symbol is not None:
             if symbol not in meilleur_sharpe_ratio or meilleur_sharpe_ratio[symbol]['sharpe_ratio'] < sharpe_ratio_long:
-                meilleur_sharpe_ratio[symbol] = {'sharpe_ratio': sharpe_ratio_long, 'nom_fichier': result_file.replace(base_dir, '')}
+                meilleur_sharpe_ratio[symbol] = {
+                                                    'sharpe_ratio': sharpe_ratio_long, 
+                                                    'strat': object['strat'],
+                                                    'final_equity_long': data['result']['final_equity_long']
+                                                    }
 
     
     if nb_coins > 0:
@@ -300,7 +304,8 @@ print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 
 # Affichage des meilleurs sharpe_ratio_long pour chaque symbol à la fin
 for symbol, info in sorted(meilleur_sharpe_ratio.items(), key=lambda x: x[1]['sharpe_ratio'], reverse=True):
-    print(f"'{symbol}', Best Sharpe_ratio_long : {info['sharpe_ratio']} [{info['nom_fichier']}]")
+    print("[{}] {:<10}, Best Sharpe_ratio_long : {:20.8f} Final equity : {:20.0f}$ [{}]".format(info['strat'], symbol, info['sharpe_ratio'], info['final_equity_long'], info['strat']))
+
 
 # df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
 
