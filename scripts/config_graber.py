@@ -1,6 +1,7 @@
 import glob
 import os
 import requests, zipfile, io
+from colorama import Fore, Style
 
 zip_files = [
 
@@ -18,6 +19,42 @@ zip_files = [
             {'Name': 'jnkxnxx', 'url': 'https://github.com/jnkxnxx/pb-configs/archive/refs/heads/main.zip'}, 
         
 ]
+
+
+print('Récupération de la liste total en provenance de https://pbconfigdb.scud.dedyn.io/')
+
+# URL à récupérer
+url = "https://pbconfigdb.scud.dedyn.io/result/data.json"
+
+# Faire une requête GET pour obtenir le contenu JSON
+response = requests.get(url)
+
+if response.status_code == 200:
+    data = response.json()  # Convertir la réponse en JSON
+
+    # Créer un ensemble pour stocker les débuts uniques des URLs 'source'
+    unique_sources = set()
+
+    # Parcourir les données JSON pour extraire les débuts d'URL uniques
+    for source in data:
+        source_url_parts = source.get('source', '').split('/')
+        if len(source_url_parts) >= 5:
+            unique_sources.add("/".join(source_url_parts[:5]))
+
+    # Afficher les débuts uniques des URLs 'source'
+    # Vérification de la présence des débuts d'URL dans zip_files
+    # Vérification de la présence des débuts d'URL dans zip_files
+    for source in unique_sources:
+        found = any(source in item['url'] for item in zip_files)
+        if found:
+            print(f"{source}" + Fore.GREEN + " OK Contenu dans la liste" + Style.RESET_ALL)
+        else:
+            print(f"{source}" + Fore.RED + " KO contenu dans zip_files" + Style.RESET_ALL)
+            exit()
+else:
+    print("La requête n'a pas abouti :", response.status_code)
+
+
 
 print("Repository to Download")
 print(zip_files)
