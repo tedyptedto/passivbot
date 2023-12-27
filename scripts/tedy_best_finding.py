@@ -10,10 +10,22 @@ import hjson
 from tqdm import tqdm
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
+import platform
 
 limit_for_test = False
 # limit_for_test = True
 
+
+def open_directory(directory_path):
+    if platform.system() == 'Linux':  # Linux/macOS
+        os.system(f'xdg-open "{directory_path}"')
+    # elif os.name == 'nt':  # Windows
+    #     os.system(f'explorer "{directory_path}"')
+    # elif os.name == 'darwin':  # macOS
+    #     os.system(f'open "{directory_path}"')
+    else:
+        os.system(f'open "{directory_path}"')
+        # print("Système d'exploitation non supporté")
 
 # Fonction pour parcourir les fichiers et extraire result.sharpe_ratio_long
 def parcourir_et_afficher_sharpe_ratio_long(repertoire):
@@ -53,30 +65,30 @@ dir_base = "../configs/live/PBSO/BT_UNIFORMISED/"
 
 # Vérification que dir_base est bien un répertoire
 if not os.path.isdir(dir_base):
-    print("Le chemin spécifié n'est pas un répertoire valide.")
-else:
-    while True:
-        print(f"Liste des répertoires dans {dir_base} :")
-        repertoires = [d for d in os.listdir(dir_base) if os.path.isdir(os.path.join(dir_base, d))]
+    dir_base = "./"
 
-        for index, repertoire in enumerate(repertoires, start=1):
-            print(f"{index}. {repertoire}")
+while True:
+    print(f"Liste des répertoires dans {dir_base} :")
+    repertoires = [d for d in os.listdir(dir_base) if os.path.isdir(os.path.join(dir_base, d))]
 
-        if len(repertoires) > 1:
-            choix = input("Veuillez choisir un répertoire en entrant le numéro correspondant : ")
+    for index, repertoire in enumerate(repertoires, start=1):
+        print(f"{index}. {repertoire}")
+
+    if len(repertoires) > 1:
+        choix = input("Veuillez choisir un répertoire en entrant le numéro correspondant : ")
+    else:
+        choix = 1
+    try:
+        choix = int(choix)
+        if 1 <= choix <= len(repertoires):
+            base_dir = os.path.join(dir_base, repertoires[choix - 1])
+            # Réalisez vos traitements avec le nouveau chemin sélectionné (base_dir)
+            print(f"Vous avez choisi : {base_dir}")
+            break  # Sortir de la boucle une fois que le choix est valide
         else:
-            choix = 1
-        try:
-            choix = int(choix)
-            if 1 <= choix <= len(repertoires):
-                base_dir = os.path.join(dir_base, repertoires[choix - 1])
-                # Réalisez vos traitements avec le nouveau chemin sélectionné (base_dir)
-                print(f"Vous avez choisi : {base_dir}")
-                break  # Sortir de la boucle une fois que le choix est valide
-            else:
-                print("Choix invalide.")
-        except ValueError:
-            print("Veuillez entrer un numéro valide.")
+            print("Choix invalide.")
+    except ValueError:
+        print("Veuillez entrer un numéro valide.")
 
 
 # base_dir = os.path.realpath(dir_base + "BT_UNIFORMISED/" + dir_name + "/")
@@ -339,6 +351,6 @@ try:
             # Ouvrir le répertoire désiré dans l'explorateur de fichiers
             if os.path.exists(repertoire_parent):
                 parcourir_et_afficher_sharpe_ratio_long(repertoire_parent)
-                os.system(f'xdg-open "{repertoire_parent}"')
+                open_directory(repertoire_parent)
 except KeyboardInterrupt:
     print("Interruption clavier détectée. Arrêt du programme.")
