@@ -17,8 +17,42 @@ from PIL import Image
 from functions.functions import get_pro_channel_enabled, send_slack_message
 
 import ccxt.async_support as ccxt
+import requests
+import json
 
 from actions.poolConnector import ccxt_connectors
+
+global tedy_equity
+tedy_equity = 0
+
+def sendAmountTedy():
+    global tedy_equity
+    # URL du webhook Discord
+    webhook_url = open("./config/webhook_tedy.txt", 'r').read()
+    # print(webhook_url)
+
+    # Créer le message à envoyer
+    message_content = "Amount : {:,.2f}$".format(tedy_equity).replace(',', ' ').replace('.', ',')
+
+    # Créer le payload pour le message
+    payload = {
+        "content": message_content
+    }
+
+    # Envoyer le message au webhook Discord
+    response = requests.post(webhook_url, data=json.dumps(payload), headers={"Content-Type": "application/json"})
+
+    # Vérifier si la requête a réussi
+    if response.status_code == 204:
+        print("Message envoyé avec succès")
+    else:
+        print(f"Erreur lors de l'envoi du message : {response.status_code} - {response.text}")
+
+
+
+def resetTedyEquity():
+    global tedy_equity
+    tedy_equity = 0
 
 
 def fill_calculation(json_base):
@@ -169,8 +203,12 @@ async def wallet(message):
         
     now_data = json_base[today]
 
+    global tedy_equity
+    if 'tedy' in user_name.lower():
+        tedy_equity = tedy_equity +  now_data['equity']
 
-
+    print("Somme equity Tedy : ")
+    print(tedy_equity)
 
     def print_el(now, previous, key, symbol="$", show_icon=False):
 

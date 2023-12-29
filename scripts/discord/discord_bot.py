@@ -3,7 +3,7 @@ from actions.hello import hello
 from actions.pumpdump import pumpdump
 # from actions.long_short import long_short
 # from actions.chart import chart
-from actions.wallet import wallet
+from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
 from actions.positions import positions
 # from actions.flow import flow
 from functions.functions import get_channel_id, get_bot_commands_enabled_channels, send_slack_message
@@ -14,7 +14,6 @@ import traceback
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-
 
 
 # python3 -m pip install python-binance
@@ -92,6 +91,9 @@ class MyClient(discord.Client):
                 await positions(message)
 
             if a_message[0] == '!all':
+
+                #resetTedyEquity()
+
                 message.content = "!w pro"
                 await wallet(message)
                 message.content = "!p pro"
@@ -117,6 +119,8 @@ class MyClient(discord.Client):
                 message.content = "!p sawyer"
                 await positions(message)
 
+                #sendAmountTedy()
+
             # Garé pour les infos
             # await message.channel.send('Hello {0.author.mention}'.format(message))
             # await message.channel.send('Hello {0.author.mention}'.format(message))
@@ -131,6 +135,8 @@ base_dir = os.path.realpath(os.path.dirname(os.path.abspath(__file__))+'/')+'/'
 
 async def show_wallet(Test=False):
     await client.wait_until_ready()
+
+    resetTedyEquity()
 
     if not Test:
         c = client.get_channel(get_channel_id("passivbot"))  
@@ -168,6 +174,8 @@ async def show_wallet(Test=False):
         data = {'content': "!w tedy from_auto_bot_x15", 'channel': c}
         message = Struct(**data)
         await wallet(message)
+
+    sendAmountTedy()
 
 
 #initializing scheduler
