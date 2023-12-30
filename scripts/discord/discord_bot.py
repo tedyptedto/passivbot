@@ -133,6 +133,8 @@ class MyClient(discord.Client):
 client = MyClient()
 base_dir = os.path.realpath(os.path.dirname(os.path.abspath(__file__))+'/')+'/'
 
+sendAmountTedy()
+
 async def show_wallet(Test=False):
     await client.wait_until_ready()
 
