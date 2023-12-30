@@ -28,7 +28,10 @@ tedy_equity = 0
 def sendAmountTedy():
     global tedy_equity
     # URL du webhook Discord
-    webhook_url = open("./config/webhook_tedy.txt", 'r').read()
+    webhook_url = "" #open("./config/webhook_tedy.txt", 'r').read()
+    with open("./config/webhook_tedy.txt", 'r') as file:
+        webhook_url = file.read().strip()
+
     print("#" + webhook_url + "#")
 
     # Créer le message à envoyer
