@@ -29,7 +29,7 @@ def sendAmountTedy():
     global tedy_equity
     # URL du webhook Discord
     webhook_url = open("./config/webhook_tedy.txt", 'r').read()
-    # print(webhook_url)
+    print(webhook_url)
 
     # Créer le message à envoyer
     message_content = "Amount : {:,.2f}$".format(tedy_equity).replace(',', ' ').replace('.', ',')
