@@ -40,16 +40,17 @@ def parcourir_et_afficher_sharpe_ratio_long(repertoire):
                     try:
                         data = json.load(file)
                         sharpe_ratio_long = data.get('result', {}).get('sharpe_ratio_long')
+                        final_equity_long = data.get('result', {}).get('final_equity_long')
                         if sharpe_ratio_long is not None:
                             coin = chemin_fichier.replace(repertoire, '').split('/')[1]
-                            resultats.append((sharpe_ratio_long, coin))  # Ajouter le tuple (sharpe_ratio_long, coin)
+                            resultats.append((sharpe_ratio_long, {'coin' : coin, 'final_equity_long' : final_equity_long}))  # Ajouter le tuple (sharpe_ratio_long, coin)
                     except json.JSONDecodeError as e:
                         print(f"Erreur de décodage JSON pour le fichier {chemin_fichier} : {e}")
 
     # Trier et afficher les résultats du plus grand au plus petit sharpe_ratio_long
     resultats_tries = sorted(resultats, reverse=True)  # Tri décroissant
-    for sharpe_ratio, coin in resultats_tries:
-        print(f"sharpe_ratio_long : {coin} : {sharpe_ratio}")
+    for sharpe_ratio, data in resultats_tries:
+        print("sharpe_ratio_long : {:<10} : {:20.8f} [final_equity : {:20.8f}]".format(data['coin'], sharpe_ratio, data['final_equity_long']))
 
 # loop on all strategy
 
