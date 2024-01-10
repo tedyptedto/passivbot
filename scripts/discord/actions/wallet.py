@@ -139,10 +139,10 @@ async def wallet(message):
         
         # result = await ccxtOnline.fetch_balance(coin=coin_ballance)
         result = await ccxtOnline.fetch_balance({"coin" : coin_ballance})
-        print(json.dumps(result, indent=2))
+        # print(json.dumps(result, indent=2))
         
         positions =  await ccxtOnline.fetch_positions()
-        # print(json.dumps(positions, indent=2))
+        print(json.dumps(positions, indent=2))
 
         # await ccxtOnline.close()
 
