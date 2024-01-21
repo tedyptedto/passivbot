@@ -201,15 +201,25 @@ for strat_dir in tqdm(strats_dirs):
         sharpe_ratio_long = data['result']['sharpe_ratio_long']
         symbol = data['symbol']
 
+        # if sharpe_ratio_long is not None and symbol is not None:
+        #     if symbol not in meilleur_sharpe_ratio or meilleur_sharpe_ratio[symbol]['sharpe_ratio'] < sharpe_ratio_long:
+        #         meilleur_sharpe_ratio[symbol] = {
+        #                                             'sharpe_ratio': sharpe_ratio_long, 
+        #                                             'strat': object['strat'],
+        #                                             'final_equity_long': data['result']['final_equity_long']
+        #                                             }
+
         if sharpe_ratio_long is not None and symbol is not None:
-            if symbol not in meilleur_sharpe_ratio or meilleur_sharpe_ratio[symbol]['sharpe_ratio'] < sharpe_ratio_long:
-                meilleur_sharpe_ratio[symbol] = {
+            if symbol not in meilleur_sharpe_ratio:
+                meilleur_sharpe_ratio[symbol] = []
+
+            # Ajouter le résultat actuel à la liste des 10 meilleurs
+            meilleur_sharpe_ratio[symbol].append({
                                                     'sharpe_ratio': sharpe_ratio_long, 
                                                     'strat': object['strat'],
                                                     'final_equity_long': data['result']['final_equity_long']
-                                                    }
+                                                    })
 
-    
     if nb_coins > 0:
         object['avg_hrs_stuck_avg']   = object['avg_hrs_stuck_avg'] / nb_coins
         object['avg_max_stuck']   = object['avg_max_stuck'] / nb_coins
@@ -316,8 +326,14 @@ print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 # print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
 # Affichage des meilleurs sharpe_ratio_long pour chaque symbol à la fin
-for symbol, info in sorted(meilleur_sharpe_ratio.items(), key=lambda x: x[1]['sharpe_ratio'], reverse=True):
-    print("[{}] {:<10}, Best Sharpe_ratio_long : {:20.8f} Final equity : {:20.0f}$ [{}]".format(info['strat'], symbol, info['sharpe_ratio'], info['final_equity_long'], info['strat']))
+# d'abord on tri le tableau
+for symbol in meilleur_sharpe_ratio:
+    meilleur_sharpe_ratio[symbol] = sorted(meilleur_sharpe_ratio[symbol], key=lambda x: x['sharpe_ratio'], reverse=True)[:10]
+
+for symbol, results in meilleur_sharpe_ratio.items():
+    print(f"{symbol} Top 10 sharpe ratios :")
+    for info in results:
+        print("[{}] {:<10}, Best Sharpe_ratio_long : {:20.8f} Final equity : {:20.0f}$ [{}]".format(info['strat'], symbol, info['sharpe_ratio'], info['final_equity_long'], info['strat']))
 
 
 # df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
