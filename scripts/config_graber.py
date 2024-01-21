@@ -17,6 +17,7 @@ zip_files = [
             {'Name': 'NaiMul', 'url': 'https://github.com/Nai-mul/passivbot_configs/archive/refs/heads/main.zip'}, 
             {'Name': 'RustyCZ', 'url': 'https://github.com/RustyCZ/pb-configs/archive/refs/heads/main.zip'}, 
             {'Name': 'jnkxnxx', 'url': 'https://github.com/jnkxnxx/pb-configs/archive/refs/heads/main.zip'}, 
+            {'Name': 'Sephral', 'url': 'https://github.com/Sephral/myPbConfigs/archive/refs/heads/main.zip'}, 
         
 ]
 
