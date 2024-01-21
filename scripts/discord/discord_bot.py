@@ -114,6 +114,11 @@ class MyClient(discord.Client):
                 message.content = "!p tedy2"
                 await positions(message)
 
+                message.content = "!w tedy3"
+                await wallet(message)
+                message.content = "!p tedy3"
+                await positions(message)
+
                 message.content = "!w sawyer"
                 await wallet(message)
                 message.content = "!p sawyer"
@@ -153,6 +158,11 @@ async def show_wallet(Test=False):
 
         c = client.get_channel(get_channel_id("passivbot"))  
         data = {'content': "!w tedy2 from_auto_bot_x15", 'channel': c}
+        message = Struct(**data)
+        await wallet(message)
+
+        c = client.get_channel(get_channel_id("passivbot"))  
+        data = {'content': "!w tedy3 from_auto_bot_x15", 'channel': c}
         message = Struct(**data)
         await wallet(message)
 
