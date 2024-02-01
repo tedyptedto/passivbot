@@ -26,7 +26,7 @@ def format_float(num):
 
 
 def compress_float(n: float, d: int) -> str:
-    if n / 10 ** d >= 1:
+    if n / 10**d >= 1:
         n = round(n)
     else:
         n = round_dynamic(n, d)
@@ -817,20 +817,14 @@ def analyze_fills_slim(fills_long: list, fills_short: list, stats: list, config:
 
     ms_diffs_long = longs.timestamp.diff()
     ms_diffs_short = shorts.timestamp.diff()
-    hrs_stuck_max_long = (
-        max(
-            ms_diffs_long.max(),
-            (sdf.iloc[-1].timestamp - longs.iloc[-1].timestamp if len(longs) > 0 else 0.0),
-        )
-        / (1000.0 * 60 * 60)
-    )
-    hrs_stuck_max_short = (
-        max(
-            ms_diffs_short.max(),
-            (sdf.iloc[-1].timestamp - shorts.iloc[-1].timestamp if len(shorts) > 0 else 0.0),
-        )
-        / (1000.0 * 60 * 60)
-    )
+    hrs_stuck_max_long = max(
+        ms_diffs_long.max(),
+        (sdf.iloc[-1].timestamp - longs.iloc[-1].timestamp if len(longs) > 0 else 0.0),
+    ) / (1000.0 * 60 * 60)
+    hrs_stuck_max_short = max(
+        ms_diffs_short.max(),
+        (sdf.iloc[-1].timestamp - shorts.iloc[-1].timestamp if len(shorts) > 0 else 0.0),
+    ) / (1000.0 * 60 * 60)
 
     profit_sum_long = longs[longs.pnl > 0.0].pnl.sum()
     loss_sum_long = longs[longs.pnl < 0.0].pnl.sum()
@@ -1638,9 +1632,9 @@ def calc_scores(config: dict, results: dict):
                     val = results[sym][key_side]
                 individual_vals[side][sym][key] = val
                 if higher_is_better:
-                    individual_scores[side][sym] += val * (10 ** i)
+                    individual_scores[side][sym] += val * (10**i)
                 else:
-                    individual_scores[side][sym] -= val * (10 ** i)
+                    individual_scores[side][sym] -= val * (10**i)
             individual_scores[side][sym] *= -1
         raws[side] = {
             key: np.mean([individual_raws[side][sym][key] for sym in results]) for key, _ in keys
@@ -1660,9 +1654,9 @@ def calc_scores(config: dict, results: dict):
         }
         for i, (key, higher_is_better) in enumerate(keys):
             if higher_is_better:
-                scores[side] += means[side][key] * (10 ** i)
+                scores[side] += means[side][key] * (10**i)
             else:
-                scores[side] -= means[side][key] * (10 ** i)
+                scores[side] -= means[side][key] * (10**i)
         scores[side] *= -1
     return {
         "scores": scores,
@@ -1847,7 +1841,15 @@ def analyze_fills_multi(sdf, fdf, params):
     final_equity = sdf.iloc[-1].equity
     daily_samples = sdf.groupby(sdf.index // (60 * 24)).last()
     daily_gains = daily_samples.equity.pct_change().dropna()
-    adg = daily_gains.mean()
+    n_days = (sdf.index[-1] - sdf.index[0]) / 60 / 24
+
+    eq_threshold = starting_balance * 1e-4
+    if daily_samples.equity.iloc[-1] <= eq_threshold:
+        # ensure adg is negative if final equity is low
+        adg = (max(eq_threshold, final_equity) / starting_balance) ** (1 / n_days) - 1
+    else:
+        adg = daily_gains.mean()
+
     adg_weighted = np.mean(
         [
             daily_gains.iloc[round(int(len(daily_gains) * (1 - 1 / (i + 1)))) :].mean()
@@ -1892,7 +1894,6 @@ def analyze_fills_multi(sdf, fdf, params):
 
     adg_short = sdf_daily.equity_short.pct_change().mean()
 
-    n_days = (sdf.index[-1] - sdf.index[0]) / 60 / 24
     pnl_sum = pnl_sum_total = fdf.pnl.sum()
 
     pnl_long = longs.pnl.sum()
@@ -1907,8 +1908,9 @@ def analyze_fills_multi(sdf, fdf, params):
     )
 
     minute_mult = 60 * 24
-    drawdowns = calc_drawdowns(sdf.equity)
+    drawdowns = calc_drawdowns(pd.concat([fdf.equity, sdf.equity]).sort_index())
     drawdowns_daily = drawdowns.groupby(drawdowns.index // minute_mult * minute_mult).min()
+    drawdowns_mean = abs(drawdowns_daily.mean())
     drawdowns_ten_worst = drawdowns_daily.sort_values().iloc[:10]
     drawdown_max = drawdowns.abs().max()
     mean_of_10_worst_drawdowns = drawdowns_ten_worst.abs().mean()
@@ -1930,7 +1932,8 @@ def analyze_fills_multi(sdf, fdf, params):
         "final_balance": final_balance,
         "final_equity": final_equity,
         "drawdown_max": drawdown_max,
-        "mean_of_10_worst_drawdowns": mean_of_10_worst_drawdowns,
+        "drawdown_mean_daily_10_worst": mean_of_10_worst_drawdowns,
+        "drawdown_mean_daily": drawdowns_mean,
         "adg": adg,
         "adg_weighted": adg_weighted,
         "adg_long": adg_long,
@@ -2022,24 +2025,44 @@ def multi_replace(input_data, replacements: [(str, str)]):
 
 def live_config_dict_to_list_recursive_grid(live_config: dict) -> list:
     keys = [
-        "auto_unstuck_delay_minutes",
-        "auto_unstuck_ema_dist",
-        "auto_unstuck_qty_pct",
-        "auto_unstuck_wallet_exposure_threshold",
-        "backwards_tp",
-        "ddown_factor",
-        "ema_span_0",
-        "ema_span_1",
-        "enabled",
-        "initial_eprice_ema_dist",
-        "initial_qty_pct",
-        "markup_range",
-        "min_markup",
-        "n_close_orders",
-        "rentry_pprice_dist",
-        "rentry_pprice_dist_wallet_exposure_weighting",
-        "wallet_exposure_limit",
+        ("auto_unstuck_delay_minutes", 0.0),
+        ("auto_unstuck_ema_dist", 0.0),
+        ("auto_unstuck_qty_pct", 0.0),
+        ("auto_unstuck_wallet_exposure_threshold", 0.0),
+        ("backwards_tp", 1.0),
+        ("ddown_factor", None),
+        ("ema_span_0", None),
+        ("ema_span_1", None),
+        ("enabled", 1.0),
+        ("initial_eprice_ema_dist", None),
+        ("initial_qty_pct", None),
+        ("markup_range", None),
+        ("min_markup", None),
+        ("n_close_orders", None),
+        ("rentry_pprice_dist", None),
+        ("rentry_pprice_dist_wallet_exposure_weighting", None),
+        ("wallet_exposure_limit", 1.0),
     ]
-    return numpyize(
-        [(float(live_config["long"][key]), float(live_config["short"][key])) for key in keys]
-    )
+    tuples = []
+    for key, default in keys:
+        tpl = {}
+        for pside in ["long", "short"]:
+            if key in live_config[pside]:
+                tpl[pside] = live_config[pside][key]
+            else:
+                if default is None:
+                    raise Exception(f"necessary key missing from live config: {key}")
+                tpl[pside] = default
+        tuples.append((float(tpl["long"]), float(tpl["short"])))
+    return numpyize(tuples)
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise Exception("Boolean value expected.")

@@ -58,6 +58,8 @@ class BybitBot(Bot):
             print_async_exception(info)
             if info is None:
                 info = {"info": await self.cc.fetch_markets(), "dump_ts": utc_ms()}
+                json.dump(info, open(fname, "w"))
+                logging.info("dumped market info to cache")
         return info["info"]
 
     async def _init(self):
@@ -187,7 +189,7 @@ class BybitBot(Bot):
                 params={
                     "positionIdx": 1 if order["position_side"] == "long" else 2,
                     "timeInForce": "postOnly",
-                    "orderLinkId": order["custom_id"] + str(uuid4()),
+                    "orderLinkId": (order["custom_id"] + str(uuid4()))[:45],
                 },
             )
             if "symbol" not in executed or executed["symbol"] is None:

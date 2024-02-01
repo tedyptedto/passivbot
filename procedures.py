@@ -6,6 +6,8 @@ import asyncio
 from datetime import datetime
 from time import time
 import numpy as np
+import pprint
+
 
 try:
     import hjson
@@ -641,6 +643,47 @@ def load_ccxt_version():
         return None
 
 
+def fetch_market_specific_settings_multi(symbols=None, exchange="binance"):
+    import ccxt
+
+    ccxt_version_req = load_ccxt_version()
+    assert (
+        ccxt.__version__ == ccxt_version_req
+    ), f"Currently ccxt {ccxt.__version__} is installed. Please pip reinstall requirements.txt or install ccxt v{ccxt_version_req} manually"
+    exchange_map = {
+        # "kucoin": "kucoinfutures",
+        # "okx": "okx",
+        "bybit": "bybit",
+        "binance": "binanceusdm",
+        # "bitget": "bitget",
+        # "bingx": "bingx",
+    }
+    cc = getattr(ccxt, exchange_map[exchange])()
+    info = cc.load_markets()
+    for symbol in info:
+        if exchange == "binance":
+            for felm in info[symbol]["info"]["filters"]:
+                if felm["filterType"] == "PRICE_FILTER":
+                    info[symbol]["price_step"] = float(felm["tickSize"])
+                elif felm["filterType"] == "MARKET_LOT_SIZE":
+                    info[symbol]["qty_step"] = float(felm["stepSize"])
+            info[symbol]["c_mult"] = info[symbol]["contractSize"]
+            info[symbol]["min_cost"] = info[symbol]["limits"]["cost"]["min"]
+            info[symbol]["min_qty"] = info[symbol]["limits"]["amount"]["min"]
+        elif exchange == "bybit":
+            info[symbol]["price_step"] = info[symbol]["precision"]["price"]
+            info[symbol]["qty_step"] = info[symbol]["precision"]["amount"]
+            info[symbol]["c_mult"] = info[symbol]["contractSize"]
+            info[symbol]["min_cost"] = 0.0
+            info[symbol]["min_qty"] = info[symbol]["limits"]["amount"]["min"]
+            # ccxt reports incorrect fees for bybit perps
+            info[symbol]["maker"] = info[symbol]["maker_fee"] = 0.0002
+            info[symbol]["taker"] = info[symbol]["taker_fee"] = 0.00055
+    for symbol in sorted(info):
+        info[info[symbol]["id"]] = info[symbol]
+    return info if symbols is None else {symbol: info[symbol] for symbol in symbols}
+
+
 def fetch_market_specific_settings(config: dict):
     import ccxt
 
@@ -732,18 +775,20 @@ def fetch_market_specific_settings(config: dict):
     elif exchange == "bybit":
         cc = ccxt.bybit()
         markets = cc.fetch_markets()
+        spot = market_type == "spot"
         for elm in markets:
-            if elm["id"] == symbol and not elm["spot"]:
+            if elm["id"] == symbol and elm["spot"] == spot:
                 break
         else:
             raise Exception(f"unknown symbol {symbol}")
-        settings_from_exchange["hedge_mode"] = True
-        settings_from_exchange["maker_fee"] = 0.0001
-        settings_from_exchange["taker_fee"] = 0.0006
+        settings_from_exchange["hedge_mode"] = not spot
+        # ccxt reports incorrect fees for bybit perps
+        settings_from_exchange["maker_fee"] = 0.0002 if not spot else elm["maker"]
+        settings_from_exchange["taker_fee"] = 0.00055 if not spot else elm["taker"]
         settings_from_exchange["c_mult"] = 1.0 if elm["contractSize"] is None else elm["contractSize"]
         settings_from_exchange["qty_step"] = elm["precision"]["amount"]
         settings_from_exchange["price_step"] = elm["precision"]["price"]
-        settings_from_exchange["spot"] = False
+        settings_from_exchange["spot"] = spot
         settings_from_exchange["inverse"] = elm["linear"] is not None and not elm["linear"]
         settings_from_exchange["min_qty"] = elm["limits"]["amount"]["min"]
     elif exchange == "kucoin":
@@ -791,7 +836,11 @@ def fetch_market_specific_settings(config: dict):
     return sort_dict_keys(settings_from_exchange)
 
 
-if __name__ == "__main__":
+def main():
+    cfg = {"exchange": "bybit", "symbol": "DOGEUSDT", "market_type": "spot"}
+    mss = fetch_market_specific_settings(cfg)
+    pprint.pprint(mss)
+    return
     for exchange in ["kucoin", "bitget", "binance", "bybit", "okx", "bingx"]:
         cfg = {"exchange": exchange, "symbol": "DOGEUSDT", "market_type": "futures"}
         try:
@@ -799,3 +848,7 @@ if __name__ == "__main__":
             print(mss)
         except:
             traceback.print_exc()
+
+
+if __name__ == "__main__":
+    main()

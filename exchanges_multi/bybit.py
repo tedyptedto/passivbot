@@ -32,35 +32,7 @@ class BybitBot(Passivbot):
         self.max_n_creations_per_batch = 12
 
     async def init_bot(self):
-        # require symbols to be formatted to ccxt standard COIN/USDT:USDT
-        self.markets = await self.cca.fetch_markets()
-        self.markets_dict = {elm["symbol"]: elm for elm in self.markets}
-        self.symbols = {}
-        for symbol_ in sorted(set(self.config["symbols"])):
-            symbol = symbol_
-            if not symbol.endswith("/USDT:USDT"):
-                coin_extracted = multi_replace(
-                    symbol_, [("/", ""), (":", ""), ("USDT", ""), ("BUSD", ""), ("USDC", "")]
-                )
-                symbol_reformatted = coin_extracted + "/USDT:USDT"
-                logging.info(
-                    f"symbol {symbol_} is wrongly formatted. Trying to reformat to {symbol_reformatted}"
-                )
-                symbol = symbol_reformatted
-            if symbol not in self.markets_dict:
-                logging.info(f"{symbol} missing from {self.exchange}")
-            else:
-                elm = self.markets_dict[symbol]
-                if elm["type"] != "swap":
-                    logging.info(f"wrong market type for {symbol}: {elm['type']}")
-                elif not elm["active"]:
-                    logging.info(f"{symbol} not active")
-                elif not elm["linear"]:
-                    logging.info(f"{symbol} is not a linear market")
-                else:
-                    self.symbols[symbol] = self.config["symbols"][symbol_]
-        self.quote = "USDT"
-        self.inverse = False
+        await self.init_symbols()
         for symbol in self.symbols:
             elm = self.markets_dict[symbol]
             self.symbol_ids[symbol] = elm["id"]
@@ -375,7 +347,7 @@ class BybitBot(Passivbot):
                 params={
                     "positionIdx": 1 if order["position_side"] == "long" else 2,
                     "timeInForce": "postOnly",
-                    "orderLinkId": order["custom_id"] + str(uuid4()),
+                    "orderLinkId": (order["custom_id"] + str(uuid4()))[:45],
                 },
             )
             if "symbol" not in executed or executed["symbol"] is None:
@@ -394,4 +366,48 @@ class BybitBot(Passivbot):
         return await self.execute_multiple(orders, "execute_order", self.max_n_creations_per_batch)
 
     async def update_exchange_config(self):
-        pass
+        try:
+            res = await self.cca.set_position_mode(True)
+            logging.info(f"set hedge mode {res}")
+        except Exception as e:
+            logging.error(f"error setting hedge mode {e}")
+
+        coros_to_call_lev, coros_to_call_margin_mode = {}, {}
+        for symbol in self.symbols:
+            try:
+                coros_to_call_margin_mode[symbol] = asyncio.create_task(
+                    self.cca.set_margin_mode(
+                        "cross",
+                        symbol=symbol,
+                        params={"leverage": int(self.live_configs[symbol]["leverage"])},
+                    )
+                )
+            except Exception as e:
+                logging.error(f"{symbol}: error setting cross mode {e}")
+            try:
+                coros_to_call_lev[symbol] = asyncio.create_task(
+                    self.cca.set_leverage(int(self.live_configs[symbol]["leverage"]), symbol=symbol)
+                )
+            except Exception as e:
+                logging.error(f"{symbol}: a error setting leverage {e}")
+        for symbol in self.symbols:
+            res = None
+            to_print = ""
+            try:
+                res = await coros_to_call_lev[symbol]
+                to_print += f" set leverage {res} "
+            except Exception as e:
+                if '"retCode":110043' in e.args[0]:
+                    to_print += f" leverage: {e}"
+                else:
+                    logging.error(f"{symbol} error setting leverage {e}")
+            try:
+                res = await coros_to_call_margin_mode[symbol]
+                to_print += f"set cross mode {res}"
+            except Exception as e:
+                if '"retCode":110026' in e.args[0]:
+                    to_print += f" set cross mode: {res} {e}"
+                else:
+                    logging.error(f"{symbol} error setting cross mode {res} {e}")
+            if to_print:
+                logging.info(f"{symbol}: {to_print}")
