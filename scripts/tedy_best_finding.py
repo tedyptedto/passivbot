@@ -1,5 +1,6 @@
 import glob
 import os
+import sys
 import subprocess
 import json
 import pandas as pd
@@ -11,10 +12,27 @@ from tqdm import tqdm
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 import platform
+import shutil
+
 
 limit_for_test = False
 # limit_for_test = True
 
+standAloneIdentify = "standalone.identify"
+
+isStandAloneStrats = os.path.exists(os.path.dirname(os.path.abspath(sys.argv[0])) + "/" + standAloneIdentify)
+
+
+
+if isStandAloneStrats:
+    dir_base = "./"
+else:
+    dir_base = "../configs/live/PBSO/BT_UNIFORMISED/"
+    
+# Vérification que dir_base est bien un répertoire
+if not os.path.isdir(dir_base):
+    print("Directory not exist")
+    exit()
 
 def open_directory(directory_path):
     if platform.system() == 'Linux':  # Linux/macOS
@@ -52,31 +70,17 @@ def parcourir_et_afficher_sharpe_ratio_long(repertoire):
     for sharpe_ratio, data in resultats_tries:
         print("sharpe_ratio_long : {:<10} : {:20.8f} [final_equity : {:20.8f}]".format(data['coin'], sharpe_ratio, data['final_equity_long']))
 
-# loop on all strategy
 
-
-# ../configs/live/PBSO/BT_UNIFORMISED/bt_2020-01-01_2022-10-13_1000_1_XRPUSDT_LTCUSDT_ADAUSDT_DOTUSDT_UNIUSDT_DOGEUSDT_MATICUSDT_BNBUSDT_SOLUSDT_TRXUSDT_AVAXUSDT_USDCUSDT/
-
-# dir_name = 'FILLED_AFTER'
-dir_base = "../configs/live/PBSO/BT_UNIFORMISED/"
-
-# repertoire_actuel = os.getcwd()
-# print("Le répertoire actuel est :", repertoire_actuel)
-# exit()
-
-# Vérification que dir_base est bien un répertoire
-if not os.path.isdir(dir_base):
-    dir_base = "./"
 
 while True:
-    print(f"Liste des répertoires dans {dir_base} :")
+    print(f"List of directories in {dir_base} :")
     repertoires = [d for d in os.listdir(dir_base) if os.path.isdir(os.path.join(dir_base, d))]
 
     for index, repertoire in enumerate(repertoires, start=1):
         print(f"{index}. {repertoire}")
 
     if len(repertoires) > 1:
-        choix = input("Veuillez choisir un répertoire en entrant le numéro correspondant : ")
+        choix = input("Please choose a directory : ")
     else:
         choix = 1
     try:
@@ -84,12 +88,12 @@ while True:
         if 1 <= choix <= len(repertoires):
             base_dir = os.path.join(dir_base, repertoires[choix - 1])
             # Réalisez vos traitements avec le nouveau chemin sélectionné (base_dir)
-            print(f"Vous avez choisi : {base_dir}")
+            print(f"You choose : {base_dir}")
             break  # Sortir de la boucle une fois que le choix est valide
         else:
-            print("Choix invalide.")
+            print("Bad choice.")
     except ValueError:
-        print("Veuillez entrer un numéro valide.")
+        print("Please enter a valid number.")
 
 
 # base_dir = os.path.realpath(dir_base + "BT_UNIFORMISED/" + dir_name + "/")
@@ -147,7 +151,7 @@ for strat_dir in tqdm(strats_dirs):
     nb_coins = len(results_file)
 
     compteur = compteur + 1
-    if (compteur > 100) and (limit_for_test):
+    if (compteur > 30) and (limit_for_test):
         break
 
     is_first = True
@@ -201,13 +205,6 @@ for strat_dir in tqdm(strats_dirs):
         sharpe_ratio_long = data['result']['sharpe_ratio_long']
         symbol = data['symbol']
 
-        # if sharpe_ratio_long is not None and symbol is not None:
-        #     if symbol not in meilleur_sharpe_ratio or meilleur_sharpe_ratio[symbol]['sharpe_ratio'] < sharpe_ratio_long:
-        #         meilleur_sharpe_ratio[symbol] = {
-        #                                             'sharpe_ratio': sharpe_ratio_long, 
-        #                                             'strat': object['strat'],
-        #                                             'final_equity_long': data['result']['final_equity_long']
-        #                                             }
 
         if sharpe_ratio_long is not None and symbol is not None:
             if symbol not in meilleur_sharpe_ratio:
@@ -235,40 +232,9 @@ for strat_dir in tqdm(strats_dirs):
 
 df = pd.DataFrame(array_info)
 
-# df['s_loss']     = int(df['s_loss'])       
-# df['ratio_loss']     = abs(df['s_loss']) / df['s_f_equ_long']       
-# df['ratio_dist'] = df['s_f_equ_long'] / df['s_gain']       
-# df['krishn_ratio'] = df['s_f_equ_long'] * df['low_equ_bal']       
+df_cleaned = df.drop(columns=['gs', 'au', 'we_ratio', 's_k', 'Path', 'l_we', 'pa_dist_mean_long'])
 
-df['valid_for_me'] = (  True
-                        # (df['ratio_loss'] < 0.20) 
-                        # & 
-                        # (df['ratio_dist'] < 0.70) 
-                        # & 
-                        # (df['low_equ_bal'] > 4)
-                        # &
-                        # (df['low_equ_bal'] > 6)
-                        # &
-                        # (df['sum_final_equity_long'] > 0)
-                        # &
-                        # (df['gridspan'] >= 20)
-                        # &
-                        # # &
-                        # # (df['sum_final_equity_long'] > 20000)
-                        # &
-                        # (df['pa_distance_mean_long'] < 5)
-                        # &
-                        # (df['pa_distance_mean_long'] < 0.20)
-                        # &
-                        # (df['au'] == True)
-                        )
-#(df['Lowest equity/balance ratio'] > 6) #& (df['pa_distance_mean_long'] < 1)
-# df['valid_for_me'] = True
-
-df = df[df.valid_for_me == True]
-
-df_cleaned = df.drop(columns=['valid_for_me', 'gs', 'au', 'we_ratio', 's_k', 'Path', 'l_we', 'pa_dist_mean_long'])
-
+arrayBestStratNames = []
 
 # print("---------------------")
 # print("Top 20 : Sorted by pa_distance_max_long")
@@ -299,18 +265,22 @@ print("Top 20 : Sorted by s_f_balance")
 df_cleaned.sort_values(by=[ 's_f_balance', 's_f_equ_long'], ascending=[False, False], inplace=True)
 df1 = df_cleaned.head(20)
 print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
+arrayBestStratNames.extend(df1['strat'].tolist())
 
 print("---------------------")
 print("Top 20 : Sorted by s_f_equ_long")
 df_cleaned.sort_values(by=[ 's_f_equ_long', 's_f_balance'], ascending=[False, False], inplace=True)
 df2 = df_cleaned.head(20)
 print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
+arrayBestStratNames.extend(df2['strat'].tolist())
 
 print("---------------------")
 print("Top 20 : Sharpe ratio")
 df_cleaned.sort_values(by=[ 'sharpe'], ascending=[False], inplace=True)
 df3 = df_cleaned.head(20)
 print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
+arrayBestStratNames.extend(df3['strat'].tolist())
+
 
 # print("---------------------")
 # print("Top 20 : Sorted by adg_exposure")
@@ -325,8 +295,10 @@ print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt="
 # s1.sort_values(by=[ 'adg_exposure_x'], ascending=[False], inplace=True)
 # print(tabulate(s1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
+########################################################################
 # Affichage des meilleurs sharpe_ratio_long pour chaque symbol à la fin
 # d'abord on tri le tableau
+########################################################################
 for symbol in meilleur_sharpe_ratio:
     meilleur_sharpe_ratio[symbol] = sorted(meilleur_sharpe_ratio[symbol], key=lambda x: x['sharpe_ratio'], reverse=True)[:10]
 
@@ -334,15 +306,47 @@ for symbol, results in meilleur_sharpe_ratio.items():
     print(f"{symbol} Top 10 sharpe ratios :")
     for info in results:
         print("[{}] {:<10}, Best Sharpe_ratio_long : {:20.8f} Final equity : {:20.0f}$ [{}]".format(info['strat'], symbol, info['sharpe_ratio'], info['final_equity_long'], info['strat']))
+        arrayBestStratNames.append(info['strat'])
 
 
-# df.to_csv(dir_base + 'tedy_best_finding_' + dir_name + '.csv') 
-
+# convert strat to string
 df['strat'] = df['strat'].astype(str)
-
-# df_combined = pd.concat([df1, df2, df3], ignore_index=True)
-# df_filtre = df[df['strat'].isin(df_combined['strat'])]
 df_filtre = df
+
+
+if not isStandAloneStrats:
+    # Génération du répertoire pour ensuite qu'il soit publié sur GitHub
+    print("Copy the best strategies to an isolated directory")
+
+    firstTimeOfTheLoop = True
+
+    for selected_strategy in arrayBestStratNames:
+        path = df_filtre.loc[df_filtre['strat'] == selected_strategy, 'Path'].values[0]
+        repertoire_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(path)))))
+        repertoire_name = os.path.basename(repertoire_parent)
+
+        backtestName = os.path.basename(os.path.dirname(repertoire_parent))
+        isolatedDir = os.environ.get('HOME') + "/" + backtestName
+
+        if (firstTimeOfTheLoop) and os.path.isdir(isolatedDir):
+            print("Directory already exist, deleting...")
+            shutil.rmtree(isolatedDir)
+            print("Ok go back to copy")
+
+        if not os.path.isdir(isolatedDir):
+            os.mkdir(isolatedDir)
+
+        shutil.copytree(repertoire_parent, isolatedDir + "/strats/" + repertoire_name, dirs_exist_ok=True)
+
+        firstTimeOfTheLoop = False
+
+    shutil.copy(os.path.abspath(sys.argv[0]), isolatedDir)
+    open(isolatedDir + "/" + standAloneIdentify, 'a').close()
+
+    print("Copy done : " + isolatedDir)
+
+
+
 
 try:
     while True:
