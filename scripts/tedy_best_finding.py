@@ -353,6 +353,13 @@ if not isStandAloneStrats:
     open(isolatedDir + "/" + standAloneIdentify, 'a').close()
 
     print("Copy done : " + isolatedDir)
+    print("Add to git (create repo first on github) :")
+    print("git init")
+    print("git add --all")
+    print("git commit -m \"strategies\"")
+    print("git branch -M main")
+    print("git remote add origin https://github.com/tedyptedto/XXXXXXXXXXXXXXXXXXXXXXXX.git")
+    print("git push -u origin main")
 
 
 
