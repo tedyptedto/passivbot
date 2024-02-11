@@ -17,6 +17,7 @@ import shutil
 
 limit_for_test = False
 # limit_for_test = True
+stratNbCaract = 10
 
 standAloneIdentify = "standalone.identify"
 
@@ -138,6 +139,8 @@ compteur = 0
 # Dictionnaire pour stocker le meilleur sharpe_ratio_long pour chaque symbol
 meilleur_sharpe_ratio = {}
 
+stratIdAleadySeen = []
+
 for strat_dir in tqdm(strats_dirs):
     # find all backtests
     # progress_strats_dirs = progress_strats_dirs +  1
@@ -162,7 +165,13 @@ for strat_dir in tqdm(strats_dirs):
         invert_we_ratio = 1 / data['long']['wallet_exposure_limit']
 
         if is_first:
-            object['strat'] = str(strat_name.replace('strat_','')[:5])
+            object['strat'] = str(strat_name.replace('strat_','')[:stratNbCaract])
+
+            if object['strat'] in stratIdAleadySeen:
+                print("Id already seen. Increase stratNbCarac. ERROR / PROBLEM : " + object['strat'])
+                exit()
+            stratIdAleadySeen.append(object['strat'])
+
             addTo(object, 'Path', result_file)
             addTo(object, 'au', (not (data['result']['n_unstuck_closes_long'] == 0)))
             is_first = False
