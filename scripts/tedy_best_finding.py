@@ -75,7 +75,8 @@ def parcourir_et_afficher_sharpe_ratio_long(repertoire):
 
 while True:
     print(f"List of directories in {dir_base} :")
-    repertoires = [d for d in os.listdir(dir_base) if os.path.isdir(os.path.join(dir_base, d))]
+    repertoires = [d for d in os.listdir(dir_base) if os.path.isdir(os.path.join(dir_base, d)) and d != ".git"]
+
 
     for index, repertoire in enumerate(repertoires, start=1):
         print(f"{index}. {repertoire}")
@@ -269,26 +270,32 @@ arrayBestStratNames = []
 # df1 = df.head(20)
 # print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".2f"))
 
+print("```")
 print("---------------------")
 print("Top 20 : Sorted by s_f_balance")
 df_cleaned.sort_values(by=[ 's_f_balance', 's_f_equ_long'], ascending=[False, False], inplace=True)
 df1 = df_cleaned.head(20)
 print(tabulate(df1, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 arrayBestStratNames.extend(df1['strat'].tolist())
+print("```")
 
+print("```")
 print("---------------------")
 print("Top 20 : Sorted by s_f_equ_long")
 df_cleaned.sort_values(by=[ 's_f_equ_long', 's_f_balance'], ascending=[False, False], inplace=True)
 df2 = df_cleaned.head(20)
 print(tabulate(df2, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 arrayBestStratNames.extend(df2['strat'].tolist())
+print("```")
 
+print("```")
 print("---------------------")
 print("Top 20 : Sharpe ratio")
 df_cleaned.sort_values(by=[ 'sharpe'], ascending=[False], inplace=True)
 df3 = df_cleaned.head(20)
 print(tabulate(df3, headers='keys', tablefmt='psql', showindex=False, floatfmt=".5f"))
 arrayBestStratNames.extend(df3['strat'].tolist())
+print("```")
 
 
 # print("---------------------")
@@ -312,10 +319,12 @@ for symbol in meilleur_sharpe_ratio:
     meilleur_sharpe_ratio[symbol] = sorted(meilleur_sharpe_ratio[symbol], key=lambda x: x['sharpe_ratio'], reverse=True)[:10]
 
 for symbol, results in meilleur_sharpe_ratio.items():
+    print("```")
     print(f"{symbol} Top 10 sharpe ratios :")
     for info in results:
         print("[{}] {:<10}, Best Sharpe_ratio_long : {:20.8f} Final equity : {:20.0f}$ [{}]".format(info['strat'], symbol, info['sharpe_ratio'], info['final_equity_long'], info['strat']))
         arrayBestStratNames.append(info['strat'])
+    print("```")
 
 
 # convert strat to string
@@ -374,7 +383,7 @@ try:
         strategy_completer = WordCompleter(strategies)
 
         # Demander à l'utilisateur quelle stratégie il souhaite voir
-        selected_strategy = prompt('Veuillez choisir une stratégie : ', completer=strategy_completer)
+        selected_strategy = prompt('Please choose a strategy : ', completer=strategy_completer)
         # print("\033[F\033[K", end="")  # Retour à la ligne et effacement
 
         # Vérifier si la stratégie choisie est présente dans le DataFrame
@@ -390,4 +399,4 @@ try:
                 parcourir_et_afficher_sharpe_ratio_long(repertoire_parent)
                 open_directory(repertoire_parent)
 except KeyboardInterrupt:
-    print("Interruption clavier détectée. Arrêt du programme.")
+    print("Keyboard Interruption. Stoping program.")
