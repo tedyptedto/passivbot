@@ -141,7 +141,7 @@ async def wallet(message):
         
         # result = await ccxtOnline.fetch_balance(coin=coin_ballance)
         result = await ccxtOnline.fetch_balance({"coin" : coin_ballance})
-        # print(json.dumps(result, indent=2))
+        print(json.dumps(result, indent=2))
         
         positions =  await ccxtOnline.fetch_positions()
         print(json.dumps(positions, indent=2))
@@ -158,11 +158,16 @@ async def wallet(message):
         #     return {'error' : 'bad ret_code'}
         # if result['ret_msg'] != "OK":
         #     return {'error' : 'bad ret_code'}
+            
+        totalEquity = float('%.4f'%(float(result["info"]["result"]["list"][0]["coin"][0]['equity'])))
+        if api_keys_user == 'bybit_tedySUB3': # unified account UTA
+            totalEquity = float('%.4f'%(float(result["info"]["result"]["list"][0]['totalEquity'])))
+
 
         # for coins in result['info']['result']['list']
         return {
                     'error'  : '',
-                    'equity' : float('%.4f'%(float(result["info"]["result"]["list"][0]["coin"][0]['equity']))),
+                    'equity' : totalEquity,
                     'cum_realised_pnl' : float('%.4f'%(float(result['info']['result']['list'][0]['coin'][0]['cumRealisedPnl']))),
                     'used_margin' : float('%.4f'%(result[coin_ballance]['used'])),
                     'total_position' : total_position
