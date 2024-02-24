@@ -1,0 +1,1 @@
+Strategy come from : /configs/tedyptedto/configs/live/a_57123_long_we_pro.json
