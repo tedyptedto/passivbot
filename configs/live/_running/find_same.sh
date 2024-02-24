@@ -18,3 +18,9 @@ for file in $files; do
     # Ajout d'un saut de ligne pour une meilleure lisibilité
     echo ""
 done
+echo -e '\a'
+sleep 1
+echo -e '\a'
+sleep 1
+echo -e '\a'
+sleep 1
