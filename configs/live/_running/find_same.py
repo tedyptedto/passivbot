@@ -52,16 +52,22 @@ def find_most_similar(original_file, directory):
     return most_similar_file, max_similarity
 
 
-def copy_files_to_original_directory(original_file, most_similar_file):
+def copy_files_to_original_directory(original_file, most_similar_file, directory):
     """
     Copy files from the directory of the most similar file to the original file's directory.
     """
-    original_directory = os.path.dirname(original_file)
-    similar_directory = os.path.dirname(most_similar_file)
-    destination_directory = os.path.join(original_directory, os.path.basename(original_file).split('.')[0])
-    
+    destination_directory = os.path.join(os.path.dirname(original_file), os.path.basename(original_file).split('.')[0])
+
+    # find the "strat_xxxx" directory
+    strat_xxxx = os.path.relpath(most_similar_file, directory).split(os.path.sep)[0]
+
+    source = os.path.join(directory, strat_xxxx)
+    destination = os.path.join(destination_directory, strat_xxxx)
+
+    print("Copy from :", source, " Copy To :", destination)
+
     # Copy the entire directory recursively
-    shutil.copytree(similar_directory, destination_directory, dirs_exist_ok=True)
+    shutil.copytree(source, destination, dirs_exist_ok=True)
 
 def play_notification_sound():
     os.system("echo -e '\a'")
@@ -74,6 +80,13 @@ def main():
 
     original_file = args.original_file
     directory = args.directory
+
+    most_similar_file = "../PBSO/BT_UNIFORMISED/bt_2020-01-01_2023-12-18_1000_1/strat_990c4457d6ba1577ea3076e5c99bbfc7/toto/_original_config.json"
+
+    copy_files_to_original_directory(original_file, most_similar_file, directory)
+
+
+    exit()
 
     most_similar_file, max_similarity = find_most_similar(original_file, directory)
 
