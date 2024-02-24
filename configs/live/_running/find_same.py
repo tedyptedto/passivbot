@@ -81,12 +81,6 @@ def main():
     original_file = args.original_file
     directory = args.directory
 
-    most_similar_file = "../PBSO/BT_UNIFORMISED/bt_2020-01-01_2023-12-18_1000_1/strat_990c4457d6ba1577ea3076e5c99bbfc7/toto/_original_config.json"
-
-    copy_files_to_original_directory(original_file, most_similar_file, directory)
-
-
-    exit()
 
     most_similar_file, max_similarity = find_most_similar(original_file, directory)
 
@@ -99,7 +93,7 @@ def main():
 
     # Copy files from the directory of the most similar file to the original file's directory
     print("\nFiles copying to the original directory.")
-    copy_files_to_original_directory(original_file, most_similar_file)
+    copy_files_to_original_directory(original_file, most_similar_file, directory)
 
     play_notification_sound()
     
