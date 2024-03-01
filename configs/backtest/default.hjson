@@ -6,7 +6,29 @@
   user: binance_tedy
   # force binance to get all data history  
 
-  symbol: SYMBOLUSDT
+  # symbols with data since earlier than 2021-05-01
+  symbols: [
+    "BTCUSDT", "ETHUSDT", "BCHUSDT", "XRPUSDT", "EOSUSDT",
+    "LTCUSDT", "TRXUSDT", "ETCUSDT", "LINKUSDT", "XLMUSDT",
+    "ADAUSDT", "XMRUSDT", "DASHUSDT", "ZECUSDT", "XTZUSDT",
+    "ATOMUSDT", "BNBUSDT", "ONTUSDT", "IOTAUSDT", "BATUSDT",
+    "VETUSDT", "NEOUSDT", "QTUMUSDT", "IOSTUSDT", "THETAUSDT",
+    "ALGOUSDT", "ZILUSDT", "KNCUSDT", "ZRXUSDT", "COMPUSDT",
+    "OMGUSDT", "DOGEUSDT", "SXPUSDT", "KAVAUSDT", "BANDUSDT",
+    "RLCUSDT", "WAVESUSDT", "MKRUSDT", "SNXUSDT", "DOTUSDT",
+    "DEFIUSDT", "YFIUSDT", "BALUSDT", "CRVUSDT", "TRBUSDT",
+    "RUNEUSDT", "SUSHIUSDT", "SOLUSDT", "EGLDUSDT", "ICXUSDT",
+    "STORJUSDT", "BLZUSDT", "UNIUSDT", "AVAXUSDT", "FTMUSDT",
+    "ENJUSDT", "FLMUSDT", "RENUSDT", "KSMUSDT", "NEARUSDT",
+    "AAVEUSDT", "FILUSDT", "LRCUSDT", "RSRUSDT", "MATICUSDT",
+    "OCEANUSDT", "BELUSDT", "CTKUSDT", "AXSUSDT", "ALPHAUSDT",
+    "ZENUSDT", "SKLUSDT", "GRTUSDT", "1INCHUSDT", "CHZUSDT",
+    "SANDUSDT", "ANKRUSDT", "LITUSDT", "UNFIUSDT", "REEFUSDT",
+    "RVNUSDT", "SFPUSDT", "XEMUSDT", "COTIUSDT", "CHRUSDT",
+    "MANAUSDT", "ALICEUSDT", "HBARUSDT", "ONEUSDT", "LINAUSDT",
+    "STMXUSDT", "DENTUSDT", "CELRUSDT", "HOTUSDT", "MTLUSDT",
+    "OGNUSDT", "NKNUSDT", "DGBUSDT",
+  ]
   latency_simulation_ms: 1000
 
   # specify starting balance in terms of margin token (i.e. usdt for usdt-m, coin for inverse coin-m)

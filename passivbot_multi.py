@@ -3,8 +3,6 @@ import os
 if "NOJIT" not in os.environ:
     os.environ["NOJIT"] = "true"
 
-
-import logging
 import traceback
 import argparse
 import asyncio
@@ -33,7 +31,22 @@ from njit_funcs import (
     calc_pnl_short,
 )
 from njit_multisymbol import calc_AU_allowance
-from pure_funcs import numpyize, filter_orders, multi_replace, shorten_custom_id
+from pure_funcs import (
+    numpyize,
+    filter_orders,
+    multi_replace,
+    shorten_custom_id,
+    determine_side_from_order_tuple,
+    str2bool,
+)
+
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
 
 
 class Passivbot:
@@ -79,11 +92,6 @@ class Passivbot:
         self.recent_fill = False
         self.execution_delay_millis = max(3000.0, self.config["execution_delay_seconds"] * 1000)
         self.force_update_age_millis = 60 * 1000  # force update once a minute
-        logging.basicConfig(
-            format="%(asctime)s %(levelname)-8s %(message)s",
-            level=logging.INFO,
-            datefmt="%Y-%m-%dT%H:%M:%S",
-        )
 
     async def init_bot(self):
         max_len_symbol = max([len(s) for s in self.symbols])
@@ -836,7 +844,24 @@ class Passivbot:
                 do_short = (
                     no_pos and self.live_configs[symbol]["short"]["enabled"]
                 ) or self.positions[symbol]["short"]["size"] != 0.0
-            if do_long:
+            if self.live_configs[symbol]["long"]["mode"] == "panic":
+                if self.positions[symbol]["long"]["size"] != 0.0:
+                    # if in panic mode, only one close order at current market price
+                    ideal_orders[symbol].append(
+                        (
+                            -abs(self.positions[symbol]["long"]["size"]),
+                            self.tickers[symbol]["ask"],
+                            "panic_close_long",
+                        )
+                    )
+                # otherwise, no orders
+            elif (
+                self.live_configs[symbol]["long"]["mode"] == "graceful_stop"
+                and self.positions[symbol]["long"]["size"] == 0.0
+            ):
+                # if graceful stop and no pos, don't open new pos
+                pass
+            elif do_long:
                 entries_long = calc_recursive_entries_long(
                     self.balance,
                     self.positions[symbol]["long"]["size"],
@@ -904,7 +929,23 @@ class Passivbot:
                     self.live_configs[symbol]["long"]["auto_unstuck_qty_pct"],
                 )
                 ideal_orders[symbol] += entries_long + closes_long
-            if do_short:
+            if self.live_configs[symbol]["short"]["mode"] == "panic":
+                if self.positions[symbol]["short"]["size"] != 0.0:
+                    # if in panic mode, only one close order at current market price
+                    ideal_orders[symbol].append(
+                        (
+                            abs(self.positions[symbol]["short"]["size"]),
+                            self.tickers[symbol]["bid"],
+                            "panic_close_short",
+                        )
+                    )
+            elif (
+                self.live_configs[symbol]["short"]["mode"] == "graceful_stop"
+                and self.positions[symbol]["short"]["size"] == 0.0
+            ):
+                # if graceful stop and no pos, don't open new pos
+                pass
+            elif do_short:
                 entries_short = calc_recursive_entries_short(
                     self.balance,
                     self.positions[symbol]["short"]["size"],
@@ -986,7 +1027,7 @@ class Passivbot:
             symbol: [
                 {
                     "symbol": symbol,
-                    "side": "buy" if x[0] > 0.0 else "sell",
+                    "side": determine_side_from_order_tuple(x),
                     "position_side": "long" if "long" in x[2] else "short",
                     "qty": abs(x[0]),
                     "price": x[1],
@@ -1019,31 +1060,6 @@ class Passivbot:
         keys = ("symbol", "side", "position_side", "qty", "price")
         to_cancel, to_create = [], []
         for symbol in actual_orders:
-            for pside in ["long", "short"]:
-                # remove orders according to operation mode [n, m, gs, p, t]
-                if self.live_configs[symbol][pside]["mode"] in ["graceful_stop", "panic"]:
-                    if self.positions[symbol][pside]["size"] == 0.0:
-                        # if no pos, don't open new pos
-                        ideal_orders[symbol] = [
-                            x for x in ideal_orders[symbol] if x["position_side"] != pside
-                        ]
-                    elif self.live_configs[symbol][pside]["mode"] == "panic":
-                        # if in panic mode, only one close order at current market price
-                        ideal_orders[symbol] = [
-                            x for x in ideal_orders[symbol] if x["position_side"] != pside
-                        ]
-                        ideal_orders[symbol].append(
-                            {
-                                "symbol": symbol,
-                                "side": "sell" if pside == "long" else "buy",
-                                "position_side": pside,
-                                "qty": abs(self.positions[symbol][pside]["size"])
-                                * (-1.0 if pside == "long" else 1.0),
-                                "price": self.tickers[symbol][("ask" if pside == "long" else "bid")],
-                                "reduce_only": True,
-                                "custom_id": f"panic_close_{pside}",
-                            }
-                        )
             to_cancel_, to_create_ = filter_orders(actual_orders[symbol], ideal_orders[symbol], keys)
             for pside in ["long", "short"]:
                 if self.live_configs[symbol][pside]["mode"] == "manual":
@@ -1170,12 +1186,47 @@ class Passivbot:
 async def main():
     parser = argparse.ArgumentParser(prog="passivbot", description="run passivbot")
     parser.add_argument("hjson_config_path", type=str, help="path to hjson passivbot meta config")
+    parser_items = [
+        ("s", "symbols", "symbols", str, ", comma separated (SYM1USDT,SYM2USDT,...)"),
+        ("le", "long_enabled", "long_enabled", str2bool, " (y/n or t/f)"),
+        ("se", "short_enabled", "short_enabled", str2bool, " (y/n or t/f)"),
+        ("tl", "total_wallet_exposure_long", "TWE_long", float, ""),
+        ("ts", "total_wallet_exposure_short", "TWE_short", float, ""),
+        ("u", "user", "user", str, ""),
+        ("lap", "loss_allowance_pct", "loss_allowance_pct", float, " (set to 0.0 to disable)"),
+        ("pml", "pnls_max_lookback_days", "pnls_max_lookback_days", float, ""),
+        ("st", "stuck_threshold", "stuck_threshold", float, ""),
+        ("ucp", "unstuck_close_pct", "unstuck_close_pct", float, ""),
+        ("eds", "execution_delay_seconds", "execution_delay_seconds", float, ""),
+        ("lcd", "live_configs_dir", "live_configs_dir", str, ""),
+        ("dcp", "default_config_path", "default_config_path", str, ""),
+        ("ag", "auto_gs", "auto_gs", str2bool, " enabled (y/n or t/f)"),
+    ]
+    for k0, k1, d, t, h in parser_items:
+        parser.add_argument(
+            *[f"-{k0}", f"--{k1}"] + ([f"--{k1.replace('_', '-')}"] if "_" in k1 else []),
+            type=t,
+            required=False,
+            dest=d,
+            default=None,
+            help=f"specify {k1}{h}, overriding value from live hjson config.",
+        )
     max_n_restarts_per_day = 5
     cooldown_secs = 60
     restarts = []
     while True:
         args = parser.parse_args()
         config = hjson.load(open(args.hjson_config_path))
+        for key in [x[2] for x in parser_items]:
+            if getattr(args, key) is not None:
+                if key == "symbols":
+                    old_value = sorted(set(config["symbols"]))
+                    new_value = sorted(set(args.symbols.split(",")))
+                else:
+                    old_value = config[key]
+                    new_value = getattr(args, key)
+                logging.info(f"changing {key}: {old_value} -> {new_value}")
+                config[key] = new_value
         user_info = load_user_info(config["user"])
         if user_info["exchange"] == "bybit":
             from exchanges_multi.bybit import BybitBot
