@@ -1,12 +1,8 @@
 #!/bin/bash
 current_pwd=`pwd`
-gs=' -gs '
-gs=''
-symbols=(XRPUSDT MATICUSDT DOGEUSDT )
-for i in "${symbols[@]}"
-do
-    :
-    echo "Running screen on $i"
-    screen -S "bybit_tedySUB1_$i" -dm bash -c "cd ${current_pwd}/;python3 passivbot.py $gs bybit_tedySUB1 $i  configs/live/_running/tedySUB1/a_tedyptedtoSUB1.json "
-done
+symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
+config="configs/live/_running/tedySUB1/a_tedyptedtoSUB1.json"
+i="bybit_tedySUB1_multi"
 
+echo "Running screen $i"
+screen -S "$i" -dm bash -c "cd ${current_pwd}/;python3 passivbot_multi.py -u bybit_tedy -s ${symbols} -dcp ${config} configs/live/_running/config.hjson"
