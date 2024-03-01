@@ -34,6 +34,10 @@ class BybitBot(Bot):
                 "apiKey": self.key,
                 "secret": self.secret,
                 "headers": {"referer": self.broker_code} if self.broker_code else {},
+                "options": {
+                    "adjustForTimeDifference": true,
+                    "recvWindow": 10000,
+                },
             }
         )
 
