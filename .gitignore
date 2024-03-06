@@ -382,3 +382,4 @@ scripts/talib
 scripts/discord/tmp/flow.png
 scripts/screener.py
 scripts/tmp/*.json
+caches/first_ohlcv_timestamps_binanceusdm.json
