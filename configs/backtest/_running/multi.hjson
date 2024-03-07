@@ -73,7 +73,7 @@
   live_configs_dir: ""
 
   // if symbol is missing from live_configs_map, default to this config
-  default_config_path: "configs/live/_running/pro/a_57123_long_we_pro.json"
+  default_config_path: "PATH_TO_REPLACE"
 
   # backtests path
   base_dir: backtests
