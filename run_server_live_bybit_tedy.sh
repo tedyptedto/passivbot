@@ -3,7 +3,7 @@ current_pwd=`pwd`
 symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
 config="configs/live/_running/tedy/a_57123_long_we_1.json"
 i="bybit_tedy_multi"
-twe_long="3"
+twe_long="2.3"
 bbuser="bybit_tedy"
 
 echo "Running screen $i"
