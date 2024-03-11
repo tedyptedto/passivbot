@@ -7,7 +7,8 @@ channel_list = {
                 "passivbot" : 926406999107846245, 
                 "test" : 955193076668829696, 
                 "onlyupx3" : 910612726081024010, 
-                "tedybot" : 956956942633414817 
+                "tedybot" : 956956942633414817, 
+                "monitoring" : 1216851439863992441, 
 }
 
 def get_channel_id(channel_code):

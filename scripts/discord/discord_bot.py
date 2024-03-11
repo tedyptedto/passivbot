@@ -4,6 +4,8 @@ from actions.pumpdump import pumpdump
 # from actions.long_short import long_short
 # from actions.chart import chart
 from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
+from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
+from actions.coinMonitoring import coinMonitoring, coinMonitoringDiff
 from actions.positions import positions
 # from actions.flow import flow
 from functions.functions import get_channel_id, get_bot_commands_enabled_channels, send_slack_message
@@ -48,7 +50,7 @@ class MyClient(discord.Client):
         print('------')
 
         # Test part
-        #await show_wallet(Test=True)
+        # await show_wallet(Test=True)
         #send_slack_message('Start Running')
         
 
@@ -86,6 +88,12 @@ class MyClient(discord.Client):
 
             if a_message[0] == '!w':
                 await wallet(message)
+
+            if a_message[0] == '!m':
+                await coinMonitoring(message)
+
+            if a_message[0] == '!md_from_auto_bot_x15':
+                await coinMonitoringDiff(message)
 
             if a_message[0] == '!p':
                 await positions(message)
@@ -176,18 +184,25 @@ async def show_wallet(Test=False):
         message = Struct(**data)
         await wallet(message)
 
+        c = client.get_channel(get_channel_id("monitoring"))  
+        data = {'content': "!md_from_auto_bot_x15", 'channel': c}
+        message = Struct(**data)
+        await coinMonitoringDiff(message)
+
         # c = client.get_channel(get_channel_id("onlyupx3"))  
         # data = {'content': "!w jojo from_auto_bot_x15", 'channel': c}
         # message = Struct(**data)
         # await wallet(message)
+
+        sendAmountTedy()
         
     else:
-        c = client.get_channel(get_channel_id("test"))  
-        data = {'content': "!w tedy from_auto_bot_x15", 'channel': c}
+        c = client.get_channel(get_channel_id("monitoring"))  
+        data = {'content': "!md", 'channel': c}
         message = Struct(**data)
-        await wallet(message)
+        await coinMonitoringDiff(message)
 
-    sendAmountTedy()
+    
 
 
 #initializing scheduler
