@@ -198,7 +198,7 @@ async def show_wallet(Test=False):
         
     else:
         c = client.get_channel(get_channel_id("monitoring"))  
-        data = {'content': "!md", 'channel': c}
+        data = {'content': "!md_from_auto_bot_x15", 'channel': c}
         message = Struct(**data)
         await coinMonitoringDiff(message)
 
