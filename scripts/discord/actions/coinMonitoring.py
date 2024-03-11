@@ -39,10 +39,18 @@ def check_ichimoku_crossover(ticker, stock_data):
 
 def get_info_tickers():
     ticker_list = [
-                    "SGO.PA",
-                    "TEP.PA", "ALATA.PA", "ATEME.PA", "ATO.PA", "FDJ.PA", "ALCOG.PA", 
-                    "ALO.PA", "GTT.PA", "BTC-USD", "XRP-USD", "ETH-USD", "SUSHI-USD", "ADA-USD",
-                    "APT21794-USD", "TWT-USD", "FTM-USD", "LUNC-USD", "DOGE-USD", "XLM-USD", "ZIL-USD"
+                    "SGO.PA",       "ALO.PA",       "GTT.PA",
+                    "TEP.PA",       "ALATA.PA",     "ATEME.PA", 
+                    "ATO.PA",       "FDJ.PA",       "ALCOG.PA", 
+                    "BTC-USD", 
+                    "DOGE-USD",     "XLM-USD",      "SUSHI-USD", 
+                    "ADA-USD",      "APT21794-USD", 
+                    "TWT-USD",      "FTM-USD",
+                    "NEXO-USD",     "ETH-USD",
+                    "XRP-USD",      "MATIC-USD", 
+                    "CELR-USD",     "BCH-USD",      "AVAX-USD",
+                    "LTC-USD",      "BAT-USD",
+                    "ZIL-USD",      "LUNC-USD",
                     ]
     start_date = (pd.to_datetime('today') - pd.DateOffset(days=90)).strftime('%Y-%m-%d')
     end_date = pd.to_datetime('today').strftime('%Y-%m-%d')
