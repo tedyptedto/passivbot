@@ -40,7 +40,7 @@ def check_ichimoku_crossover(ticker, stock_data):
 def get_info_tickers():
     ticker_list = [
                     "SGO.PA",
-                    "TEP.PA", "ALATA.PA", "ATEME.PA", "ATO.PA", "FDJ.PA", "ATO.PA", "ALCOG.PA", 
+                    "TEP.PA", "ALATA.PA", "ATEME.PA", "ATO.PA", "FDJ.PA", "ALCOG.PA", 
                     "ALO.PA", "GTT.PA", "BTC-USD", "XRP-USD", "ETH-USD", "SUSHI-USD", "ADA-USD",
                     "APT21794-USD", "TWT-USD", "FTM-USD", "LUNC-USD", "DOGE-USD", "XLM-USD", "ZIL-USD"
                     ]
