@@ -70,11 +70,11 @@ def generate_discord_message(infoTickers):
     discordLog = ""
     for infoTicker in infoTickers:
         # shortMessage = f"**{infoTicker['ticker'].ljust(20)}** {format_decimal(infoTicker['lagging_price'])} K: {format_decimal(infoTicker['kijun_price'])} {infoTicker['date']}" 
-        shortDate = infoTicker['date'].split('-')[1] + "-" + infoTicker['date'].split('-')[2]
+        shortDate = infoTicker['date'].split('-')[2] + "/" + infoTicker['date'].split('-')[1]
         # shortMessage = f"**{infoTicker['ticker']}** {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
         # shortMessage = f"{infoTicker['ticker'].ljust(13)} {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
         
-        ticker=infoTicker['ticker'].rstrip(".PA").rstrip("-USD").rstrip("21794").ljust(6)
+        ticker=infoTicker['ticker'].replace(".PA","").replace("-USD","").replace("21794","").ljust(6)
         lagging=format_decimal(infoTicker['lagging_price']).rjust(7)
         kijun=format_decimal(infoTicker['kijun_price']).rjust(7)
 
