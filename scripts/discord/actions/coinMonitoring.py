@@ -25,6 +25,7 @@ def check_ichimoku_crossover(ticker, stock_data):
 
     # Récupérer la dernière ligne avec une valeur dans "Ichimoku_Lagging"
     last_filled_row = stock_data.loc[last_index]
+    print(last_filled_row)
     last_row = stock_data.iloc[-1]
 
     concatenated_df = pd.DataFrame([last_filled_row, last_row])
@@ -34,8 +35,28 @@ def check_ichimoku_crossover(ticker, stock_data):
     else:
         action = "sell"
     
+    # (P: actuel / K: laging / Date : Date lagging)
+    return {
+                "ticker" : ticker, 
+                "action" : action, 
+                "date" : last_index,
+                "kijun_price" : last_filled_row['Ichimoku_Kijun'],
+                "lagging_price" : last_filled_row['Ichimoku_Lagging']
+                }
 
-    return {"ticker" : ticker, "action" : action}
+def generate_discord_message(infoTickers):
+    consoleLog = ""
+    discordLog = ""
+    for infoTicker in infoTickers:
+        shortMessage = f"**{infoTicker['ticker']}** (P: {infoTicker['lagging_price']} / K: {infoTicker['kijun_price']} / Date : {infoTicker['date']})" 
+        if infoTicker['action'] == 'buy':
+            consoleLog += colorama.Fore.GREEN + shortMessage + colorama.Style.RESET_ALL + "\n"
+            discordLog += ":green_circle: " + shortMessage  + "\n"
+        if infoTicker['action'] == 'sell':
+            consoleLog += colorama.Fore.RED + shortMessage + colorama.Style.RESET_ALL + "\n"
+            discordLog +=   ":red_circle: " + shortMessage  + "\n"
+    print(consoleLog)
+    return discordLog
 
 def get_info_tickers():
     ticker_list = [
@@ -65,24 +86,17 @@ def get_info_tickers():
 
     return infoTickers
 
-def generate_discord_message(infoTickers):
-    consoleLog = ""
-    discordLog = ""
-    for infoTicker in infoTickers:
-        if infoTicker['action'] == 'buy':
-            shortMessage = f"**{infoTicker['ticker']}** "
-            consoleLog += colorama.Fore.GREEN + shortMessage + colorama.Style.RESET_ALL + "\n"
-            discordLog += ":green_circle:        " + shortMessage  + "\n"
-        if infoTicker['action'] == 'sell':
-            shortMessage = f"**{infoTicker['ticker']}** "
-            consoleLog += colorama.Fore.RED + shortMessage + colorama.Style.RESET_ALL + "\n"
-            discordLog +=   ":red_circle:        " + shortMessage  + "\n"
-    print(consoleLog)
-    return discordLog
 
 async def coinMonitoring(message):
     infoTickers = get_info_tickers()
-    await message.channel.send(generate_discord_message(infoTickers))
+    texte = generate_discord_message(infoTickers) + "\n"
+    messages = texte.split('\n')  # Divise le texte en lignes
+
+    taille_paquet = 10
+    
+    for i in range(0, len(messages), taille_paquet):
+        paquet = messages[i:i+taille_paquet]
+        await message.channel.send("\n".join(paquet))
 
 
 
