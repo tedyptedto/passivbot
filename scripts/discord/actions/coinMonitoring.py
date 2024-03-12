@@ -66,7 +66,7 @@ def generate_discord_message(infoTickers):
     consoleLog = ""
     discordLog = ""
     for infoTicker in infoTickers:
-        shortMessage = f"**{infoTicker['ticker'].ljust(20)}** (P: {format_decimal(infoTicker['lagging_price'])} / K: {format_decimal(infoTicker['kijun_price'])} / Date : {infoTicker['date']})" 
+        shortMessage = f"**{infoTicker['ticker'].ljust(20)}** {format_decimal(infoTicker['lagging_price'])} K: {format_decimal(infoTicker['kijun_price'])} {infoTicker['date']})" 
         if infoTicker['action'] == 'buy':
             consoleLog += colorama.Fore.GREEN + shortMessage + colorama.Style.RESET_ALL + "\n"
             discordLog += ":green_circle: " + shortMessage  + "\n"
