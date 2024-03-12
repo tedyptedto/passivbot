@@ -45,6 +45,9 @@ def check_ichimoku_crossover(ticker, stock_data):
                 }
 
 def format_decimal(nombre, nb_decimales=2):
+    if nombre > 10:
+       return "{:.{}f}".format(nombre, 0)
+
     # Si le nombre est supérieur à zéro, affiche le chiffre à 4 décimales
     if nombre > 1:
        return "{:.{}f}".format(nombre, nb_decimales)
@@ -68,13 +71,20 @@ def generate_discord_message(infoTickers):
     for infoTicker in infoTickers:
         # shortMessage = f"**{infoTicker['ticker'].ljust(20)}** {format_decimal(infoTicker['lagging_price'])} K: {format_decimal(infoTicker['kijun_price'])} {infoTicker['date']}" 
         shortDate = infoTicker['date'].split('-')[1] + "-" + infoTicker['date'].split('-')[2]
-        shortMessage = f"**{infoTicker['ticker']}** {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
+        # shortMessage = f"**{infoTicker['ticker']}** {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
+        # shortMessage = f"{infoTicker['ticker'].ljust(13)} {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
+        
+        ticker=infoTicker['ticker'].rstrip(".PA").rstrip("-USD").rstrip("21794").ljust(6)
+        lagging=format_decimal(infoTicker['lagging_price']).rjust(7)
+        kijun=format_decimal(infoTicker['kijun_price']).rjust(7)
+
+        shortMessage = f"{ticker}|{lagging}|{kijun}|{shortDate}" 
         if infoTicker['action'] == 'buy':
             consoleLog += colorama.Fore.GREEN + shortMessage + colorama.Style.RESET_ALL + "\n"
-            discordLog += ":green_circle: " + shortMessage  + "\n"
+            discordLog += "🟢 " + shortMessage  + "\n"
         if infoTicker['action'] == 'sell':
             consoleLog += colorama.Fore.RED + shortMessage + colorama.Style.RESET_ALL + "\n"
-            discordLog +=   ":red_circle: " + shortMessage  + "\n"
+            discordLog +=   "🔴 " + shortMessage  + "\n"
     print(consoleLog)
     return discordLog
 
@@ -112,11 +122,11 @@ async def coinMonitoring(message):
     texte = generate_discord_message(infoTickers) + "\n"
     messages = texte.split('\n')  # Divise le texte en lignes
 
-    taille_paquet = 10
+    taille_paquet = 20
     
     for i in range(0, len(messages), taille_paquet):
         paquet = messages[i:i+taille_paquet]
-        await message.channel.send("\n".join(paquet))
+        await message.channel.send("```" + ("\n".join(paquet)) + "```")
 
 
 
