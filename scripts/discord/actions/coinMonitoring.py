@@ -153,9 +153,9 @@ def process_info(previous_info, new_info):
 
         if ticker in previous_info:
             if previous_info[ticker] != action:
-                changed_info.append({"ticker": ticker, "action": action})
+                changed_info.append(info)
         else:
-            changed_info.append({"ticker": ticker, "action": action})
+            changed_info.append(info)
 
     return changed_info
 
