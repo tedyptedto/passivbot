@@ -44,10 +44,10 @@ def check_ichimoku_crossover(ticker, stock_data):
                 "lagging_price" : last_filled_row['Ichimoku_Lagging']
                 }
 
-def format_decimal(nombre):
+def format_decimal(nombre, nb_decimales=2):
     # Si le nombre est supérieur à zéro, affiche le chiffre à 4 décimales
-    if nombre > 0:
-        return "{:.4f}".format(nombre)
+    if nombre > 1:
+       return "{:.{}f}".format(nombre, nb_decimales)
     # Sinon, si le nombre est inférieur à zéro, affiche 4 chiffres après le premier 0
     else:
         str_nombre = str(nombre)
@@ -58,7 +58,7 @@ def format_decimal(nombre):
                 if chiffre != '0':
                     index_dernier_zero = i + 1  # Trouver l'index du dernier 0 après la décimale
                     break
-            return "{:.{}f}".format(nombre, index_decimal + index_dernier_zero + 1)
+            return "{:.{}f}".format(nombre, index_dernier_zero + nb_decimales -1 )
         else:  # Si le nombre est entier
             return str(nombre)
 
@@ -67,7 +67,8 @@ def generate_discord_message(infoTickers):
     discordLog = ""
     for infoTicker in infoTickers:
         # shortMessage = f"**{infoTicker['ticker'].ljust(20)}** {format_decimal(infoTicker['lagging_price'])} K: {format_decimal(infoTicker['kijun_price'])} {infoTicker['date']}" 
-        shortMessage = f"**{infoTicker['ticker']}** {format_decimal(infoTicker['lagging_price'])} K: {format_decimal(infoTicker['kijun_price'])} {infoTicker['date']}" 
+        shortDate = infoTicker['date'].split('-')[1] + "-" + infoTicker['date'].split('-')[2]
+        shortMessage = f"**{infoTicker['ticker']}** {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
         if infoTicker['action'] == 'buy':
             consoleLog += colorama.Fore.GREEN + shortMessage + colorama.Style.RESET_ALL + "\n"
             discordLog += ":green_circle: " + shortMessage  + "\n"
