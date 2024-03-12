@@ -172,7 +172,7 @@ async def coinMonitoringDiff(message):
         for change in changed_info:
             print(f"Ticker: {change['ticker']}, Action: {change['action']}")
         
-        await message.channel.send(generate_discord_message(changed_info))
+        await message.channel.send("```" + generate_discord_message(changed_info) + "```")
 
         save_info(filename, {info["ticker"]: info["action"] for info in new_info})
     else:
