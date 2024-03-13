@@ -9,8 +9,12 @@ from datetime import date
 
 colorama.init()
 
-def get_stock_data(ticker, start_date, end_date):
+def get_daily_stock_data(ticker, start_date, end_date):
     stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+    return stock_data
+
+def get_weekly_stock_data(ticker, start_date, end_date):
+    stock_data = yf.download(ticker, start=start_date, end=end_date, interval='1wk', progress=False)
     return stock_data
 
 def calculate_ichimoku(stock_data):
@@ -19,16 +23,23 @@ def calculate_ichimoku(stock_data):
     stock_data['Ichimoku_Kijun'] = ichimoku.ichimoku_base_line()
     return stock_data
 
-def check_ichimoku_crossover(ticker, stock_data):
+def getLastFilledRow(stock_data, period, ticker):
     # Trouver l'index de la dernière ligne contenant une valeur dans "Ichimoku_Lagging"
     last_index = stock_data['Ichimoku_Lagging'].last_valid_index()
 
     # Récupérer la dernière ligne avec une valeur dans "Ichimoku_Lagging"
-    last_filled_row = stock_data.loc[last_index]
-    print(last_filled_row)
-    last_row = stock_data.iloc[-1]
+    toreturn = {"last_index" : last_index, "last_filled_row": stock_data.loc[last_index]}
 
-    concatenated_df = pd.DataFrame([last_filled_row, last_row])
+    print(f"{period} => last_filled_row - {ticker} :")
+    print(toreturn['last_filled_row'])
+
+    return toreturn
+
+def check_ichimoku_crossover(ticker, period, stock_data):
+
+    # Récupérer la dernière ligne avec une valeur dans "Ichimoku_Lagging"
+    last = getLastFilledRow(stock_data, period, ticker)
+    last_filled_row = last['last_filled_row']
 
     if last_filled_row['Ichimoku_Lagging'] > last_filled_row['Ichimoku_Kijun']:
         action = "buy"
@@ -39,7 +50,7 @@ def check_ichimoku_crossover(ticker, stock_data):
     return {
                 "ticker" : ticker, 
                 "action" : action, 
-                "date" : str(last_index).split(" ")[0],
+                "date" : str(last['last_index']).split(" ")[0],
                 "kijun_price" : last_filled_row['Ichimoku_Kijun'],
                 "lagging_price" : last_filled_row['Ichimoku_Lagging']
                 }
@@ -79,18 +90,27 @@ def generate_discord_message(infoTickers):
         kijun=format_decimal(infoTicker['kijun_price']).rjust(7)
 
         shortMessage = f"{ticker}|{lagging}|{kijun}|{shortDate}" 
+        if infoTicker['weekly_action'] == 'buy':
+            discordLog += "🟢" 
+        if infoTicker['weekly_action'] == 'sell':
+            discordLog += "🔴" 
+
         if infoTicker['action'] == 'buy':
             consoleLog += colorama.Fore.GREEN + shortMessage + colorama.Style.RESET_ALL + "\n"
-            discordLog += "🟢 " + shortMessage  + "\n"
+            discordLog += "🟢" 
         if infoTicker['action'] == 'sell':
             consoleLog += colorama.Fore.RED + shortMessage + colorama.Style.RESET_ALL + "\n"
-            discordLog +=   "🔴 " + shortMessage  + "\n"
+            discordLog += "🔴" 
+
+        discordLog += shortMessage  + "\n"
+
     print(consoleLog)
     return discordLog
 
 def get_info_tickers():
     ticker_list = [
                     "SGO.PA",       "ALO.PA",       "GTT.PA",
+                    "VRLA.PA",
                     "TEP.PA",       "ALATA.PA",     "ATEME.PA", 
                     "ATO.PA",       "FDJ.PA",       "ALCOG.PA", 
                     "BTC-USD", 
@@ -103,16 +123,26 @@ def get_info_tickers():
                     "LTC-USD",      "BAT-USD",
                     "ZIL-USD",      "LUNC-USD",
                     ]
-    start_date = (pd.to_datetime('today') - pd.DateOffset(days=90)).strftime('%Y-%m-%d')
+    start_date_day = (pd.to_datetime('today') - pd.DateOffset(days=90)).strftime('%Y-%m-%d')
+    start_date_weekly = (pd.to_datetime('today') - pd.DateOffset(days=(51)*7)).strftime('%Y-%m-%d')
     end_date = pd.to_datetime('today').strftime('%Y-%m-%d')
 
     infoTickers = []
     for ticker in ticker_list:
-        stock_data = get_stock_data(ticker, start_date, end_date)
-        stock_data = calculate_ichimoku(stock_data)
+        stock_daily_data = get_daily_stock_data(ticker, start_date_day, end_date)
+        stock_daily_data = calculate_ichimoku(stock_daily_data)
 
+        data_daily = check_ichimoku_crossover(ticker, 'DAILY', stock_daily_data)
 
-        infoTickers.append(check_ichimoku_crossover(ticker, stock_data))
+        stock_weekly_data = get_weekly_stock_data(ticker, start_date_weekly, end_date)
+        stock_weekly_data = calculate_ichimoku(stock_weekly_data)
+
+        data_weekly = check_ichimoku_crossover(ticker, 'WEEKLY', stock_weekly_data)
+
+        data = data_daily
+        data['weekly_action'] = data_weekly['action']
+
+        infoTickers.append(data)
 
     return infoTickers
 
