@@ -96,7 +96,11 @@ class MyClient(discord.Client):
             #     await coinMonitoring(message)
 
             if a_message[0] == '!md_from_auto_bot_x15':
-                await coinMonitoringDiff(message)
+                c = client.get_channel(get_channel_id("test"))  
+                data = {'content': "!md_from_auto_bot_x15", 'channel': c}
+                rasMessage = Struct(**data)
+
+                await coinMonitoringDiff(message, rasMessage)
 
             if a_message[0] == '!p':
                 await positions(message)
@@ -190,7 +194,11 @@ async def show_wallet(Test=False):
         c = client.get_channel(get_channel_id("monitoring"))  
         data = {'content': "!md_from_auto_bot_x15", 'channel': c}
         message = Struct(**data)
-        await coinMonitoringDiff(message)
+        c = client.get_channel(get_channel_id("test"))  
+        data = {'content': "!md_from_auto_bot_x15", 'channel': c}
+        rasMessage = Struct(**data)
+
+        await coinMonitoringDiff(message, rasMessage)
 
         # c = client.get_channel(get_channel_id("onlyupx3"))  
         # data = {'content': "!w jojo from_auto_bot_x15", 'channel': c}
@@ -200,10 +208,11 @@ async def show_wallet(Test=False):
         sendAmountTedy()
         
     else:
-        c = client.get_channel(get_channel_id("monitoring"))  
-        data = {'content': "!md_from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        await coinMonitoringDiff(message)
+        # c = client.get_channel(get_channel_id("monitoring"))  
+        # data = {'content': "!md_from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await coinMonitoringDiff(message)
+        print("test")
 
     
 

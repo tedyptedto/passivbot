@@ -189,7 +189,7 @@ def process_info(previous_info, new_info):
 
     return changed_info
 
-async def coinMonitoringDiff(message):
+async def coinMonitoringDiff(message, rasMessage):
 
     filename = "./tmp/coinMonitoring.json"
     new_info = get_info_tickers()
@@ -207,4 +207,4 @@ async def coinMonitoringDiff(message):
         save_info(filename, {info["ticker"]: info["action"] for info in new_info})
     else:
         print("Aucun changement détecté.")
-        await message.channel.send("RAS on " + str(len(new_info)) + " coins.")
+        await rasMessage.channel.send("RAS on " + str(len(new_info)) + " coins.")
