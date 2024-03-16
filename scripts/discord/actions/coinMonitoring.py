@@ -124,18 +124,24 @@ def get_info_tickers():
                     "ZIL-USD",      "LUNC-USD",
                     ]
     start_date_day = (pd.to_datetime('today') - pd.DateOffset(days=90)).strftime('%Y-%m-%d')
-    start_date_weekly = (pd.to_datetime('today') - pd.DateOffset(days=(51)*7)).strftime('%Y-%m-%d')
-    end_date = pd.to_datetime('today').strftime('%Y-%m-%d')
+    end_date = end_date = pd.to_datetime('today').strftime('%Y-%m-%d')
 
+    start_date_weekly = (pd.to_datetime('today') - pd.DateOffset(days=(60)*7)).strftime('%Y-%m-%d')
+    today = pd.to_datetime('today').date()
+    start_of_current_week = today - pd.offsets.Week(weekday=0)
+    end_of_last_week = start_of_current_week - pd.Timedelta(days=1)
+    end_date_weekly = end_of_last_week.strftime('%Y-%m-%d')
+ 
     infoTickers = []
     for ticker in ticker_list:
         stock_daily_data = get_daily_stock_data(ticker, start_date_day, end_date)
         stock_daily_data = calculate_ichimoku(stock_daily_data)
-
+        print(stock_daily_data.to_string())
         data_daily = check_ichimoku_crossover(ticker, 'DAILY', stock_daily_data)
 
-        stock_weekly_data = get_weekly_stock_data(ticker, start_date_weekly, end_date)
+        stock_weekly_data = get_weekly_stock_data(ticker, start_date_weekly, end_date_weekly)
         stock_weekly_data = calculate_ichimoku(stock_weekly_data)
+        print(stock_weekly_data.to_string())
 
         data_weekly = check_ichimoku_crossover(ticker, 'WEEKLY', stock_weekly_data)
 
