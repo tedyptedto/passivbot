@@ -92,9 +92,9 @@ def generate_discord_message(infoTickers):
         #     discordLog += "💰"
 
         # infoTicker['ticker'] = infoTicker['ticker'].replace(".PA","").replace("-USD","").replace("21794","").replace("20314", "")
-        infoTicker['ticker'] = infoTicker['ticker'].replace("-USD","").replace("21794","").replace("20314", "")
+        ticker = infoTicker['ticker'].replace("-USD","").replace("21794","").replace("20314", "")
 
-        ticker=infoTicker['ticker'].ljust(8)
+        ticker=ticker.ljust(8)
         lagging=format_decimal(infoTicker['lagging_price']).rjust(7)
         kijun=format_decimal(infoTicker['kijun_price']).rjust(7)
 
