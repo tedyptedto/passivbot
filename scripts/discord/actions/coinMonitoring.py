@@ -85,11 +85,20 @@ def generate_discord_message(infoTickers):
         # shortMessage = f"**{infoTicker['ticker']}** {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
         # shortMessage = f"{infoTicker['ticker'].ljust(13)} {format_decimal(infoTicker['lagging_price'])}/{format_decimal(infoTicker['kijun_price'])}/{shortDate}" 
         
-        ticker=infoTicker['ticker'].replace(".PA","").replace("-USD","").replace("21794","").ljust(6)
+
+        # if ".PA" in infoTicker['ticker']: 
+        #     discordLog += "🪙"
+        # if "-USD" in infoTicker['ticker']:
+        #     discordLog += "💰"
+
+        # infoTicker['ticker'] = infoTicker['ticker'].replace(".PA","").replace("-USD","").replace("21794","").replace("20314", "")
+        infoTicker['ticker'] = infoTicker['ticker'].replace("-USD","").replace("21794","").replace("20314", "")
+
+        ticker=infoTicker['ticker'].ljust(8)
         lagging=format_decimal(infoTicker['lagging_price']).rjust(7)
         kijun=format_decimal(infoTicker['kijun_price']).rjust(7)
 
-        shortMessage = f"{ticker}|{lagging}|{kijun}|{shortDate}" 
+        shortMessage = f" {ticker} {lagging}|{kijun}"#|{shortDate}" 
         if infoTicker['weekly_action'] == 'buy':
             discordLog += "🟢" 
         if infoTicker['weekly_action'] == 'sell':
@@ -121,7 +130,7 @@ def get_info_tickers():
                     "XRP-USD",      "MATIC-USD", 
                     "CELR-USD",     "BCH-USD",      "AVAX-USD",
                     "LTC-USD",      "BAT-USD",
-                    "ZIL-USD",      "LUNC-USD",
+                    "ZIL-USD",      "LUNC-USD", "LUNA20314-USD"
                     ]
     start_date_day = (pd.to_datetime('today') - pd.DateOffset(days=90)).strftime('%Y-%m-%d')
     end_date = end_date = pd.to_datetime('today').strftime('%Y-%m-%d')
@@ -147,10 +156,16 @@ def get_info_tickers():
 
         data = data_daily
         data['weekly_action'] = data_weekly['action']
+        data['eloignement'] = 100*data_daily['lagging_price']/data_daily['kijun_price']-100
 
         infoTickers.append(data)
 
-    return infoTickers
+
+    array_sorted = sorted(infoTickers, key=lambda x: x['eloignement'])
+    df_sorted = pd.DataFrame(array_sorted)
+    print(df_sorted.to_string())
+
+    return array_sorted
 
 
 async def coinMonitoring(message):
