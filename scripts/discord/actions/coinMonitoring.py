@@ -5,16 +5,58 @@ import time
 from apscheduler.schedulers.blocking import BlockingScheduler
 import colorama
 import json
+import datetime 
 from datetime import date
+import ccxt
+
+# Initialisation de l'échange Binance
+exchange = ccxt.binance()
 
 colorama.init()
 
 def get_daily_stock_data(ticker, start_date, end_date):
-    stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+    if ticker.endswith("-USD"):
+        start_date_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        start_timestamp = int(start_date_dt.timestamp() * 1000) 
+        # end_date_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        ticker = ticker.replace("-USD", "USDT")
+        candles = exchange.fetch_ohlcv(ticker, timeframe='1d', since=start_timestamp)
+
+        stock_data = pd.DataFrame(candles, columns=['timestamp', 'Open', 'High', 'Low', 'Close', 'Volume'])
+        # Supprimer la dernière ligne
+        stock_data.drop(stock_data.tail(1).index, inplace=True)
+        # Convertir les timestamps en dates
+        stock_data['Date'] = pd.to_datetime(stock_data['timestamp'], unit='ms').dt.date
+        stock_data.drop(columns=['timestamp'], inplace=True)
+        # Définir 'Date' comme index
+        stock_data.set_index('Date', inplace=True)
+
+    else:
+        stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+
+
     return stock_data
 
 def get_weekly_stock_data(ticker, start_date, end_date):
-    stock_data = yf.download(ticker, start=start_date, end=end_date, interval='1wk', progress=False)
+    if ticker.endswith("-USD"):
+        start_date_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        start_timestamp = int(start_date_dt.timestamp() * 1000) 
+        # end_date_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        ticker = ticker.replace("-USD", "USDT")
+        candles = exchange.fetch_ohlcv(ticker, timeframe='1w', since=start_timestamp)
+        
+        stock_data = pd.DataFrame(candles, columns=['timestamp', 'Open', 'High', 'Low', 'Close', 'Volume'])
+        # Supprimer la dernière ligne
+        stock_data.drop(stock_data.tail(1).index, inplace=True)
+        # Convertir les timestamps en dates
+        stock_data['Date'] = pd.to_datetime(stock_data['timestamp'], unit='ms').dt.date
+        stock_data.drop(columns=['timestamp'], inplace=True)
+        # Définir 'Date' comme index
+        stock_data.set_index('Date', inplace=True)
+
+    else:
+        stock_data = yf.download(ticker, start=start_date, end=end_date, interval='1wk', progress=False)
+    
     return stock_data
 
 def calculate_ichimoku(stock_data):
@@ -92,13 +134,14 @@ def generate_discord_message(infoTickers):
         #     discordLog += "💰"
 
         # infoTicker['ticker'] = infoTicker['ticker'].replace(".PA","").replace("-USD","").replace("21794","").replace("20314", "")
-        ticker = infoTicker['ticker'].replace("-USD","").replace("21794","").replace("20314", "")
+        ticker = infoTicker['ticker'].replace("-USD","+").replace(".PA","")
 
-        ticker=ticker.ljust(8)
+        ticker=ticker.ljust(6)
         lagging=format_decimal(infoTicker['lagging_price']).rjust(7)
         kijun=format_decimal(infoTicker['kijun_price']).rjust(7)
 
-        shortMessage = f" {ticker} {lagging}|{kijun}"#|{shortDate}" 
+        # shortMessage = f" {ticker}|{lagging}|{kijun}|{shortDate}" 
+        shortMessage = f" {ticker} {lagging} {kijun}" 
         if infoTicker['weekly_action'] == 'buy':
             discordLog += "🟢" 
         if infoTicker['weekly_action'] == 'sell':
@@ -117,20 +160,21 @@ def generate_discord_message(infoTickers):
     return discordLog
 
 def get_info_tickers():
-    ticker_list = [
+    ticker_list = [ 
                     "SGO.PA",       "ALO.PA",       "GTT.PA",
                     "VRLA.PA",
                     "TEP.PA",       "ALATA.PA",     "ATEME.PA", 
                     "ATO.PA",       "FDJ.PA",       "ALCOG.PA", 
                     "BTC-USD", 
+                    "DOT-USD", "UNI-USD", "SOL-USD", "TRX-USD",
                     "DOGE-USD",     "XLM-USD",      "SUSHI-USD", 
-                    "ADA-USD",      "APT21794-USD", 
+                    "ADA-USD",      "APT-USD", 
                     "TWT-USD",      "FTM-USD",
                     "NEXO-USD",     "ETH-USD",
                     "XRP-USD",      "MATIC-USD", 
                     "CELR-USD",     "BCH-USD",      "AVAX-USD",
                     "LTC-USD",      "BAT-USD",
-                    "ZIL-USD",      "LUNC-USD", "LUNA20314-USD"
+                    "ZIL-USD",      "LUNC-USD", "LUNA-USD"
                     ]
     start_date_day = (pd.to_datetime('today') - pd.DateOffset(days=90)).strftime('%Y-%m-%d')
     end_date = end_date = pd.to_datetime('today').strftime('%Y-%m-%d')
@@ -145,11 +189,13 @@ def get_info_tickers():
     for ticker in ticker_list:
         stock_daily_data = get_daily_stock_data(ticker, start_date_day, end_date)
         stock_daily_data = calculate_ichimoku(stock_daily_data)
+        print(f"vvv {ticker} Daily vvv")
         print(stock_daily_data.to_string())
         data_daily = check_ichimoku_crossover(ticker, 'DAILY', stock_daily_data)
-
+    
         stock_weekly_data = get_weekly_stock_data(ticker, start_date_weekly, end_date_weekly)
         stock_weekly_data = calculate_ichimoku(stock_weekly_data)
+        print(f"vvv {ticker} Weekly vvv")
         print(stock_weekly_data.to_string())
 
         data_weekly = check_ichimoku_crossover(ticker, 'WEEKLY', stock_weekly_data)
