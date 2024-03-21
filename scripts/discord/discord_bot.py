@@ -92,8 +92,8 @@ class MyClient(discord.Client):
             if a_message[0] == '!m':
                 await coinMonitoring(message)
 
-            if a_message[0] == '!mlocal':
-                await coinMonitoring(message)
+            # if a_message[0] == '!mlocal':
+            #     await coinMonitoring(message)
 
             if a_message[0] == '!md_from_auto_bot_x15':
                 c = client.get_channel(get_channel_id("test"))  
