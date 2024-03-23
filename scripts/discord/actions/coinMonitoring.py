@@ -169,7 +169,7 @@ def get_info_tickers():
                     "DOT-USD", "UNI-USD", "SOL-USD", "TRX-USD",
                     "DOGE-USD",     "XLM-USD",      "SUSHI-USD", 
                     "ADA-USD",      "APT-USD",      "POLYX-USD",
-                    "TWT-USD",      "FTM-USD",
+                    "TWT-USD",      "FTM-USD",      "FLOKI-USD",
                     "NEXO-USD",     "ETH-USD",
                     "XRP-USD",      "MATIC-USD", 
                     "CELR-USD",     "BCH-USD",      "AVAX-USD",
