@@ -191,7 +191,7 @@ async def show_wallet(Test=False):
         message = Struct(**data)
         await wallet(message)
 
-        c = client.get_channel(get_channel_id("monitoring"))  
+        c = client.get_channel(get_channel_id("test"))  
         data = {'content': "!md_from_auto_bot_x15", 'channel': c}
         message = Struct(**data)
         c = client.get_channel(get_channel_id("test"))  
