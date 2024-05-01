@@ -3,7 +3,7 @@ current_pwd=`pwd`
 symbols="ADAUSDT,SOLUSDT,DOGEUSDT"
 config="configs/live/_running/tedySUB2/a_tedy_be550.json"
 i="bybit_tedySUB2_multi"
-twe_long="2"
+twe_long="3"
 bbuser="bybit_tedySUB2"
 
 echo "Running screen $i"
