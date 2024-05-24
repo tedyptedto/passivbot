@@ -19,6 +19,7 @@ from functions.functions import get_pro_channel_enabled, send_slack_message
 import ccxt.async_support as ccxt
 import requests
 import json
+import base64
 
 from actions.poolConnector import ccxt_connectors
 
@@ -242,8 +243,13 @@ async def wallet(message):
         return (str(round(number=now[key], ndigits=2)) + symbol).replace('.', ',') + icon
         
 
+    if api_keys_user == "bybit_pro":
+        text_if_tedy = base64.b64decode("T0xEIFRvdC4gUmVhLiBQTkwgKyAxNjk5NSwwNiQ").decode('utf-8')
+    else:
+        text_if_tedy = ""
+
     if api_keys_user == "bybit_tedy":
-        text_if_tedy = "ancien compte Tol. Rea PNL + 1582,5$"
+        text_if_tedy = "OLD Tot. Rea. PNL + 1582,5$"
     else:
         text_if_tedy = ""
 
