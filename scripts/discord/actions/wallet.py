@@ -244,7 +244,7 @@ async def wallet(message):
         
 
     if api_keys_user == "bybit_pro":
-        text_if_tedy = base64.b64decode("T0xEIFRvdC4gUmVhLiBQTkwgKyAxNjk5NSwwNiQ").decode('utf-8')
+        text_if_tedy = base64.b64decode("T0xEIFRvdC4gUmVhLiBQTkwgKyAxNjk5NSwwNiQ=").decode('utf-8')
     else:
         text_if_tedy = ""
 
