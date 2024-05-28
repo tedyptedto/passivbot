@@ -347,7 +347,7 @@ class BybitBot(Passivbot):
                 price=order["price"],
                 params={
                     "positionIdx": 1 if order["position_side"] == "long" else 2,
-                    "timeInForce": "postOnly",
+                    "timeInForce": "GTC",
                     "orderLinkId": order["custom_id"],
                 },
             )
