@@ -1,4 +1,9 @@
 #!/bin/bash
-i="bybit_tedySUB1_multi"
-echo "Kill screen for $i"
-screen -S "$i" -X quit
+symbols=(XRPUSDT MATICUSDT DOGEUSDT )
+for i in "${symbols[@]}"
+do
+    :
+    echo "Kill screen for $i"
+    screen -S "bybit_tedySUB1_$i" -X quit
+done
+
