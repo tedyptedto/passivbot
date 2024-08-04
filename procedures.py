@@ -3,7 +3,7 @@ import json
 import os
 import traceback
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from time import time
 import numpy as np
 import pprint
@@ -34,6 +34,7 @@ from pure_funcs import (
     make_compatible,
     determine_passivbot_mode,
     date2ts_utc,
+    remove_OD,
 )
 
 
@@ -64,7 +65,7 @@ def load_config_files(config_paths: []) -> dict:
 
 def load_hjson_config(config_path: str) -> dict:
     try:
-        return hjson.load(open(config_path, encoding="utf-8"))
+        return remove_OD(hjson.load(open(config_path, encoding="utf-8")))
     except Exception as e:
         raise Exception(f"failed to load config file {config_path} {e}")
 
@@ -103,7 +104,7 @@ def prepare_backtest_config(args) -> dict:
         f"{config['start_date'].replace(' ', '').replace(':', '').replace('.', '')}_"
         f"{config['end_date'].replace(' ', '').replace(':', '').replace('.', '')}"
     )
-    if config["exchange"] in ["okx", "kucoin", "mexc"]:
+    if config["exchange"] in ["okx", "kucoin"]:
         config["ohlcv"] = True
     elif hasattr(args, "ohlcv"):
         if args.ohlcv is None:
@@ -240,7 +241,15 @@ def load_user_info(user: str, api_keys_path="api-keys.json") -> dict:
         raise Exception(f"user {user} not found in {api_keys_path}")
     return {
         k: api_keys[user][k] if k in api_keys[user] else ""
-        for k in ["exchange", "key", "secret", "passphrase"]
+        for k in [
+            "exchange",
+            "key",
+            "secret",
+            "passphrase",
+            "wallet_address",
+            "private_key",
+            "is_vault",
+        ]
     }
 
 
@@ -337,17 +346,10 @@ async def fetch_market_specific_settings_old(config: dict):
         settings_from_exchange["maker_fee"] = 0.0002
         settings_from_exchange["taker_fee"] = 0.0005
         settings_from_exchange["exchange"] = "okx"
-    elif exchange == "mexc":
-        if "spot" in config["market_type"]:
-            raise Exception("spot not implemented on mexc")
-        bot = await create_mexc_bot(tmp_live_settings)
-        settings_from_exchange["maker_fee"] = 0.0002
-        settings_from_exchange["taker_fee"] = 0.0005
-        settings_from_exchange["exchange"] = "mexc"
     elif exchange == "bingx":
         if "spot" in config["market_type"]:
             raise Exception("spot not implemented on bingx")
-        bot = await create_mexc_bot(tmp_live_settings)
+        bot = await create_bingx_bot(tmp_live_settings)
         settings_from_exchange["maker_fee"] = 0.0002
         settings_from_exchange["taker_fee"] = 0.0005
         settings_from_exchange["exchange"] = "bingx"
@@ -427,14 +429,6 @@ async def create_kucoin_bot(config: dict):
     from exchanges.kucoin import KuCoinBot
 
     bot = KuCoinBot(config)
-    await bot._init()
-    return bot
-
-
-async def create_mexc_bot(config: dict):
-    from exchanges.mexc import MEXCBot
-
-    bot = MEXCBot(config)
     await bot._init()
     return bot
 
@@ -563,6 +557,26 @@ def local_time() -> float:
     return datetime.now().astimezone().timestamp() * 1000
 
 
+def get_file_mod_utc(filepath):
+    """
+    Get the UTC timestamp of the last modification of a file.
+
+    Args:
+        filepath (str): The path to the file.
+
+    Returns:
+        float: The UTC timestamp in milliseconds of the last modification of the file.
+    """
+    # Get the last modification time of the file in seconds since the epoch
+    mod_time_epoch = os.path.getmtime(filepath)
+
+    # Convert the timestamp to a UTC datetime object
+    mod_time_utc = datetime.utcfromtimestamp(mod_time_epoch)
+
+    # Return the UTC timestamp
+    return mod_time_utc.timestamp() * 1000
+
+
 def print_async_exception(coro):
     if isinstance(coro, list):
         for elm in coro:
@@ -587,7 +601,7 @@ async def get_first_ohlcv_timestamps(cc=None, symbols=None, cache=True):
 
         cc = ccxt.binanceusdm()
     else:
-        supported_exchanges = ["binanceusdm", "bybit", "bitget", "okx", "bingx"]
+        supported_exchanges = ["binanceusdm", "bybit", "bitget", "okx", "bingx", "hyperliquid"]
         if cc.id not in supported_exchanges:
             print(f"get_first_ohlcv_timestamps() currently only supports {supported_exchanges}")
             return {}
@@ -619,8 +633,12 @@ async def get_first_ohlcv_timestamps(cc=None, symbols=None, cache=True):
                     )
                 )
             else:
+                if cc.id in ["hyperliquid"]:
+                    timeframe_ = "1w"
+                else:
+                    timeframe_ = "1M"
                 fetched.append(
-                    (symbol, asyncio.ensure_future(cc.fetch_ohlcv(symbol, timeframe="1M")))
+                    (symbol, asyncio.ensure_future(cc.fetch_ohlcv(symbol, timeframe=timeframe_)))
                 )
             if i + 1 == len(symbols) or (i + 1) % n == 0:
                 for sym, task in fetched:
@@ -647,6 +665,17 @@ async def get_first_ohlcv_timestamps(cc=None, symbols=None, cache=True):
     return first_timestamps
 
 
+def assert_correct_ccxt_version(version=None, ccxt=None):
+    if version is None:
+        version = load_ccxt_version()
+    if ccxt is None:
+        import ccxt
+
+    assert (
+        ccxt.__version__ == version
+    ), f"Currently ccxt {ccxt.__version__} is installed. Please pip reinstall requirements.txt or install ccxt v{version} manually"
+
+
 def load_ccxt_version():
     try:
         with open("requirements_liveonly.txt") as f:
@@ -661,10 +690,8 @@ def load_ccxt_version():
 def fetch_market_specific_settings_multi(symbols=None, exchange="binance"):
     import ccxt
 
-    ccxt_version_req = load_ccxt_version()
-    assert (
-        ccxt.__version__ == ccxt_version_req
-    ), f"Currently ccxt {ccxt.__version__} is installed. Please pip reinstall requirements.txt or install ccxt v{ccxt_version_req} manually"
+    assert_correct_ccxt_version(ccxt=ccxt)
+
     exchange_map = {
         # "kucoin": "kucoinfutures",
         # "okx": "okx",
@@ -674,6 +701,7 @@ def fetch_market_specific_settings_multi(symbols=None, exchange="binance"):
         # "bingx": "bingx",
     }
     cc = getattr(ccxt, exchange_map[exchange])()
+    cc.options["defaultType"] = "swap"
     info = cc.load_markets()
     for symbol in info:
         if exchange == "binance":
@@ -702,11 +730,7 @@ def fetch_market_specific_settings_multi(symbols=None, exchange="binance"):
 def fetch_market_specific_settings(config: dict):
     import ccxt
 
-    ccxt_version_req = load_ccxt_version()
-    assert (
-        ccxt.__version__ == ccxt_version_req
-    ), f"Currently ccxt {ccxt.__version__} is installed. Please pip reinstall requirements.txt or install ccxt v{ccxt_version_req} manually"
-
+    assert_correct_ccxt_version(ccxt=ccxt)
     exchange = config["exchange"]
     symbol = config["symbol"]
     market_type = config["market_type"]
@@ -750,9 +774,10 @@ def fetch_market_specific_settings(config: dict):
                 settings_from_exchange["price_step"] = float(elm1["tickSize"])
     elif exchange == "bitget":
         cc = ccxt.bitget()
+        cc.options["defaultType"] = "swap"
         markets = cc.fetch_markets()
         for elm in markets:
-            if elm["type"] == "swap" and elm["id"] == symbol + "_UMCBL":
+            if elm["id"] == symbol and elm["swap"]:
                 break
         else:
             raise Exception(f"unknown symbol {symbol}")
@@ -760,14 +785,12 @@ def fetch_market_specific_settings(config: dict):
         settings_from_exchange["maker_fee"] = elm["maker"]
         settings_from_exchange["taker_fee"] = elm["taker"]
         settings_from_exchange["c_mult"] = 1.0
-        settings_from_exchange["price_step"] = round_(
-            (10 ** (-int(elm["info"]["pricePlace"]))) * int(elm["info"]["priceEndStep"]), 1e-12
+        settings_from_exchange["price_step"] = elm["precision"]["price"]
+        settings_from_exchange["qty_step"] = elm["precision"]["amount"]
+        settings_from_exchange["min_qty"] = max(
+            elm["limits"]["amount"]["min"], elm["precision"]["amount"]
         )
-        settings_from_exchange["qty_step"] = round_(
-            10 ** (-int(elm["info"]["volumePlace"])), 0.00000001
-        )
-        settings_from_exchange["min_qty"] = float(elm["info"]["minTradeNum"])
-        settings_from_exchange["min_cost"] = 5.0
+        settings_from_exchange["min_cost"] = elm["limits"]["cost"]["min"]
         settings_from_exchange["spot"] = elm["spot"]
         settings_from_exchange["inverse"] = elm["linear"] is not None and not elm["linear"]
     elif exchange == "okx":
@@ -852,12 +875,18 @@ def fetch_market_specific_settings(config: dict):
 
 
 def main():
+    mssm = fetch_market_specific_settings_multi(exchange="bybit")
+    # pprint.pprint(mssm)
+    return
+    """
     cfg = {"exchange": "bybit", "symbol": "DOGEUSDT", "market_type": "spot"}
     mss = fetch_market_specific_settings(cfg)
     pprint.pprint(mss)
     return
+    """
+    # for exchange in ["bitget"]:
     for exchange in ["kucoin", "bitget", "binance", "bybit", "okx", "bingx"]:
-        cfg = {"exchange": exchange, "symbol": "DOGEUSDT", "market_type": "futures"}
+        cfg = {"exchange": exchange, "symbol": "ETHUSDT", "market_type": "futures"}
         try:
             mss = fetch_market_specific_settings(cfg)
             print(mss)

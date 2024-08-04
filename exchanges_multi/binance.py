@@ -1,5 +1,6 @@
 from passivbot_multi import Passivbot, logging
 from uuid import uuid4
+from njit_funcs import round_
 import ccxt.pro as ccxt_pro
 import ccxt.async_support as ccxt_async
 import pprint
@@ -7,7 +8,9 @@ import asyncio
 import traceback
 import numpy as np
 from pure_funcs import floatify, ts_to_date_utc, calc_hash, determine_pos_side_ccxt
-from procedures import print_async_exception, utc_ms
+from procedures import print_async_exception, utc_ms, assert_correct_ccxt_version
+
+assert_correct_ccxt_version(ccxt=ccxt_async)
 
 
 class BinanceBot(Passivbot):
@@ -28,12 +31,10 @@ class BinanceBot(Passivbot):
                 "headers": {"referer": self.broker_code} if self.broker_code else {},
             }
         )
-        self.max_n_cancellations_per_batch = 10
-        self.max_n_creations_per_batch = 5
 
-    async def init_bot(self):
-        await self.init_symbols()
-        for symbol in self.symbols:
+    def set_market_specific_settings(self):
+        super().set_market_specific_settings()
+        for symbol in self.markets_dict:
             elm = self.markets_dict[symbol]
             self.min_costs[symbol] = (
                 0.1 if elm["limits"]["cost"]["min"] is None else elm["limits"]["cost"]["min"]
@@ -45,23 +46,13 @@ class BinanceBot(Passivbot):
                 elif felm["filterType"] == "MARKET_LOT_SIZE":
                     self.qty_steps[symbol] = float(felm["stepSize"])
             self.c_mults[symbol] = elm["contractSize"]
-            self.coins[symbol] = symbol.replace("/USDT:USDT", "")
-            self.tickers[symbol] = {"bid": 0.0, "ask": 0.0, "last": 0.0}
-            self.open_orders[symbol] = []
-            self.positions[symbol] = {
-                "long": {"size": 0.0, "price": 0.0},
-                "short": {"size": 0.0, "price": 0.0},
-            }
-            self.upd_timestamps["open_orders"][symbol] = 0.0
-            self.upd_timestamps["tickers"][symbol] = 0.0
-            self.upd_timestamps["positions"][symbol] = 0.0
-        await super().init_bot()
 
     async def get_active_symbols(self):
         # get symbols with open orders and/or positions
         positions, balance = await self.fetch_positions()
-        open_orders = await self.fetch_open_orders(all=True)
-        return sorted(set([elm["symbol"] for elm in positions + open_orders]))
+        return sorted(set(elm["symbol"] for elm in positions))
+        # open_orders = await self.fetch_open_orders(all=True)
+        # return sorted(set([elm["symbol"] for elm in positions + open_orders]))
 
     async def start_websockets(self):
         await asyncio.gather(
@@ -80,6 +71,7 @@ class BinanceBot(Passivbot):
             except Exception as e:
                 print(f"exception watch_balance", e)
                 traceback.print_exc()
+                await asyncio.sleep(1)
 
     async def watch_orders(self):
         while True:
@@ -94,47 +86,70 @@ class BinanceBot(Passivbot):
             except Exception as e:
                 print(f"exception watch_orders", e)
                 traceback.print_exc()
+                await asyncio.sleep(1)
 
-    async def watch_tickers(self, symbols=None):
-        symbols = list(self.symbols if symbols is None else symbols)
-        await asyncio.gather(*[self.watch_book_ticker(symbol) for symbol in symbols])
-
-    async def watch_book_ticker(self, symbol: str, params={}):
-        """
-        modified watch_ticker to watch_bookTicker
-        """
-        messageHash = f"{self.cca.market(symbol)['lowercaseId']}@bookTicker"
-        type_ = "future"
-        url = f"{self.ccp.urls['api']['ws'][type_]}/{self.ccp.stream(type_, messageHash)}"
-        requestId = self.ccp.request_id(url)
-        request = {"method": "SUBSCRIBE", "params": [messageHash], "id": requestId}
-        subscribe = {"id": requestId}
-        while True:
+    async def watch_tickers(self):
+        self.prev_active_symbols = set()
+        while not self.stop_websocket:
             try:
-                res = await self.ccp.watch(
-                    url, messageHash, self.ccp.extend(request, params), messageHash, subscribe
+                res = await self.ccp.watch_tickers(self.active_symbols)
+                res = res[next(iter(res))]
+                res["bid"] = round_(
+                    res["last"] - self.price_steps[res["symbol"]], self.price_steps[res["symbol"]]
                 )
-                if res["symbol"] in self.symbol_ids_inv:
-                    res["symbol"] = self.symbol_ids_inv[res["symbol"]]
-                if "last" not in res or res["last"] is None:
-                    res["last"] = np.random.choice([res["bid"], res["ask"]])
+                res["ask"] = round_(
+                    res["last"] + self.price_steps[res["symbol"]], self.price_steps[res["symbol"]]
+                )
+                if (actives := set(self.active_symbols)) != self.prev_active_symbols:
+                    for symbol in actives - self.prev_active_symbols:
+                        logging.info(f"Started watching ticker for symbol: {symbol}")
+                    for symbol in self.prev_active_symbols - actives:
+                        logging.info(f"Stopped watching ticker for symbol: {symbol}")
+                    self.prev_active_symbols = actives
                 self.handle_ticker_update(res)
             except Exception as e:
-                print(f"exception watch_book_ticker {symbol}", e)
+                logging.error(
+                    f"Exception in watch_tickers: {e}, active symbols: {len(self.active_symbols)}"
+                )
                 traceback.print_exc()
+                await asyncio.sleep(1)
+
+    async def watch_tickers_old(self, symbols=None):
+        self.prev_active_symbols = set()
+        while not self.stop_websocket:
+            try:
+                res = await self.ccp.watch_bids_asks(self.active_symbols)
+                if (actives := set(self.active_symbols)) != self.prev_active_symbols:
+                    for symbol in actives - self.prev_active_symbols:
+                        logging.info(f"Started watching ticker for symbol: {symbol}")
+                    for symbol in self.prev_active_symbols - actives:
+                        logging.info(f"Stopped watching ticker for symbol: {symbol}")
+                    self.prev_active_symbols = actives
+                self.handle_ticker_update(res)
+            except Exception as e:
+                logging.error(
+                    f"Exception in watch_tickers: {e}, active symbols: {len(self.active_symbols)}"
+                )
+                traceback.print_exc()
+                await asyncio.sleep(1)
 
     async def fetch_open_orders(self, symbol: str = None, all=False) -> [dict]:
         fetched = None
         open_orders = {}
         try:
+            # binance has expensive fetch_open_orders without specified symbol
             if all:
                 self.cca.options["warnOnFetchOpenOrdersWithoutSymbol"] = False
                 logging.info(f"fetching all open orders for binance")
                 fetched = await self.cca.fetch_open_orders()
                 self.cca.options["warnOnFetchOpenOrdersWithoutSymbol"] = True
             else:
+                if hasattr(self, "active_symbols") and self.active_symbols:
+                    symbols_ = self.active_symbols
+                else:
+                    symbols_ = sorted(set(self.positions))
                 fetched = await asyncio.gather(
-                    *[self.cca.fetch_open_orders(symbol=symbol) for symbol in self.symbols]
+                    *[self.cca.fetch_open_orders(symbol=symbol) for symbol in symbols_]
                 )
                 fetched = [x for sublist in fetched for x in sublist]
             for elm in fetched:
@@ -262,31 +277,6 @@ class BinanceBot(Passivbot):
             traceback.print_exc()
             return False
 
-    async def execute_multiple(self, orders: [dict], type_: str, max_n_executions: int):
-        if not orders:
-            return []
-        executions = []
-        for order in orders[:max_n_executions]:  # sorted by PA dist
-            execution = None
-            try:
-                execution = asyncio.create_task(getattr(self, type_)(order))
-                executions.append((order, execution))
-            except Exception as e:
-                logging.error(f"error executing {type_} {order} {e}")
-                print_async_exception(execution)
-                traceback.print_exc()
-        results = []
-        for execution in executions:
-            result = None
-            try:
-                result = await execution[1]
-                results.append(result)
-            except Exception as e:
-                logging.error(f"error executing {type_} {execution} {e}")
-                print_async_exception(result)
-                traceback.print_exc()
-        return results
-
     async def execute_cancellation(self, order: dict) -> dict:
         executed = None
         try:
@@ -314,7 +304,7 @@ class BinanceBot(Passivbot):
         if len(orders) == 1:
             return [await self.execute_cancellation(orders[0])]
         return await self.execute_multiple(
-            orders, "execute_cancellation", self.max_n_cancellations_per_batch
+            orders, "execute_cancellation", self.config["max_n_cancellations_per_batch"]
         )
 
     async def execute_order(self, order: dict) -> dict:
@@ -355,7 +345,7 @@ class BinanceBot(Passivbot):
         if len(orders) == 1:
             return [await self.execute_order(orders[0])]
         to_execute = []
-        for order in orders[: self.max_n_creations_per_batch]:
+        for order in orders[: self.config["max_n_creations_per_batch"]]:
             to_execute.append(
                 {
                     "type": "limit",
@@ -392,18 +382,9 @@ class BinanceBot(Passivbot):
             traceback.print_exc()
             return {}
 
-    async def update_exchange_config(self):
-        try:
-            res = await self.cca.set_position_mode(True)
-            logging.info(f"set hedge mode {res}")
-        except Exception as e:
-            if '"code":-4059' in e.args[0]:
-                logging.info(f"hedge mode: {e}")
-            else:
-                logging.error(f"error setting hedge mode {e}")
-
+    async def update_exchange_config_by_symbols(self, symbols):
         coros_to_call_lev, coros_to_call_margin_mode = {}, {}
-        for symbol in self.symbols:
+        for symbol in symbols:
             try:
                 coros_to_call_margin_mode[symbol] = asyncio.create_task(
                     self.cca.set_margin_mode("cross", symbol=symbol)
@@ -416,7 +397,7 @@ class BinanceBot(Passivbot):
                 )
             except Exception as e:
                 logging.error(f"{symbol}: a error setting leverage {e}")
-        for symbol in self.symbols:
+        for symbol in symbols:
             res = None
             to_print = ""
             try:
@@ -431,3 +412,13 @@ class BinanceBot(Passivbot):
                 logging.error(f"error setting cross mode {res}")
             if to_print:
                 logging.info(f"{symbol}: {to_print}")
+
+    async def update_exchange_config(self):
+        try:
+            res = await self.cca.set_position_mode(True)
+            logging.info(f"set hedge mode {res}")
+        except Exception as e:
+            if '"code":-4059' in e.args[0]:
+                logging.info(f"hedge mode: {e}")
+            else:
+                logging.error(f"error setting hedge mode {e}")
