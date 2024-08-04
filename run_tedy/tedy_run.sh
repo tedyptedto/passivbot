@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Changed "i" 
-# Changed "${current_pwd}" to "${current_pwd}/../"
-# Changed "bbuser" 
+cd ~/Documents/passivbot5.4.2tedy
+
+# Get script from 'old' and after 
+# Changed "i" to better name
+# Changed "bbuser" to use HL account
 
 #   Tedy1
 current_pwd=`pwd`
@@ -13,7 +15,7 @@ twe_long="2.5"
 bbuser="hyperliquid_main"
 
 echo "Running screen $i"
-screen -S "$i" -dm bash -c "cd ${current_pwd}/../;python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson "
+screen -S "$i" -dm bash -c "cd ${current_pwd};python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson "
 
 
 #   Tedy2
@@ -25,4 +27,4 @@ screen -S "$i" -dm bash -c "cd ${current_pwd}/../;python3 passivbot_multi.py -le
 # bbuser="bybit_tedySUB2"
 
 # echo "Running screen $i"
-# screen -S "$i" -dm bash -c "cd ${current_pwd}/../;python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson "
+# screen -S "$i" -dm bash -c "cd ${current_pwd};python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson "
