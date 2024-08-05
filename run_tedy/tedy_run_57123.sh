@@ -11,7 +11,7 @@ current_pwd=`pwd`
 symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
 config="configs/live/_running/tedy/a_57123_long_we_1.json"
 i="HL_tedy_57123"
-twe_long="2.5"
+twe_long="2"
 bbuser="hyperliquid_vault_tedy57123"
 
 echo "Running screen $i"
