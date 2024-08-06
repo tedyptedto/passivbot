@@ -17,4 +17,4 @@ twe_long="2.2"
 bbuser="hyperliquid_vault_tedybe550"
 
 echo "Running screen $i"
-screen -S "$i" -dm bash -c "cd ${current_pwd};python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson "
+screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done "
