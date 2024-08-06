@@ -16,6 +16,6 @@ bbuser="hyperliquid_vault_tedy57123"
 
 echo "Running screen $i"
 echo "cd ${current_pwd}; while true; python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done"
-screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done"
+screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done"
 
 
