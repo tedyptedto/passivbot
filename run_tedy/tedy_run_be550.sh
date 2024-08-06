@@ -13,7 +13,7 @@ symbols="ADAUSDT,SOLUSDT,DOGEUSDT"
 config="configs/live/_running/tedySUB2/a_tedy_be550.json"
 i="HL_tedy_be550"
 # twe_long="3"
-twe_long="2"
+twe_long="2.2"
 bbuser="hyperliquid_vault_tedybe550"
 
 echo "Running screen $i"
