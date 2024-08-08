@@ -17,6 +17,12 @@ import traceback
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+import ccxt.async_support as ccxt
+
+from actions.poolConnector import ccxt_connectors
+import hjson
+import json
+
 
 # python3 -m pip install python-binance
 # pip install ta
@@ -94,6 +100,35 @@ class MyClient(discord.Client):
 
             # if a_message[0] == '!mlocal':
             #     await coinMonitoring(message)
+            if a_message[0] == '!t':
+                global ccxt_connectors
+
+                api_keys_file = "../../api-keys.json"
+
+                keys = ""
+                if os.path.exists(api_keys_file) :
+                    keys = hjson.load(open(api_keys_file, encoding="utf-8"))
+                else:
+                    return {'error' : 'Problem loading keys'}
+                
+                totalWallet = 0.0;
+
+                api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550']
+                for api_keys_user in api_keys_users:
+                    user_name = api_keys_user
+                    if user_name in ccxt_connectors :
+                        ccxtOnline = ccxt_connectors[user_name]
+                    else:
+                        ccxtOnline = ccxt_connectors[user_name] = ccxt.hyperliquid({"walletAddress": keys[api_keys_user]['wallet_address'],"privateKey": keys[api_keys_user]['private_key']})
+
+                    result = await ccxtOnline.fetch_balance()
+                    totalWallet += result['total']['USDC']
+
+                    await message.channel.send(user_name + " : " + str(result['total']['USDC']) + "$")
+                
+                await message.channel.send("Total : " + str(totalWallet) + "$")
+                
+
 
             if a_message[0] == '!md_from_auto_bot_x15':
                 c = client.get_channel(get_channel_id("test"))  
@@ -114,30 +149,30 @@ class MyClient(discord.Client):
                 message.content = "!p pro"
                 await positions(message)
 
-                message.content = "!w tedy"
-                await wallet(message)
-                message.content = "!p tedy"
-                await positions(message)
+                # message.content = "!w tedy"
+                # await wallet(message)
+                # message.content = "!p tedy"
+                # await positions(message)
 
-                message.content = "!w tedy1"
-                await wallet(message)
-                message.content = "!p tedy1"
-                await positions(message)
+                # message.content = "!w tedy1"
+                # await wallet(message)
+                # message.content = "!p tedy1"
+                # await positions(message)
 
-                message.content = "!w tedy2"
-                await wallet(message)
-                message.content = "!p tedy2"
-                await positions(message)
+                # message.content = "!w tedy2"
+                # await wallet(message)
+                # message.content = "!p tedy2"
+                # await positions(message)
 
-                message.content = "!w tedy3"
-                await wallet(message)
-                message.content = "!p tedy3"
-                await positions(message)
+                # message.content = "!w tedy3"
+                # await wallet(message)
+                # message.content = "!p tedy3"
+                # await positions(message)
 
-                message.content = "!w sawyer"
-                await wallet(message)
-                message.content = "!p sawyer"
-                await positions(message)
+                # message.content = "!w sawyer"
+                # await wallet(message)
+                # message.content = "!p sawyer"
+                # await positions(message)
 
                 #sendAmountTedy()
 
@@ -161,35 +196,35 @@ async def show_wallet(Test=False):
     resetTedyEquity()
 
     if not Test:
-        c = client.get_channel(get_channel_id("passivbot"))  
-        data = {'content': "!w tedy from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        await wallet(message)
+        # c = client.get_channel(get_channel_id("passivbot"))  
+        # data = {'content': "!w tedy from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
 
-        c = client.get_channel(get_channel_id("passivbot"))  
-        data = {'content': "!w tedy1 from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        await wallet(message)
+        # c = client.get_channel(get_channel_id("passivbot"))  
+        # data = {'content': "!w tedy1 from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
 
-        c = client.get_channel(get_channel_id("passivbot"))  
-        data = {'content': "!w tedy2 from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        await wallet(message)
+        # c = client.get_channel(get_channel_id("passivbot"))  
+        # data = {'content': "!w tedy2 from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
 
-        c = client.get_channel(get_channel_id("passivbot"))  
-        data = {'content': "!w tedy3 from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        await wallet(message)
+        # c = client.get_channel(get_channel_id("passivbot"))  
+        # data = {'content': "!w tedy3 from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
 
         c = client.get_channel(get_channel_id("pro"))  
         data = {'content': "!w pro from_auto_bot_x15", 'channel': c}
         message = Struct(**data)
         await wallet(message)
 
-        c = client.get_channel(get_channel_id("pro"))  
-        data = {'content': "!w sawyer from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        await wallet(message)
+        # c = client.get_channel(get_channel_id("pro"))  
+        # data = {'content': "!w sawyer from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
 
         c = client.get_channel(get_channel_id("monitoring"))  
         data = {'content': "!md_from_auto_bot_x15", 'channel': c}
