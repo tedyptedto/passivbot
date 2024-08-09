@@ -144,10 +144,12 @@ class MyClient(discord.Client):
 
                 #resetTedyEquity()
 
-                message.content = "!w pro"
+                message.content = "!t"
                 await wallet(message)
-                message.content = "!p pro"
-                await positions(message)
+                # message.content = "!w pro"
+                # await wallet(message)
+                # message.content = "!p pro"
+                # await positions(message)
 
                 # message.content = "!w tedy"
                 # await wallet(message)
@@ -216,8 +218,13 @@ async def show_wallet(Test=False):
         # message = Struct(**data)
         # await wallet(message)
 
+        # c = client.get_channel(get_channel_id("pro"))  
+        # data = {'content': "!w pro from_auto_bot_x15", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
+
         c = client.get_channel(get_channel_id("pro"))  
-        data = {'content': "!w pro from_auto_bot_x15", 'channel': c}
+        data = {'content': "!t", 'channel': c}
         message = Struct(**data)
         await wallet(message)
 
