@@ -114,11 +114,10 @@ class MyClient(discord.Client):
                 
                 totalWallet = 0.0
 
+
+                messageToSend = ""
                 api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550', 'hyperliquid_pro57123']
                 for api_keys_user in api_keys_users:
-
-
-
                     user_name = api_keys_user
                     result = {'total' : {'USDC' : 0.0}}
 
@@ -155,9 +154,12 @@ class MyClient(discord.Client):
 
                     totalWallet += usdc_value
 
-                    await message.channel.send(f"{user_name} : {usdc_value: } $")
+                    messageToSend += f"{user_name:<40} : {usdc_value:>10,.2f} $ \n"
                 
                 # await message.channel.send(f"Total : {totalWallet} $")
+
+                messageToSend = "```" + messageToSend + "```"
+                await message.channel.send(messageToSend)
                 
 
 
