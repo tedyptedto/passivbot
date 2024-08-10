@@ -22,6 +22,7 @@ import ccxt.async_support as ccxt
 from actions.poolConnector import ccxt_connectors
 import hjson
 import json
+import requests
 
 
 # python3 -m pip install python-binance
@@ -92,8 +93,8 @@ class MyClient(discord.Client):
             # if a_message[0] == '!ls':
             #     await long_short(message)
 
-            if a_message[0] == '!w':
-                await wallet(message)
+            # if a_message[0] == '!w':
+            #     await wallet(message)
 
             if a_message[0] == '!m':
                 await coinMonitoring(message)
@@ -111,22 +112,52 @@ class MyClient(discord.Client):
                 else:
                     return {'error' : 'Problem loading keys'}
                 
-                totalWallet = 0.0;
+                totalWallet = 0.0
 
-                api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550']
+                api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550', 'hyperliquid_pro57123']
                 for api_keys_user in api_keys_users:
+
+
+
                     user_name = api_keys_user
-                    if user_name in ccxt_connectors :
-                        ccxtOnline = ccxt_connectors[user_name]
+                    result = {'total' : {'USDC' : 0.0}}
+
+                    if (keys[api_keys_user]['is_vault']):
+                        url = 'https://api-ui.hyperliquid.xyz/info'
+
+                        headers = {
+                            'content-type': 'application/json',
+                            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+                        }
+
+                        data = {
+                            "type": "vaultDetails",
+                            "vaultAddress": keys[api_keys_user]['wallet_address']
+                        }
+
+                        response = requests.post(url, headers=headers, json=data)
+
+                        # Afficher le contenu de la réponse
+                        response_json = response.json()
+                        
+
+                        result = {'total' : {'USDC' : float(response_json['followers'][0]['vaultEquity'])}}
+
                     else:
-                        ccxtOnline = ccxt_connectors[user_name] = ccxt.hyperliquid({"walletAddress": keys[api_keys_user]['wallet_address'],"privateKey": keys[api_keys_user]['private_key']})
+                        if user_name in ccxt_connectors :
+                            ccxtOnline = ccxt_connectors[user_name]
+                        else:
+                            ccxtOnline = ccxt_connectors[user_name] = ccxt.hyperliquid({"walletAddress": keys[api_keys_user]['wallet_address'],"privateKey": keys[api_keys_user]['private_key']})
 
-                    result = await ccxtOnline.fetch_balance()
-                    totalWallet += result['total']['USDC']
+                        result = await ccxtOnline.fetch_balance()
+                    
+                    usdc_value = round(result['total']['USDC'], 2)
 
-                    await message.channel.send(user_name + " : " + str(result['total']['USDC']) + "$")
+                    totalWallet += usdc_value
+
+                    await message.channel.send(f"{user_name} : {usdc_value} $")
                 
-                await message.channel.send("Total : " + str(totalWallet) + "$")
+                # await message.channel.send(f"Total : {totalWallet} $")
                 
 
 
@@ -137,8 +168,8 @@ class MyClient(discord.Client):
 
                 await coinMonitoringDiff(message, rasMessage)
 
-            if a_message[0] == '!p':
-                await positions(message)
+            # if a_message[0] == '!p':
+            #     await positions(message)
 
             if a_message[0] == '!all':
 
@@ -247,7 +278,7 @@ async def show_wallet(Test=False):
         # message = Struct(**data)
         # await wallet(message)
 
-        sendAmountTedy()
+        # sendAmountTedy()
         
     else:
         # c = client.get_channel(get_channel_id("monitoring"))  
