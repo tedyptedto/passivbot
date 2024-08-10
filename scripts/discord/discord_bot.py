@@ -155,7 +155,7 @@ class MyClient(discord.Client):
 
                     totalWallet += usdc_value
 
-                    await message.channel.send(f"{user_name} : {usdc_value} $")
+                    await message.channel.send(f"{user_name} : {usdc_value: } $")
                 
                 # await message.channel.send(f"Total : {totalWallet} $")
                 
