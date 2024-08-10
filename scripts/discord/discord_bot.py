@@ -75,12 +75,7 @@ class MyClient(discord.Client):
             a_message = message.content.split(' ')
 
             if a_message[0] == '!help':
-                await message.channel.send('Commandes disponibles \n\
-    !hello => just say hello :)\n\
-    !p => positions\n\
-    !w user => Show Wallet user=[tedy, jojo]\n\
-    !all => Show all data for all users\n\
-        ')
+                await message.channel.send('Your are alone :) ')
 
             if a_message[0] == '!hello':
                 await hello(message)
