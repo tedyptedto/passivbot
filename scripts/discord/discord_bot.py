@@ -3,6 +3,7 @@ from actions.hello import hello
 from actions.pumpdump import pumpdump
 # from actions.long_short import long_short
 # from actions.chart import chart
+from actions.hyperliquid import allHL
 from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
 from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
 from actions.coinMonitoring import coinMonitoring, coinMonitoringDiff
@@ -102,64 +103,7 @@ class MyClient(discord.Client):
             # if a_message[0] == '!mlocal':
             #     await coinMonitoring(message)
             if a_message[0] == '!t':
-                global ccxt_connectors
-
-                api_keys_file = "../../api-keys.json"
-
-                keys = ""
-                if os.path.exists(api_keys_file) :
-                    keys = hjson.load(open(api_keys_file, encoding="utf-8"))
-                else:
-                    return {'error' : 'Problem loading keys'}
-                
-                totalWallet = 0.0
-
-
-                messageToSend = ""
-                api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550', 'hyperliquid_pro57123']
-                for api_keys_user in api_keys_users:
-                    user_name = api_keys_user
-                    result = {'total' : {'USDC' : 0.0}}
-
-                    if (keys[api_keys_user]['is_vault']):
-                        url = 'https://api-ui.hyperliquid.xyz/info'
-
-                        headers = {
-                            'content-type': 'application/json',
-                            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
-                        }
-
-                        data = {
-                            "type": "vaultDetails",
-                            "vaultAddress": keys[api_keys_user]['wallet_address']
-                        }
-
-                        response = requests.post(url, headers=headers, json=data)
-
-                        # Afficher le contenu de la réponse
-                        response_json = response.json()
-                        
-
-                        result = {'total' : {'USDC' : float(response_json['followers'][0]['vaultEquity'])}}
-
-                    else:
-                        if user_name in ccxt_connectors :
-                            ccxtOnline = ccxt_connectors[user_name]
-                        else:
-                            ccxtOnline = ccxt_connectors[user_name] = ccxt.hyperliquid({"walletAddress": keys[api_keys_user]['wallet_address'],"privateKey": keys[api_keys_user]['private_key']})
-
-                        result = await ccxtOnline.fetch_balance()
-                    
-                    usdc_value = round(result['total']['USDC'], 2)
-
-                    totalWallet += usdc_value
-
-                    messageToSend += f"{user_name:<40} : {usdc_value:>10,.2f} $ \n"
-                
-                # await message.channel.send(f"Total : {totalWallet} $")
-
-                messageToSend = "```" + messageToSend + "```"
-                await message.channel.send(messageToSend)
+                await allHL(message)
                 
 
 
@@ -173,12 +117,12 @@ class MyClient(discord.Client):
             # if a_message[0] == '!p':
             #     await positions(message)
 
-            if a_message[0] == '!all':
+            # if a_message[0] == '!all':
 
                 #resetTedyEquity()
 
-                message.content = "!t"
-                await wallet(message)
+                # message.content = "!t"
+                # await allHL(message)
                 # message.content = "!w pro"
                 # await wallet(message)
                 # message.content = "!p pro"
@@ -259,7 +203,12 @@ async def show_wallet(Test=False):
         c = client.get_channel(get_channel_id("pro"))  
         data = {'content': "!t", 'channel': c}
         message = Struct(**data)
-        await wallet(message)
+        await allHL(message)
+
+        # c = client.get_channel(get_channel_id("pro"))  
+        # data = {'content': "!t", 'channel': c}
+        # message = Struct(**data)
+        # await wallet(message)
 
         # c = client.get_channel(get_channel_id("pro"))  
         # data = {'content': "!w sawyer from_auto_bot_x15", 'channel': c}
