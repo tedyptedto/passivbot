@@ -65,6 +65,10 @@ class MyClient(discord.Client):
             if a_message[0] == '!all':
                 await allHL(message, isAuto=False)
                 
+            #                                           ### Command to test a function
+            if a_message[0] == '!t':
+                await allHL(message, isAuto=False)
+                
 
         except Exception as e:
             logging.error(traceback.format_exc())

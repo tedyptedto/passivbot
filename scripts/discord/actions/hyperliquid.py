@@ -3,8 +3,9 @@ from actions.poolConnector import ccxt_connectors
 import hjson
 import requests
 import os
+import json
 
-from functions.functions import get_pro_channel_enabled, send_slack_message, sendAmountBistouf, send_slack_message
+from functions.functions import get_pro_channel_enabled, send_slack_message, sendAmountBistouf, send_slack_message, print_trade_info
 
 
 async def allHL(message, isAuto):
@@ -43,17 +44,12 @@ async def allHL(message, isAuto):
     #                                           ### Accounts to check
     api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550', 'hyperliquid_pro57123']
     for api_keys_user in api_keys_users:
-        messageToSend = ""
-        user_name = api_keys_user
-        result = {'total' : {'USDC' : 0.0}}
-
         followersEquity = 0.0
         nbFollowers = 0
+        usdc_value = 0.0
 
         #                                           ### is Hyperliquid vault
         if (keys[api_keys_user]['is_vault']):
-
-            await message.channel.send("https://app.hyperliquid.xyz/vaults/" + keys[api_keys_user]['wallet_address'])
 
             url = 'https://api-ui.hyperliquid.xyz/info'
 
@@ -83,32 +79,49 @@ async def allHL(message, isAuto):
 
             usdc_value = leaderEquity
 
-        #                                           ### is Hyperliquid normal account
+        #                                           ### is Hyperliquid normal account or add data to Vault
+        user_name = api_keys_user
+        if user_name in ccxt_connectors :
+            ccxtOnline = ccxt_connectors[user_name]
         else:
-            if user_name in ccxt_connectors :
-                ccxtOnline = ccxt_connectors[user_name]
-            else:
-                ccxtOnline = ccxt_connectors[user_name] = ccxt.hyperliquid({"walletAddress": keys[api_keys_user]['wallet_address'],"privateKey": keys[api_keys_user]['private_key']})
+            ccxtOnline = ccxt_connectors[user_name] = ccxt.hyperliquid({"walletAddress": keys[api_keys_user]['wallet_address'],"privateKey": keys[api_keys_user]['private_key']})
 
-            result = await ccxtOnline.fetch_balance()
-        
+        result = await ccxtOnline.fetch_balance()
+    
+        if (not keys[api_keys_user]['is_vault']):
             usdc_value = round(result['total']['USDC'], 2)
+
 
         user_name = user_name.replace('hyperliquid_', '')
 
-        # Discord mobile = 29 caractères
-        messageToSend += f"{user_name:<16} {usdc_value:>11,.2f}$💰\n"
+        #                                           ### Build message / Discord mobile = 29 caractères
+        messageToSend = ""
+        messageToSend += f"{user_name.upper():<15} {usdc_value:>12,.2f}$\n"
+        messageToSend += f"..............................\n"
         if nbFollowers > 0:
-            messageToSend += f"👥{nbFollowers:<15} {followersEquity:>10,.2f}$💰\n"
-        messageToSend += "\n"
+            messageToSend += f"{'NbFollowers':<16} {'Equ. Foll.':>12}\n"
+            messageToSend += f"👥{nbFollowers:<15} {followersEquity:>10,.2f}$\n"
+            messageToSend += f"..............................\n"
 
-        await message.channel.send("```" + messageToSend + "```")
-
-        # manage the sum part
-        # Itération sur sumAccounts pour trouver et mettre à jour la somme
+        #                                           ### Itération sur sumAccounts pour trouver et mettre à jour la somme
         for key, value in sumAccounts.items():
             if api_keys_user in value['accounts']:
                 value['sum'] += usdc_value
+
+        #                                           ### Print positions
+        positions = await ccxtOnline.fetch_positions() 
+        messageToSend += print_trade_info(positions)
+
+        await message.channel.send("```" + messageToSend + "```")
+
+
+        if (keys[api_keys_user]['is_vault']):
+            vaultLinkMessage = f"\
+                **[Vault Link {api_keys_user.replace('hyperliquid_vault_', '')}](https://app.hyperliquid.xyz/vaults/{keys[api_keys_user]['wallet_address']})**\
+            "
+            await message.channel.send(vaultLinkMessage)
+
+
 
     #                                           ### Manage sum of account and send it do good channel
     for userName, value in sumAccounts.items():
@@ -127,4 +140,3 @@ async def allHL(message, isAuto):
         elif action == 'doNothing':
             print('doNothing')
     
-    # send_slack_message(messageToSend)
