@@ -1,29 +1,12 @@
 import discord
-from actions.hello import hello
-from actions.pumpdump import pumpdump
-# from actions.long_short import long_short
-# from actions.chart import chart
-from actions.hyperliquid import allHL
-from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
-from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
-from actions.coinMonitoring import coinMonitoring, coinMonitoringDiff
-from actions.positions import positions
-# from actions.flow import flow
-from functions.functions import get_channel_id, get_bot_commands_enabled_channels, send_slack_message
-
 import os
 import logging
 import traceback
-
+from actions.hyperliquid import allHL
+from actions.coinMonitoring import coinMonitoring, coinMonitoringDiff
+from functions.functions import get_channel_id, get_bot_commands_enabled_channels
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-
-import ccxt.async_support as ccxt
-
-from actions.poolConnector import ccxt_connectors
-import hjson
-import json
-import requests
 
 
 # python3 -m pip install python-binance
@@ -50,110 +33,39 @@ class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
+#                                           ### Message incoming listener
 class MyClient(discord.Client):
+
+    #                                           ### Ready, print some debug info
     async def on_ready(self):
         print('Logged in as')
         print(self.user.name)
         print(self.user.id)
         print('------')
 
-        # Test part
-        # await show_wallet(Test=True)
-        #send_slack_message('Start Running')
-        
-
+    #                                           ### Message incoming
     async def on_message(self, message):
         try:
-            # we do not want the bot to reply to itself
+            #                                           ### Don't reply to itself
             if message.author.id == self.user.id:
                 return
 
-
+            #                                           ### Only allowed channels
             if not (message.channel.id in get_bot_commands_enabled_channels()):
                 return
 
+            #                                           ### Split message
             a_message = message.content.split(' ')
 
-            if a_message[0] == '!help':
-                await message.channel.send('Your are alone :) ')
-
-            if a_message[0] == '!hello':
-                await hello(message)
-
-            # if a_message[0] == '!chart':
-            #     await chart(message)
-
-            # if a_message[0] == '!flow':
-            #     await flow(message)
-
-            # if a_message[0] == '!ls':
-            #     await long_short(message)
-
-            # if a_message[0] == '!w':
-            #     await wallet(message)
-
+            #                                           ### Ask coin monitoring with ichimoku
             if a_message[0] == '!m':
                 await coinMonitoring(message)
 
-            # if a_message[0] == '!mlocal':
-            #     await coinMonitoring(message)
-            if a_message[0] == '!t':
-                await allHL(message)
+            #                                           ### Ask HyperLiquid accounts
+            if a_message[0] == '!all':
+                await allHL(message, isAuto=False)
                 
 
-
-            if a_message[0] == '!md_from_auto_bot_x15':
-                c = client.get_channel(get_channel_id("test"))  
-                data = {'content': "!md_from_auto_bot_x15", 'channel': c}
-                rasMessage = Struct(**data)
-
-                await coinMonitoringDiff(message, rasMessage)
-
-            # if a_message[0] == '!p':
-            #     await positions(message)
-
-            # if a_message[0] == '!all':
-
-                #resetTedyEquity()
-
-                # message.content = "!t"
-                # await allHL(message)
-                # message.content = "!w pro"
-                # await wallet(message)
-                # message.content = "!p pro"
-                # await positions(message)
-
-                # message.content = "!w tedy"
-                # await wallet(message)
-                # message.content = "!p tedy"
-                # await positions(message)
-
-                # message.content = "!w tedy1"
-                # await wallet(message)
-                # message.content = "!p tedy1"
-                # await positions(message)
-
-                # message.content = "!w tedy2"
-                # await wallet(message)
-                # message.content = "!p tedy2"
-                # await positions(message)
-
-                # message.content = "!w tedy3"
-                # await wallet(message)
-                # message.content = "!p tedy3"
-                # await positions(message)
-
-                # message.content = "!w sawyer"
-                # await wallet(message)
-                # message.content = "!p sawyer"
-                # await positions(message)
-
-                #sendAmountTedy()
-
-            # Garé pour les infos
-            # await message.channel.send('Hello {0.author.mention}'.format(message))
-            # await message.channel.send('Hello {0.author.mention}'.format(message))
-            # await message.channel.send('Hello {0.author}'.format(message))
         except Exception as e:
             logging.error(traceback.format_exc())
             # Logs the error appropriately.
@@ -162,78 +74,28 @@ class MyClient(discord.Client):
 client = MyClient()
 base_dir = os.path.realpath(os.path.dirname(os.path.abspath(__file__))+'/')+'/'
 
-# sendAmountTedy()
 
+#                                           ### AUTO function, run 1 time by day
 async def show_wallet(Test=False):
     await client.wait_until_ready()
 
-    resetTedyEquity()
+    #                                           ### Ask HyperLiquid accounts
+    c = client.get_channel(get_channel_id("pro"))  
+    data = {'content': "!all", 'channel': c}
+    message = Struct(**data)
+    await allHL(message, isAuto=True)
 
-    if not Test:
-        # c = client.get_channel(get_channel_id("passivbot"))  
-        # data = {'content': "!w tedy from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
+    #                                           ###  Ask coin monitoring with ichimoku (2 channel 1 for see it is working)
+    c = client.get_channel(get_channel_id("monitoring"))  
+    data = {'content': "!md_from_auto_bot_x15", 'channel': c}
+    message = Struct(**data)
+    c = client.get_channel(get_channel_id("test"))  
+    data = {'content': "!md_from_auto_bot_x15", 'channel': c}
+    rasMessage = Struct(**data)
 
-        # c = client.get_channel(get_channel_id("passivbot"))  
-        # data = {'content': "!w tedy1 from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
+    await coinMonitoringDiff(message, rasMessage)
 
-        # c = client.get_channel(get_channel_id("passivbot"))  
-        # data = {'content': "!w tedy2 from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
-
-        # c = client.get_channel(get_channel_id("passivbot"))  
-        # data = {'content': "!w tedy3 from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
-
-        # c = client.get_channel(get_channel_id("pro"))  
-        # data = {'content': "!w pro from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
-
-        c = client.get_channel(get_channel_id("pro"))  
-        data = {'content': "!t", 'channel': c}
-        message = Struct(**data)
-        await allHL(message)
-
-        # c = client.get_channel(get_channel_id("pro"))  
-        # data = {'content': "!t", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
-
-        # c = client.get_channel(get_channel_id("pro"))  
-        # data = {'content': "!w sawyer from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
-
-        c = client.get_channel(get_channel_id("monitoring"))  
-        data = {'content': "!md_from_auto_bot_x15", 'channel': c}
-        message = Struct(**data)
-        c = client.get_channel(get_channel_id("test"))  
-        data = {'content': "!md_from_auto_bot_x15", 'channel': c}
-        rasMessage = Struct(**data)
-
-        await coinMonitoringDiff(message, rasMessage)
-
-        # c = client.get_channel(get_channel_id("onlyupx3"))  
-        # data = {'content': "!w jojo from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await wallet(message)
-
-        # sendAmountTedy()
-        
-    else:
-        # c = client.get_channel(get_channel_id("monitoring"))  
-        # data = {'content': "!md_from_auto_bot_x15", 'channel': c}
-        # message = Struct(**data)
-        # await coinMonitoringDiff(message)
-        print("test")
-
-    
+  
 
 
 #initializing scheduler

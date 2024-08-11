@@ -1,40 +1,21 @@
-import discord
-from actions.hello import hello
-from actions.pumpdump import pumpdump
-# from actions.long_short import long_short
-# from actions.chart import chart
-from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
-from actions.wallet import wallet, resetTedyEquity, sendAmountTedy
-from actions.coinMonitoring import coinMonitoring, coinMonitoringDiff
-from actions.positions import positions
-# from actions.flow import flow
-from functions.functions import get_channel_id, get_bot_commands_enabled_channels, send_slack_message
-
-import os
-import logging
-import traceback
-
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-
 import ccxt.async_support as ccxt
-
 from actions.poolConnector import ccxt_connectors
 import hjson
-import json
 import requests
+import os
 
-from functions.functions import get_pro_channel_enabled, send_slack_message
+from functions.functions import get_pro_channel_enabled, send_slack_message, sendAmountBistouf, send_slack_message
 
 
-async def allHL(message):
-
-    if not (message.channel.id in get_pro_channel_enabled()):
-        return
-
+async def allHL(message, isAuto):
 
     global ccxt_connectors
 
+    #                                           ### Only for available channels
+    if not (message.channel.id in get_pro_channel_enabled()):
+        return
+
+    #                                           ### Load keys
     api_keys_file = "../../api-keys.json"
 
     keys = ""
@@ -43,19 +24,37 @@ async def allHL(message):
     else:
         return {'error' : 'Problem loading keys'}
     
-    totalWallet = 0.0
+    #                                           ### Define the sum send to slak or private discord
+    sumAccounts = { 
+                    'tedy' : {
+                                'accounts' : ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550'],
+                                'auto' : 'sendAmountBistouf',
+                                'manual' : 'sameChannel',
+                                'sum' : 0.0,
+                             },
+                    'pro' : {
+                                'accounts' : ['hyperliquid_pro57123'],
+                                'auto' : 'send_slack_message',
+                                'manual' : 'doNothing',
+                                'sum' : 0.0,
+                             },
+    }
 
-
-    messageToSend = ""
+    #                                           ### Accounts to check
     api_keys_users = ['hyperliquid_vault_tedy57123', 'hyperliquid_vault_tedybe550', 'hyperliquid_pro57123']
     for api_keys_user in api_keys_users:
+        messageToSend = ""
         user_name = api_keys_user
         result = {'total' : {'USDC' : 0.0}}
 
         followersEquity = 0.0
         nbFollowers = 0
 
+        #                                           ### is Hyperliquid vault
         if (keys[api_keys_user]['is_vault']):
+
+            await message.channel.send("https://app.hyperliquid.xyz/vaults/" + keys[api_keys_user]['wallet_address'])
+
             url = 'https://api-ui.hyperliquid.xyz/info'
 
             headers = {
@@ -84,6 +83,7 @@ async def allHL(message):
 
             usdc_value = leaderEquity
 
+        #                                           ### is Hyperliquid normal account
         else:
             if user_name in ccxt_connectors :
                 ccxtOnline = ccxt_connectors[user_name]
@@ -94,21 +94,37 @@ async def allHL(message):
         
             usdc_value = round(result['total']['USDC'], 2)
 
-        totalWallet += usdc_value
-
         user_name = user_name.replace('hyperliquid_', '')
 
         # Discord mobile = 29 caractères
-        messageToSend += f"{user_name:<17} {usdc_value:>11,.2f}$\n"
+        messageToSend += f"{user_name:<16} {usdc_value:>11,.2f}$💰\n"
         if nbFollowers > 0:
-            messageToSend += f"{nbFollowers:>15}👥  {followersEquity:>11,.2f}💰\n"
+            messageToSend += f"👥{nbFollowers:<15} {followersEquity:>10,.2f}$💰\n"
         messageToSend += "\n"
 
+        await message.channel.send("```" + messageToSend + "```")
 
+        # manage the sum part
+        # Itération sur sumAccounts pour trouver et mettre à jour la somme
+        for key, value in sumAccounts.items():
+            if api_keys_user in value['accounts']:
+                value['sum'] += usdc_value
+
+    #                                           ### Manage sum of account and send it do good channel
+    for userName, value in sumAccounts.items():
+
+        subMessage = f"```Sum {userName} amount : {value['sum']:,.2f}$ ```"
+
+        action = value['auto'] if isAuto else value['manual']
+
+        if action == 'sendAmountBistouf':
+            sendAmountBistouf(subMessage)
+            await message.channel.send(subMessage)
+        elif  action == 'send_slack_message':
+            send_slack_message(subMessage)
+        elif action == 'sameChannel':
+            await message.channel.send(subMessage)
+        elif action == 'doNothing':
+            print('doNothing')
     
-    # await message.channel.send(f"Total : {totalWallet} $")
-
-    messageToSend = "```" + messageToSend + "```"
-    await message.channel.send(messageToSend)
-
     # send_slack_message(messageToSend)
