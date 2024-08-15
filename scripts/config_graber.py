@@ -28,9 +28,9 @@ print('Récupération de la liste total en provenance de https://pbconfigdb.scud
 # URL à récupérer
 url = "https://pbconfigdb.scud.dedyn.io/result/data.json"
 
-# Faire une requête GET pour obtenir le contenu JSON
-response = requests.get(url)
 try:
+    # Faire une requête GET pour obtenir le contenu JSON
+    response = requests.get(url)
     if response.status_code == 200:
         data = response.json()  # Convertir la réponse en JSON
 
