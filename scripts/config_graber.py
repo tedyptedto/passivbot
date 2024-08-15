@@ -30,32 +30,34 @@ url = "https://pbconfigdb.scud.dedyn.io/result/data.json"
 
 # Faire une requête GET pour obtenir le contenu JSON
 response = requests.get(url)
+try:
+    if response.status_code == 200:
+        data = response.json()  # Convertir la réponse en JSON
 
-if response.status_code == 200:
-    data = response.json()  # Convertir la réponse en JSON
+        # Créer un ensemble pour stocker les débuts uniques des URLs 'source'
+        unique_sources = set()
 
-    # Créer un ensemble pour stocker les débuts uniques des URLs 'source'
-    unique_sources = set()
+        # Parcourir les données JSON pour extraire les débuts d'URL uniques
+        for source in data:
+            source_url_parts = source.get('source', '').split('/')
+            if len(source_url_parts) >= 5:
+                unique_sources.add("/".join(source_url_parts[:5]))
 
-    # Parcourir les données JSON pour extraire les débuts d'URL uniques
-    for source in data:
-        source_url_parts = source.get('source', '').split('/')
-        if len(source_url_parts) >= 5:
-            unique_sources.add("/".join(source_url_parts[:5]))
-
-    # Afficher les débuts uniques des URLs 'source'
-    # Vérification de la présence des débuts d'URL dans zip_files
-    # Vérification de la présence des débuts d'URL dans zip_files
-    for source in unique_sources:
-        found = any(source in item['url'] for item in zip_files)
-        if found:
-            print(f"{source}" + Fore.GREEN + " OK Contenu dans la liste" + Style.RESET_ALL)
-        else:
-            print(f"{source}" + Fore.RED + " KO contenu dans zip_files" + Style.RESET_ALL)
-            exit()
-else:
-    print("La requête n'a pas abouti :", response.status_code)
-
+        # Afficher les débuts uniques des URLs 'source'
+        # Vérification de la présence des débuts d'URL dans zip_files
+        # Vérification de la présence des débuts d'URL dans zip_files
+        for source in unique_sources:
+            found = any(source in item['url'] for item in zip_files)
+            if found:
+                print(f"{source}" + Fore.GREEN + " OK Contenu dans la liste" + Style.RESET_ALL)
+            else:
+                print(f"{source}" + Fore.RED + " KO contenu dans zip_files" + Style.RESET_ALL)
+                exit()
+    else:
+        print("La requête n'a pas abouti :", response.status_code)
+except Exception as e:
+        print(f"failed fetching income {e}")
+        print("Scud website is OFFLINE")
 
 
 print("Repository to Download")
