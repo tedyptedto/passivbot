@@ -289,17 +289,13 @@ for config in tqdmAConfigFiltered :
 
         # print(i , "/", nb_config, " => ", config)
         command_line = [
-                                    "python3", "backtest_multi.py", 
+                                    "python3", "backtest.py", 
                                     "-s", coin,
                                     "-sd", start_date,
                                     "-ed", end_date,
                                     "-sb", starting_balance,
                                     "-bd", backtest_directory,
-                                    "-le", 'y',
-                                    "-se", 'n',
-                                    # "-lw", '1', # limit exposure by coin for long
-                                    "-tl", '2', # Total wallet exposure for long
-                                    # "-np", "0",
+                                    "-np", "0",
                                     # "-oh",
                                     final_config
                                     ]
