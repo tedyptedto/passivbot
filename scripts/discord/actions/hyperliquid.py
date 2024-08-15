@@ -4,6 +4,9 @@ import hjson
 import requests
 import os
 import json
+import matplotlib.pyplot as plt
+from datetime import datetime
+import discord
 
 from functions.functions import get_pro_channel_enabled, send_slack_message, sendAmountBistouf, send_slack_message, print_trade_info
 
@@ -121,7 +124,36 @@ async def allHL(message, isAuto):
             "
             await message.channel.send(vaultLinkMessage)
 
+        # Extraire les données de "week"
+        extractPeriod = "week"
+        month_data = None
+        for item in response_json['portfolio']:
+            if item[0] == extractPeriod:
+                month_data = item[1]
+                break
+        if month_data is not None:
+            pnl_history = month_data["pnlHistory"]
+            timestamps = [datetime.fromtimestamp(int(entry[0])/1000) for entry in pnl_history]
+            pnl_values = [float(entry[1]) for entry in pnl_history]
 
+            # Création du graphique
+            plt.figure(figsize=(10, 5))
+            plt.plot(timestamps, pnl_values, marker='o')
+            plt.title('PnL History - ' + extractPeriod)
+            plt.xlabel('Date')
+            plt.ylabel('PnL Value')
+            plt.grid(True)
+
+            # Sauvegarder le graphique
+            plt.savefig('./tmp/pnl_history_' + extractPeriod + '.png')
+
+            # Fermer la figure
+            plt.close()
+            with open('./tmp/pnl_history_' + extractPeriod + '.png', 'rb') as f:
+                picture = discord.File(f)
+                await message.channel.send(file=picture)
+        else:
+            print("Aucune donnée trouvée pour '" + extractPeriod + "'.")
 
     #                                           ### Manage sum of account and send it do good channel
     for userName, value in sumAccounts.items():
