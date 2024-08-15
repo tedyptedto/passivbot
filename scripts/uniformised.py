@@ -26,7 +26,7 @@ parser.add_argument("-sd",
                     help="Backtest start date",
 )
 parser.add_argument("-ed",
-                    type=str,required=False,dest="end_date",default="2023-12-18",
+                    type=str,required=False,dest="end_date",default="2024-08-13",
                     help="Backtest end date",
 )
 parser.add_argument("-we",
@@ -39,7 +39,8 @@ parser.add_argument("-balance",
 )
 parser.add_argument("-cl","--coin_list",
                         type=str,required=False,dest="coin_list",
-                        default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT",
+                        default="SOLUSDT,XRPUSDT,DOGEUSDT,ADAUSDT,TRXUSDT,AVAXUSDT,DOTUSDT,LINKUSDT,LTCUSDT,XLMUSDT",
+                        # default="XRPUSDT,LTCUSDT,ADAUSDT,DOTUSDT,UNIUSDT,DOGEUSDT,MATICUSDT,BNBUSDT,SOLUSDT,TRXUSDT,AVAXUSDT",
                         # type=str,required=False,dest="coin_list",default="XRPUSDT",
                         help="A list of coin separated by coma. Ex : 'ONEUSDT,XLMUSDT'",
 )
