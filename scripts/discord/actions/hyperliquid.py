@@ -102,7 +102,7 @@ async def allHL(message, isAuto):
         #                                           ### Build message / Discord mobile = 29 caractères
         messageToSend = ""
         # messageToSend += f"{user_name.upper():<15} {usdc_value:>12,.2f}$\n"
-        messageToSend += f"{' ':<15} {usdc_value:>12,.2f}$\n"
+        messageToSend += f"{user_name:<15} {usdc_value:>12,.2f}$\n"
         messageToSend += f"..............................\n"
         if nbFollowers > 0:
             messageToSend += f"{'NbFollowers':<16} {'Equ. Foll.':>12}\n"
