@@ -297,8 +297,8 @@ for config in tqdmAConfigFiltered :
                                     "-bd", backtest_directory,
                                     "-le", 'y',
                                     "-se", 'n',
-                                    "-lw", '1', # limit exposure by coin for long
-                                    "-tl", '10', # Total wallet exposure for long
+                                    # "-lw", '1', # limit exposure by coin for long
+                                    "-tl", '2', # Total wallet exposure for long
                                     # "-np", "0",
                                     # "-oh",
                                     final_config
