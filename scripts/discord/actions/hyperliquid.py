@@ -71,14 +71,12 @@ async def allHL(message, isAuto):
             # Afficher le contenu de la réponse
             response_json = response.json()
             leaderEquity = 0.0
-            i = 0
             for followers in response_json['followers']:
-                if i == 0:
+                if followers['user'] == 'Leader':
                     leaderEquity = float(followers['vaultEquity'])
                 else:
                     followersEquity += float(followers['vaultEquity'])
                     nbFollowers = nbFollowers + 1
-                i = i + 1
 
             usdc_value = leaderEquity
 
