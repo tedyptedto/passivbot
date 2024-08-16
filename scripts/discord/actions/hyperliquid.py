@@ -142,7 +142,7 @@ async def allHL(message, isAuto):
             # Création du graphique
             plt.figure(figsize=(10, 5))
             plt.plot(timestamps, pnl_values, marker='o')
-            plt.title('PnL History - ' + extractPeriod)
+            plt.title('PnL History - ' + extractPeriod + " " + userName)
             plt.xlabel('Date')
             plt.ylabel('PnL Value')
             plt.grid(True)
