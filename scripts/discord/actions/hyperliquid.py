@@ -104,7 +104,7 @@ async def allHL(message, isAuto):
         messageToSend += f"..............................\n"
         if nbFollowers > 0:
             messageToSend += f"{'NbFollowers':<16} {'Equ. Foll.':>12}\n"
-            messageToSend += f"👥{nbFollowers:<15} {followersEquity:>10,.2f}$\n"
+            messageToSend += f"{str(nbFollowers)+'👥':<16} {followersEquity:>10,.2f}$\n"
             messageToSend += f"..............................\n"
 
         #                                           ### Itération sur sumAccounts pour trouver et mettre à jour la somme
