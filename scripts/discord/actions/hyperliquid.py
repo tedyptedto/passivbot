@@ -134,7 +134,7 @@ async def allHL(message, isAuto):
                 break
         if month_data is not None:
             dataType = "accountValueHistory"
-            pnl_history = month_data[]
+            pnl_history = month_data[dataType]
             timestamps = [datetime.fromtimestamp(int(entry[0])/1000) for entry in pnl_history]
             pnl_values = [float(entry[1]) for entry in pnl_history]
 
