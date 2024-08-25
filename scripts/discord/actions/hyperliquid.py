@@ -125,8 +125,8 @@ async def allHL(message, isAuto):
             "
             await message.channel.send(vaultLinkMessage)
 
-            # Extraire les données de "week"
-            extractPeriod = "week"
+            # Extraire les données de "allTime"
+            extractPeriod = "allTime"
             month_data = None
             for item in response_json['portfolio']:
                 if item[0] == extractPeriod:
