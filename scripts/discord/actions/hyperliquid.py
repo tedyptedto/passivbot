@@ -133,14 +133,15 @@ async def allHL(message, isAuto):
                 month_data = item[1]
                 break
         if month_data is not None:
-            pnl_history = month_data["pnlHistory"]
+            dataType = "accountValueHistory"
+            pnl_history = month_data[]
             timestamps = [datetime.fromtimestamp(int(entry[0])/1000) for entry in pnl_history]
             pnl_values = [float(entry[1]) for entry in pnl_history]
 
             # Création du graphique
             plt.figure(figsize=(10, 5))
             plt.plot(timestamps, pnl_values, marker='o')
-            plt.title('PnL History - ' + extractPeriod + " " + user_name)
+            plt.title(dataType + ' - ' + extractPeriod + " " + user_name)
             plt.xlabel('Date')
             plt.ylabel('PnL Value')
             plt.grid(True)
