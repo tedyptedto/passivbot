@@ -366,7 +366,7 @@ def calc_close_grid_long(
     auto_unstuck_delay_minutes,
     auto_unstuck_qty_pct,
 ):
-    if backwards_tp:
+    if backwards_tp and (1 == 2): # @TEDY Patch
         return calc_close_grid_backwards_long(
             balance,
             psize,
@@ -441,7 +441,7 @@ def calc_close_grid_short(
     auto_unstuck_delay_minutes,
     auto_unstuck_qty_pct,
 ):
-    if backwards_tp:
+    if backwards_tp and (1 == 2): # @TEDY Patch:
         return calc_close_grid_backwards_short(
             balance,
             psize,
