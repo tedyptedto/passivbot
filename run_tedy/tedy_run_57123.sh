@@ -12,10 +12,11 @@ current_pwd=`pwd`
 symbols="XRPUSDT,DOGEUSDT,ADAUSDT,SOLUSDT"
 config="configs/live/_running/tedy/a_57123_long_we_1.json"
 i="HL_tedy_57123"
-twe_long="3"
+twe_long="3" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus
 bbuser="hyperliquid_vault_tedy57123"
 
 echo "Running screen $i"
 screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done"
 
 
+ 
