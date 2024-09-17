@@ -19,7 +19,7 @@
     execution_delay_seconds: 2
 
     // set all non-specified symbols on graceful stop
-    auto_gs: true
+    auto_gs: false
 
     // total wallet exposure limits long and short. Exposure limit for each bot will be TWE_pos_side / len(active_symbols_pos_side)
     TWE_long: 2.0
