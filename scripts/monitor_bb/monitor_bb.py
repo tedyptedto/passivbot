@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-
 #python3 -m venv venv
 # venv/bin/pip install ccxt matplotlib numpy pandas
 # venv/bin/python3 monitor_bb.py
@@ -16,6 +15,11 @@ lengthLineExtensionBBline = 20  # Prolongement des lignes (bougies)
 
 # Initialisation de l'exchange (Binance ici)
 exchange = ccxt.binance()
+
+
+# Dictionnaire pour stocker les compteurs de croisements pour chaque symbole
+cross_count = {}
+cross_timeframes = {}
 
 # Fonction pour récupérer les données OHLCV
 def fetch_data(symbol, timeframe):
@@ -75,8 +79,12 @@ def plot_bollinger_bands(symbol, timeframe, data, upper_band, sma, lower_band, f
     plt.close()
 
 # Fonction pour déterminer la tendance des lignes prolongées avec des couleurs
-def determine_trend(future_upper, future_lower):
+def determine_trend(symbol, timeframe, future_upper, future_lower):
     if check_cross(future_upper, future_lower):
+        cross_count[symbol] = cross_count.get(symbol, 0) + 1  # Incrémente le compteur pour le symbole
+        if symbol not in cross_timeframes:
+            cross_timeframes[symbol] = []
+        cross_timeframes[symbol].append(timeframe)  # Enregistre l'UT du croisement
         return "\033[32mCroisement\033[0m"  # Vert foncé
     elif future_upper[-1] > future_upper[0] and future_lower[-1] > future_lower[0]:
         return "\033[90mCanal ascendant\033[0m"  # Gris clair
@@ -109,11 +117,21 @@ def monitor_cryptos(symbols, timeframes):
             
             if future_upper is not None and future_lower is not None:
                 # Déterminer la tendance des lignes prolongées
-                trend = determine_trend(future_upper, future_lower)
+                trend = determine_trend(symbol, timeframe, future_upper, future_lower)
                 print(f'{symbol} - {timeframe}: {trend}')
             
             # Enregistrement des graphiques avec les lignes prolongées
             plot_bollinger_bands(symbol, timeframe, data, upper_band, sma, lower_band, future_upper, future_lower)
+
+# À la fin du script, afficher les symboles avec un nombre de croisements supérieur au seuil
+def display_symbols_with_crossings(threshold=2):
+    print("\nSymbole(s) avec plusieurs croisements :")
+    for symbol, count in cross_count.items():
+        if count >= threshold:
+            timeframes_str = ", ".join(cross_timeframes[symbol])
+            print(f"\033[32m{symbol}\033[0m a eu {count} croisements sur les UT : \033[32m{timeframes_str}\033[0m.")
+            
+
 
 # Liste des cryptos à surveiller
 symbols = [
@@ -148,7 +166,13 @@ symbols = [
 
 
 # Liste des unités de temps à surveiller
-timeframes = ['1d', '4h', '1h']
+timeframes = ['1d', '4h', '1h', '5m']
 
 # Lancer la surveillance
 monitor_cryptos(symbols, timeframes)
+
+
+
+# Exemple d'utilisation
+# À la fin de toutes les vérifications
+display_symbols_with_crossings(threshold=2)            
