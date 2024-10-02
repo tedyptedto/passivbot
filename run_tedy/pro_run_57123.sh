@@ -12,7 +12,7 @@ current_pwd=`pwd`
 symbols="DOGEUSDT,AVAXUSDT,SOLUSDT,XRPUSDT,ADAUSDT,LTCUSDT"
 config="configs/live/_running/pro/a_57123_long_we_pro.json"
 i="HL_pro_57123"
-twe_long="2"
+twe_long="2.5"
 bbuser="hyperliquid_pro57123"
 
 echo "Running screen $i"
