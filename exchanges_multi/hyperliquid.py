@@ -55,7 +55,7 @@ class HyperliquidBot(Passivbot):
             )
             self.user_info["is_vault"] = False
 
-    def set_market_specific_settings(self):
+   def set_market_specific_settings(self):
         super().set_market_specific_settings()
         for symbol in self.markets_dict:
             elm = self.markets_dict[symbol]
@@ -63,13 +63,12 @@ class HyperliquidBot(Passivbot):
             self.min_costs[symbol] = (
                 10.1 if elm["limits"]["cost"]["min"] is None else elm["limits"]["cost"]["min"]
             )
-            self.min_costs[symbol] *= 1.1
-            self.qty_steps[symbol] = round_(10 ** -elm["precision"]["amount"], 0.0000000001)
             self.min_qtys[symbol] = (
-                self.qty_steps[symbol]
+                elm["precision"]["amount"]
                 if elm["limits"]["amount"]["min"] is None
                 else elm["limits"]["amount"]["min"]
             )
+            self.qty_steps[symbol] = elm["precision"]["amount"]
             self.price_steps[symbol] = round_(10 ** -elm["precision"]["price"], 0.0000000001)
             self.c_mults[symbol] = elm["contractSize"]
             self.max_leverage[symbol] = (
