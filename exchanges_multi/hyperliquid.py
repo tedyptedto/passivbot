@@ -55,7 +55,7 @@ class HyperliquidBot(Passivbot):
             )
             self.user_info["is_vault"] = False
 
-   def set_market_specific_settings(self):
+    def set_market_specific_settings(self):
         super().set_market_specific_settings()
         for symbol in self.markets_dict:
             elm = self.markets_dict[symbol]
