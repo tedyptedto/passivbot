@@ -9,7 +9,7 @@ cd ~/Documents/passivbot5.4.2tedy
 
 #   Tedy2
 current_pwd=`pwd`
-symbols="ADAUSDT,SOLUSDT,DOGEUSDT"
+symbols="ADAUSDT,SOLUSDT,DOGEUSDT,XLMUSDT"
 config="configs/live/_running/tedySUB2/a_tedy_be550.json"
 i="HL_tedy_be550"
 # twe_long="3"
