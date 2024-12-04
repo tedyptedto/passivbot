@@ -9,7 +9,8 @@ cd ~/Documents/passivbot5.4.2tedy
 #   Tedy1
 current_pwd=`pwd`
 # symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
-symbols="XRPUSDT,DOGEUSDT,ADAUSDT,SOLUSDT,XLMUSDT"
+symbols="DOGEUSDT,AVAXUSDT,SOLUSDT,XRPUSDT,ADAUSDT,LTCUSDT"
+
 config="configs/live/_running/tedy/a_57123_long_we_1.json"
 i="HL_tedy_57123"
 twe_long="2" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus

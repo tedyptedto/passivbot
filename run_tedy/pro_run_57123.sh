@@ -10,9 +10,10 @@ cd ~/passivbot5.4.2pro
 current_pwd=`pwd`
 # symbols="MATICUSDT,DOGEUSDT,AVAXUSDT,SOLUSDT,DOTUSDT,UNIUSDT,XRPUSDT,ADAUSDT,TRXUSDT,LTCUSDT"
 symbols="DOGEUSDT,AVAXUSDT,SOLUSDT,XRPUSDT,ADAUSDT,LTCUSDT"
+
 config="configs/live/_running/pro/a_57123_long_we_pro.json"
 i="HL_pro_57123"
-twe_long="2.5"
+twe_long="2"
 bbuser="hyperliquid_pro57123"
 
 echo "Running screen $i"
