@@ -360,7 +360,8 @@ class HyperliquidBot(Passivbot):
                             # "orderType": {"limit": {"tif": "Alo"}},
                             # "cloid": order["custom_id"],
                             "reduceOnly": order["reduce_only"],
-                            "timeInForce": "Alo",
+                            # "timeInForce": "Alo",
+                            "timeInForce": "Gtc",
                         },
                     }
                 )
