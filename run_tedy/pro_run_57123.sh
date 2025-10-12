@@ -1,5 +1,9 @@
 #!/bin/bash
 
+echo "Unused"
+exit 0
+
+
 cd ~/passivbot5.4.2pro
 
 # Get script from 'old' and after 
