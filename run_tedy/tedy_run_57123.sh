@@ -33,7 +33,7 @@ cd ~/Documents/passivbot5.4.2tedy
 current_pwd=`pwd`
 symbols="ADAUSDT,SOLUSDT,DOGEUSDT,XLMUSDT"
 config="configs/live/_running/tedySUB2/a_tedy_be550.json"
-i="HL_tedy_be550"
+i="HL_tedy_be550_lev2_57123"
 # twe_long="3"
 twe_long="2"                        # <====== tedy be550 Levier 2
 bbuser="hyperliquid_vault_tedybe550"
