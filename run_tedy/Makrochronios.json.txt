@@ -1,0 +1,7 @@
+While Makrochronios has not only weathered a black swan but in fact made money, its unfortunate that I have to close the vault down to make ends meet.
+
+However, I will be sharing the Makrochronios config here for @everyone. Feel free to use it for personal accounts, vaults, or even improve on it. I trust this community for you have been wonderful, brave, and generous. I have made some cool friendship, even if mostly online.
+
+Makrochronios ran for 433 days on Hyperliquid.
+The first 3-4 month ran with all coins listed in the config (HYPE came in later) and then I commented out some coins as shown in the config.
+Wallet exposure was 2.0 the first 6 months, then ran at 3.0 [it ran at TWE=3.0 during the black swan]
