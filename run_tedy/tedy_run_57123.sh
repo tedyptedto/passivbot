@@ -36,7 +36,7 @@ config="configs/live/_running/tedySUB2/a_tedy_be550.json"
 i="HL_tedy_be550_lev2_57123"
 # twe_long="3"
 twe_long="2"                        # <====== tedy be550 Levier 2
-bbuser="hyperliquid_vault_tedybe550"
+bbuser="hyperliquid_vault_tedy57123"
 
 echo "Running screen $i"
 screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done "
