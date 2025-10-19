@@ -75,6 +75,7 @@ class MyClient(discord.Client):
             # Logs the error appropriately.
             await message.channel.send('Mauvaise commande.') 
 
+print(f"Using discord.py version {discord.__version__}")
 client = MyClient()
 base_dir = os.path.realpath(os.path.dirname(os.path.abspath(__file__))+'/')+'/'
 
