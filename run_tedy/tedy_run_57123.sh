@@ -1,4 +1,4 @@
-!/bin/bash
+# !/bin/bash
 
 cd ~/Documents/passivbot5.4.2tedy
 
