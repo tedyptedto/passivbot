@@ -1,26 +1,4 @@
-#!/bin/bash
-
-# cd ~/Documents/passivbot5.4.2tedy
-
-# # Get script from 'old' and after 
-# # Changed "i" to better name
-# # Changed "bbuser" to use HL account
-
-# #   Tedy1
-# current_pwd=`pwd`
-# # symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
-# symbols="DOGEUSDT,AVAXUSDT,SOLUSDT,XRPUSDT,ADAUSDT,LTCUSDT"
-
-# config="configs/live/_running/tedy/a_57123_long_we_1.json"
-# i="HL_tedy_57123"
-# twe_long="2" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus
-# bbuser="hyperliquid_vault_tedy57123"
-
-# echo "Running screen $i"
-# screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done"
-
-
- #!/bin/bash
+!/bin/bash
 
 cd ~/Documents/passivbot5.4.2tedy
 
@@ -28,15 +6,39 @@ cd ~/Documents/passivbot5.4.2tedy
 # Changed "i" to better name
 # Changed "bbuser" to use HL account
 
-
-#   Tedy2
+#   Tedy1
 current_pwd=`pwd`
-symbols="ADAUSDT,SOLUSDT,DOGEUSDT,XLMUSDT"
-config="configs/live/_running/tedySUB2/a_tedy_be550.json"
-i="HL_tedy_be550_lev2_57123"
-# twe_long="3"
-twe_long="2"                        # <====== tedy be550 Levier 2
+# symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
+# symbols="DOGEUSDT,AVAXUSDT,SOLUSDT,XRPUSDT,ADAUSDT,LTCUSDT"
+symbols="DOGEUSDT,SOLUSDT,XRPUSDT,LTCUSDT"
+
+config="configs/live/_running/tedy/a_57123_long_we_1.json"
+i="HL_tedy_57123_lev1"
+# twe_long="2" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus
+twe_long="1" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus
 bbuser="hyperliquid_vault_tedy57123"
 
 echo "Running screen $i"
-screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done "
+screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done"
+
+
+#  #!/bin/bash
+
+# cd ~/Documents/passivbot5.4.2tedy
+
+# # Get script from 'old' and after 
+# # Changed "i" to better name
+# # Changed "bbuser" to use HL account
+
+
+# #   Tedy2
+# current_pwd=`pwd`
+# symbols="ADAUSDT,SOLUSDT,DOGEUSDT,XLMUSDT"
+# config="configs/live/_running/tedySUB2/a_tedy_be550.json"
+# i="HL_tedy_be550_lev2_57123"
+# # twe_long="3"
+# twe_long="2"                        # <====== tedy be550 Levier 2
+# bbuser="hyperliquid_vault_tedy57123"
+
+# echo "Running screen $i"
+# screen -S "$i" -dm bash -c "cd ${current_pwd}; while true; do python3 passivbot_multi.py -le y -se n -tl ${twe_long} -u ${bbuser} -s ${symbols} -dcp ${config} configs/live/_running/config.hjson; echo 'Waiting 2.5 minutes before restart...'; sleep 150; done "
