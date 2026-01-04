@@ -10,12 +10,13 @@ cd ~/Documents/passivbot5.4.2tedy
 current_pwd=`pwd`
 # symbols="XRPUSDT,MATICUSDT,DOGEUSDT"
 # symbols="DOGEUSDT,AVAXUSDT,SOLUSDT,XRPUSDT,ADAUSDT,LTCUSDT"
-symbols="DOGEUSDT,SOLUSDT,XRPUSDT,LTCUSDT"
+# symbols="DOGEUSDT,SOLUSDT,XRPUSDT,LTCUSDT"
+symbols="DOGEUSDT,XRPUSDT,LTCUSDT"
 
 config="configs/live/_running/tedy/a_57123_long_we_1.json"
 i="HL_tedy_57123_lev1"
 # twe_long="2" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus
-twe_long="1" # en levier 3 je suis à -8.37% d'ordres et ensuite -30% de plus
+twe_long="1" 
 bbuser="hyperliquid_vault_tedy57123"
 
 echo "Running screen $i"
